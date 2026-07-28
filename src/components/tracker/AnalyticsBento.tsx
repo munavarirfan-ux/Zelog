@@ -19,7 +19,7 @@ import { Heatmap } from "./Heatmap";
 import { EmptyState } from "@/components/empty-states/EmptyState";
 import { projectById } from "@/data/mockEntries";
 import { PROJECT_COLOR_DOT } from "@/lib/projectColors";
-import { formatDurationShort, formatTimeRange } from "@/lib/time";
+import { formatDuration, formatTimeRange } from "@/lib/time";
 import { cn } from "@/lib/utils";
 
 export function AnalyticsBento() {
@@ -96,7 +96,7 @@ export function AnalyticsBento() {
                     </p>
                   </div>
                   <span className="shrink-0 text-xs font-semibold tabular-nums text-text-secondary">
-                    {formatDurationShort(entry.durationSeconds)}
+                    {formatDuration(entry.durationSeconds)}
                   </span>
                 </div>
               );

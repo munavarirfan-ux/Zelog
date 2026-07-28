@@ -1,0 +1,5 @@
+#!/bin/bash
+set -e
+
+echo "Starting Next.js development server on port 3005..."
+npx next dev -p 3005

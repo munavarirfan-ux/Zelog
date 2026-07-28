@@ -156,7 +156,7 @@ export const useTrackerStore = create<TrackerState>()(
       setFilters: (patch) => set((state) => ({ filters: { ...state.filters, ...patch } })),
     }),
     {
-      name: "zelog-tracker-store",
+      name: "zelog-tracker-store-v2",
       skipHydration: true,
       partialize: (state) => ({ entries: state.entries, runningTimer: state.runningTimer, filters: state.filters }),
     },

@@ -50,7 +50,7 @@ const config: Config = {
         sans: ["Inter", "system-ui", "sans-serif"],
       },
       maxWidth: {
-        shell: "1360px",
+        shell: "none",
       },
       borderRadius: {
         sm: "8px",

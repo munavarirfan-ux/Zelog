@@ -70,16 +70,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-[18px] border border-border/[0.06] bg-surface dark:border-white/[0.06]">
             <div className={cn("border-b border-border/[0.06] dark:border-white/[0.06]", collapsed ? "px-2 py-3.5" : "px-3.5 py-3.5")}>
               <div className={cn("flex items-center", collapsed ? "justify-center" : "justify-between")}>
-                <Link href="/tracker" className={cn("flex items-center", collapsed ? "justify-center" : "gap-2.5")}>
-                  <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-emerald-500 text-sm font-bold text-white shadow-sm">
-                    Z
-                  </span>
-                  {!collapsed ? (
-                    <div className="leading-tight">
-                      <p className="text-sm font-bold tracking-tight text-text">{APP_NAME}</p>
-                      <p className="truncate text-[10px] font-medium text-text-tertiary">{COMPANY_NAME}</p>
-                    </div>
-                  ) : null}
+                <Link href="/tracker" className={cn("flex items-center", collapsed ? "justify-center" : "gap-0")}>
+                  <img src="/zelog-logo.png" alt="ZeLog" className={cn("shrink-0", collapsed ? "h-9 w-9 rounded-[10px]" : "h-10 w-auto")} />
                 </Link>
                 {!collapsed ? (
                   <Button
@@ -153,7 +145,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col lg:overflow-hidden">
-        <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto overflow-x-hidden px-3 py-3 sm:px-4 sm:py-4">
+        <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto overflow-x-hidden px-3 py-3 sm:px-4 sm:py-4 lg:px-6">
           <header className="sticky top-0 z-[100] mb-4 shrink-0 rounded-[16px] border border-border/[0.06] bg-surface/95 shadow-xs backdrop-blur dark:border-white/[0.06]">
             <div className="flex items-center gap-3 px-3 py-2.5">
               <Button
@@ -231,7 +223,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </header>
 
-          <div className="mx-auto w-full max-w-shell flex-1">{children}</div>
+          <div className="w-full min-w-0 flex-1">{children}</div>
         </main>
       </div>
     </div>
