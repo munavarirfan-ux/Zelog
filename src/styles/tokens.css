@@ -1,0 +1,121 @@
+/**
+ * ZeLog design tokens — sibling of the ZeCode token system, retuned to ZeLog's
+ * own indigo/violet identity. Components consume these via Tailwind utilities
+ * (bg-surface, text-text-secondary, etc.) which read the rgb(var(--*)) bridge below.
+ */
+
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+
+  --app-bg-rgb: 250 250 252;
+  --surface-rgb: 255 255 255;
+  --surface-2-rgb: 246 246 250;
+  --surface-3-rgb: 237 237 244;
+
+  --border-rgb: 15 23 42;
+  --border-strong-rgb: 15 23 42;
+
+  --text-rgb: 17 17 24;
+  --text-secondary-rgb: 100 100 115;
+  --text-tertiary-rgb: 150 150 165;
+  --muted-rgb: 150 150 165;
+
+  --nav-bg-rgb: 255 255 255;
+
+  --accent-50-rgb: 238 238 253;
+  --accent-100-rgb: 224 224 251;
+  --accent-200-rgb: 199 199 249;
+  --accent-500-rgb: 99 102 241;
+  --accent-600-rgb: 79 70 229;
+  --accent-700-rgb: 67 56 202;
+  --accent-900-rgb: 49 46 129;
+  --accent-hover-rgb: 79 70 229;
+  --accent-soft-rgb: 238 238 253;
+
+  --success-rgb: 22 163 74;
+  --warning-rgb: 217 119 6;
+  --danger-rgb: 220 38 38;
+  --info-rgb: 37 99 235;
+
+  --hero-from-rgb: 30 27 75;
+  --hero-via-rgb: 67 56 202;
+  --hero-to-rgb: 124 58 237;
+
+  --card-shadow-color: 15 23 42;
+}
+
+[data-theme="dark"],
+html.dark {
+  color-scheme: dark;
+
+  --app-bg-rgb: 10 10 14;
+  --surface-rgb: 17 17 23;
+  --surface-2-rgb: 24 24 31;
+  --surface-3-rgb: 32 32 40;
+
+  --border-rgb: 255 255 255;
+  --border-strong-rgb: 255 255 255;
+
+  --text-rgb: 237 237 243;
+  --text-secondary-rgb: 161 161 176;
+  --text-tertiary-rgb: 113 113 130;
+  --muted-rgb: 113 113 130;
+
+  --nav-bg-rgb: 15 15 20;
+
+  --accent-50-rgb: 30 27 75;
+  --accent-100-rgb: 40 37 90;
+  --accent-200-rgb: 55 51 115;
+  --accent-500-rgb: 129 140 248;
+  --accent-600-rgb: 129 140 248;
+  --accent-700-rgb: 165 180 252;
+  --accent-900-rgb: 224 231 255;
+  --accent-hover-rgb: 165 180 252;
+  --accent-soft-rgb: 40 37 90;
+
+  --success-rgb: 74 222 128;
+  --warning-rgb: 250 204 21;
+  --danger-rgb: 248 113 113;
+  --info-rgb: 96 165 250;
+
+  --hero-from-rgb: 20 18 45;
+  --hero-via-rgb: 49 46 129;
+  --hero-to-rgb: 91 51 189;
+
+  --card-shadow-color: 0 0 0;
+}
+
+* {
+  border-color: rgb(var(--border-rgb) / 0.08);
+}
+
+::selection {
+  background: rgb(var(--accent-500-rgb) / 0.22);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--text-rgb) / 0.12);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--text-rgb) / 0.2);
+  background-clip: content-box;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
