@@ -337,6 +337,7 @@ function SettingsTab({ project }: { project: (typeof PROJECTS)[number] }) {
   const [name, setName] = useState(project.name);
   const [client, setClient] = useState(project.client || "None");
   const [color, setColor] = useState<string>(project.color);
+  const [visibility, setVisibility] = useState<"private" | "public">(project.client ? "private" : "public");
   const [billable, setBillable] = useState(project.billableDefault);
   const [rate, setRate] = useState("");
   const [estimate, setEstimate] = useState("");
@@ -347,6 +348,7 @@ function SettingsTab({ project }: { project: (typeof PROJECTS)[number] }) {
     name !== project.name ||
     client !== (project.client || "None") ||
     color !== project.color ||
+    visibility !== (project.client ? "private" : "public") ||
     billable !== project.billableDefault ||
     rate !== "" ||
     estimate !== "";
@@ -427,6 +429,42 @@ function SettingsTab({ project }: { project: (typeof PROJECTS)[number] }) {
             ))}
           </div>
           <p className="mt-1.5 text-xs text-text-tertiary">Use color to visually differentiate projects.</p>
+        </div>
+
+        <div className="border-t border-border/[0.06] dark:border-white/[0.05]" />
+
+        {/* Visibility */}
+        <div>
+          <label className="text-sm font-medium text-text">Visibility</label>
+          <p className="mt-0.5 text-xs text-text-tertiary">Only people you add to the Project can track time on it.</p>
+          <div className="mt-3 flex items-center gap-5">
+            <button type="button" onClick={() => setVisibility("private")} className="flex cursor-pointer items-center gap-2">
+              <span
+                className={cn(
+                  "flex h-[18px] w-[18px] items-center justify-center rounded-full border-2 transition-colors",
+                  visibility === "private"
+                    ? "border-accent"
+                    : "border-border/40 dark:border-white/20",
+                )}
+              >
+                {visibility === "private" && <span className="h-2.5 w-2.5 rounded-full bg-accent" />}
+              </span>
+              <span className="text-sm text-text">Private</span>
+            </button>
+            <button type="button" onClick={() => setVisibility("public")} className="flex cursor-pointer items-center gap-2">
+              <span
+                className={cn(
+                  "flex h-[18px] w-[18px] items-center justify-center rounded-full border-2 transition-colors",
+                  visibility === "public"
+                    ? "border-accent"
+                    : "border-border/40 dark:border-white/20",
+                )}
+              >
+                {visibility === "public" && <span className="h-2.5 w-2.5 rounded-full bg-accent" />}
+              </span>
+              <span className="text-sm text-text">Public</span>
+            </button>
+          </div>
         </div>
 
         <div className="border-t border-border/[0.06] dark:border-white/[0.05]" />

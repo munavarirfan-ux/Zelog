@@ -10,18 +10,64 @@ import { PROJECT_COLOR_DOT } from "@/lib/projectColors";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import type { Project } from "@/types/tracker";
+import type { Project, ProjectColor } from "@/types/tracker";
 
 type StatusFilter = "all" | "active" | "archived";
 type AccessFilter = "all" | "public" | "private";
 type BillingFilter = "all" | "billable" | "non-billable";
+
+const COLOR_OPTIONS: { value: ProjectColor; hex: string }[] = [
+  { value: "indigo", hex: "#6366f1" },
+  { value: "violet", hex: "#8b5cf6" },
+  { value: "sky", hex: "#0ea5e9" },
+  { value: "emerald", hex: "#10b981" },
+  { value: "amber", hex: "#f59e0b" },
+  { value: "rose", hex: "#f43f5e" },
+];
+
+const EXTENDED_COLORS = [
+  { hex: "#6366f1", label: "Indigo" },
+  { hex: "#8b5cf6", label: "Violet" },
+  { hex: "#3b82f6", label: "Blue" },
+  { hex: "#0ea5e9", label: "Sky" },
+  { hex: "#06b6d4", label: "Cyan" },
+  { hex: "#10b981", label: "Emerald" },
+  { hex: "#22c55e", label: "Green" },
+  { hex: "#84cc16", label: "Lime" },
+  { hex: "#f59e0b", label: "Amber" },
+  { hex: "#f97316", label: "Orange" },
+  { hex: "#ef4444", label: "Red" },
+  { hex: "#f43f5e", label: "Rose" },
+  { hex: "#ec4899", label: "Pink" },
+  { hex: "#a855f7", label: "Purple" },
+  { hex: "#6b7280", label: "Gray" },
+  { hex: "#14b8a6", label: "Teal" },
+];
+
+const CLIENT_OPTIONS = [
+  "Acme Corp",
+  "TechStart Inc",
+  "Global Media",
+  "Design Studio",
+  "Internal",
+];
 
 function getProjectTrackedSeconds(projectId: string, entries: { projectId: string; durationSeconds: number }[]): number {
   return entries.filter((e) => e.projectId === projectId).reduce((sum, e) => sum + e.durationSeconds, 0);
@@ -29,6 +75,7 @@ function getProjectTrackedSeconds(projectId: string, entries: { projectId: strin
 
 export default function ProjectsPage() {
   const entries = useTrackerStore((s) => s.entries);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -68,12 +115,17 @@ export default function ProjectsPage() {
               <h1 className="text-2xl font-semibold tracking-tight">Projects</h1>
               <p className="mt-0.5 text-sm text-white/60">Manage projects, clients, access, and billing</p>
             </div>
-            <Button
-              size="lg"
-              className="gap-2 rounded-[10px] bg-white px-6 text-sm font-semibold text-accent-900 shadow-lg hover:bg-white/90"
-            >
-              <Plus className="h-4 w-4" /> New project
-            </Button>
+            <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  size="lg"
+                  className="gap-2 rounded-[10px] bg-white px-6 text-sm font-semibold text-accent-900 shadow-lg hover:bg-white/90"
+                >
+                  <Plus className="h-4 w-4" /> New project
+                </Button>
+              </DialogTrigger>
+              <CreateProjectDialog onClose={() => setCreateOpen(false)} />
+            </Dialog>
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
@@ -144,6 +196,167 @@ export default function ProjectsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+/* ─── Create Project Dialog ─── */
+function CreateProjectDialog({ onClose }: { onClose: () => void }) {
+  const [name, setName] = useState("");
+  const [selectedColor, setSelectedColor] = useState("#6366f1");
+  const [client, setClient] = useState("");
+  const [note, setNote] = useState("");
+  const [estimatedHours, setEstimatedHours] = useState("");
+  const [isPublic, setIsPublic] = useState(false);
+  const [isBillable, setIsBillable] = useState(false);
+
+  function handleCreate() {
+    onClose();
+  }
+
+  return (
+    <DialogContent className="sm:max-w-[480px]">
+      <DialogHeader>
+        <DialogTitle>Create new project</DialogTitle>
+        <DialogDescription className="sr-only">Fill in the details to create a new project.</DialogDescription>
+      </DialogHeader>
+
+      <div className="space-y-5 py-2">
+        {/* Name */}
+        <div>
+          <label className="mb-1.5 block text-xs font-medium text-text-secondary">
+            Name <span className="text-rose-500">*</span>
+          </label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Project name"
+            className="h-10 w-full rounded-[10px] border border-border/10 bg-surface-2/60 px-3 text-sm text-text placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/20 dark:border-white/10"
+            autoFocus
+          />
+        </div>
+
+        {/* Color */}
+        <div>
+          <label className="mb-2 block text-xs font-medium text-text-secondary">Color</label>
+          <div className="flex flex-wrap gap-2">
+            {EXTENDED_COLORS.map((color) => {
+              const isSelected = selectedColor === color.hex;
+              return (
+                <button
+                  key={color.hex}
+                  type="button"
+                  onClick={() => setSelectedColor(color.hex)}
+                  className={cn(
+                    "h-7 w-7 rounded-full transition-all duration-150",
+                    isSelected ? "ring-2 ring-offset-2 ring-offset-surface scale-110" : "hover:scale-110",
+                  )}
+                  style={{ backgroundColor: color.hex, ...(isSelected ? { boxShadow: `0 0 0 2px var(--tw-ring-offset-color), 0 0 0 4px ${color.hex}` } : {}) }}
+                  title={color.label}
+                />
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Client */}
+        <div>
+          <label className="mb-1.5 block text-xs font-medium text-text-secondary">Client</label>
+          <Select value={client} onValueChange={setClient}>
+            <SelectTrigger className="h-10">
+              <SelectValue placeholder="Select a client" />
+            </SelectTrigger>
+            <SelectContent>
+              {CLIENT_OPTIONS.map((c) => (
+                <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Note */}
+        <div>
+          <label className="mb-1.5 block text-xs font-medium text-text-secondary">Note</label>
+          <textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Add a note about this project..."
+            rows={3}
+            className="w-full rounded-[10px] border border-border/10 bg-surface-2/60 px-3 py-2.5 text-sm text-text placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/20 resize-none dark:border-white/10"
+          />
+        </div>
+
+        {/* Estimated Hours */}
+        <div>
+          <label className="mb-1.5 block text-xs font-medium text-text-secondary">Estimated Hours</label>
+          <input
+            type="number"
+            value={estimatedHours}
+            onChange={(e) => setEstimatedHours(e.target.value)}
+            placeholder="e.g. 120"
+            className="h-10 w-full rounded-[10px] border border-border/10 bg-surface-2/60 px-3 text-sm text-text placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/20 dark:border-white/10"
+          />
+        </div>
+
+        {/* Toggles */}
+        <div className="space-y-3">
+          <label className="flex items-center gap-3 cursor-pointer">
+            <button
+              type="button"
+              role="switch"
+              aria-checked={isPublic}
+              onClick={() => setIsPublic(!isPublic)}
+              className={cn(
+                "relative h-5 w-9 shrink-0 rounded-full transition-colors duration-200",
+                isPublic ? "bg-accent" : "bg-border/20 dark:bg-white/20",
+              )}
+            >
+              <span
+                className={cn(
+                  "absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200",
+                  isPublic && "translate-x-4",
+                )}
+              />
+            </button>
+            <span className="text-sm text-text">Public — visible to all workspace members</span>
+          </label>
+
+          <label className="flex items-center gap-3 cursor-pointer">
+            <button
+              type="button"
+              role="switch"
+              aria-checked={isBillable}
+              onClick={() => setIsBillable(!isBillable)}
+              className={cn(
+                "relative h-5 w-9 shrink-0 rounded-full transition-colors duration-200",
+                isBillable ? "bg-accent" : "bg-border/20 dark:bg-white/20",
+              )}
+            >
+              <span
+                className={cn(
+                  "absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200",
+                  isBillable && "translate-x-4",
+                )}
+              />
+            </button>
+            <span className="text-sm text-text">Billable</span>
+          </label>
+        </div>
+      </div>
+
+      <DialogFooter>
+        <Button variant="outline" onClick={onClose} className="rounded-[10px]">
+          Cancel
+        </Button>
+        <Button
+          onClick={handleCreate}
+          disabled={!name.trim()}
+          className="rounded-[10px] px-5"
+        >
+          Create Project
+        </Button>
+      </DialogFooter>
+    </DialogContent>
   );
 }
 
@@ -231,4 +444,3 @@ function FilterPillHero({ label, value, onChange, options }: {
     </select>
   );
 }
-

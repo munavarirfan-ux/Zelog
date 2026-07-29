@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Bell, LogOut, Menu, Moon, PanelLeftClose, PanelLeftOpen, Search, Settings, Sun, User } from "lucide-react";
+import { Bell, LogOut, Menu, Moon, PanelLeftClose, PanelLeftOpen, Settings, Sun, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS, APP_NAME, COMPANY_NAME } from "@/config/nav";
 import { Button } from "@/components/ui/button";
@@ -158,13 +158,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <Menu className="h-4 w-4" strokeWidth={1.75} />
               </Button>
 
-              <div className="relative hidden min-w-0 flex-1 sm:block sm:max-w-md">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary" strokeWidth={1.75} />
-                <input
-                  type="text"
-                  placeholder="Search tasks, projects…"
-                  className="h-9 w-full rounded-[10px] border border-border/10 bg-surface-2/60 pl-9 pr-3 text-sm text-text placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/20 dark:border-white/10"
-                />
+              <div className="hidden min-w-0 flex-1 sm:block">
+                <span className="text-sm font-light text-text-tertiary">Zessta Software Solutions</span>
               </div>
 
               <div className="flex flex-1 items-center justify-end gap-2">
