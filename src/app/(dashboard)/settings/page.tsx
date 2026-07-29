@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Check, Monitor, Moon, RotateCcw, Sun, User } from "lucide-react";
+import MuiTextField from "@mui/material/TextField";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/ThemeProvider";
@@ -145,29 +146,32 @@ function ProfileSection() {
         <div className="flex-1 space-y-5">
           <div>
             <label className="mb-1.5 block text-xs font-medium text-text-secondary">Full name</label>
-            <input
-              type="text"
+            <MuiTextField
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="h-10 w-full rounded-[10px] border border-border/10 bg-surface-2/60 px-3 text-sm text-text placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/20 dark:border-white/10"
+              fullWidth
+              size="small"
+              sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px", backgroundColor: "rgba(var(--surface-2-rgb, 0 0 0) / 0.6)" } }}
             />
           </div>
           <div>
             <label className="mb-1.5 block text-xs font-medium text-text-secondary">Email</label>
-            <input
-              type="email"
+            <MuiTextField
               value="irfan@zelog.io"
-              readOnly
-              className="h-10 w-full rounded-[10px] border border-border/10 bg-surface-2/30 px-3 text-sm text-text-secondary cursor-not-allowed dark:border-white/10"
+              fullWidth
+              size="small"
+              disabled
+              sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px", backgroundColor: "rgba(var(--surface-2-rgb, 0 0 0) / 0.3)" } }}
             />
           </div>
           <div>
             <label className="mb-1.5 block text-xs font-medium text-text-secondary">Role</label>
-            <input
-              type="text"
+            <MuiTextField
               value="Admin"
-              readOnly
-              className="h-10 w-full rounded-[10px] border border-border/10 bg-surface-2/30 px-3 text-sm text-text-secondary cursor-not-allowed dark:border-white/10"
+              fullWidth
+              size="small"
+              disabled
+              sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px", backgroundColor: "rgba(var(--surface-2-rgb, 0 0 0) / 0.3)" } }}
             />
           </div>
         </div>
@@ -338,12 +342,15 @@ function AppearanceSection() {
           <div className="flex-1">
             <label className="mb-1.5 block text-xs font-medium text-text-secondary">HEX code</label>
             <div className="flex items-center gap-2">
-              <input
-                type="text"
+              <MuiTextField
                 value={hexInput}
                 onChange={(e) => handleHexChange(e.target.value)}
-                className="h-10 w-36 rounded-[10px] border border-border/10 bg-surface-2/60 px-3 text-sm font-mono text-text placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/20 dark:border-white/10"
                 placeholder="#6366F1"
+                size="small"
+                sx={{
+                  width: 144,
+                  "& .MuiOutlinedInput-root": { borderRadius: "10px", fontFamily: "monospace" },
+                }}
               />
               {themeColor !== DEFAULT_COLOR && (
                 <Button

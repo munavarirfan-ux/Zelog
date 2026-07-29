@@ -1,10 +1,10 @@
 import { AppShell } from "@/components/AppShell";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { MuiThemeProvider } from "@/components/MuiThemeProvider";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <TooltipProvider delayDuration={150}>
+    <MuiThemeProvider>
       <AppShell>{children}</AppShell>
-    </TooltipProvider>
+    </MuiThemeProvider>
   );
 }

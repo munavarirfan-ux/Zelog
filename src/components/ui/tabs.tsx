@@ -1,77 +1,138 @@
 "use client";
 
 import * as React from "react";
-import * as TabsPrimitive from "@radix-ui/react-tabs";
+import MuiTabs from "@mui/material/Tabs";
+import MuiTab from "@mui/material/Tab";
+import Box from "@mui/material/Box";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
-const Tabs = TabsPrimitive.Root;
+interface TabsContextValue {
+  value: string;
+  onValueChange: (value: string) => void;
+}
 
-const tabsListVariants = cva(
-  [
-    "inline-flex w-full items-stretch justify-start gap-0 overflow-x-auto bg-transparent p-0",
-    "border-b border-border/[0.07] no-scrollbar dark:border-white/[0.08]",
-  ],
-  {
-    variants: {
-      size: {
-        default: "h-10 min-h-[36px] max-h-10",
-        compact: "h-8 min-h-8 max-h-8",
-      },
+const TabsContext = React.createContext<TabsContextValue>({ value: "", onValueChange: () => {} });
+
+interface TabsProps extends React.HTMLAttributes<HTMLDivElement> {
+  defaultValue?: string;
+  value?: string;
+  onValueChange?: (value: string) => void;
+}
+
+function Tabs({ defaultValue = "", value, onValueChange, children, className, ...props }: TabsProps) {
+  const [internal, setInternal] = React.useState(defaultValue);
+  const current = value ?? internal;
+  const handleChange = React.useCallback(
+    (v: string) => {
+      if (onValueChange) onValueChange(v);
+      else setInternal(v);
     },
-    defaultVariants: { size: "default" },
+    [onValueChange],
+  );
+  return (
+    <TabsContext.Provider value={{ value: current, onValueChange: handleChange }}>
+      <div className={className} {...props}>
+        {children}
+      </div>
+    </TabsContext.Provider>
+  );
+}
+
+interface TabsListProps extends React.HTMLAttributes<HTMLDivElement> {
+  size?: "default" | "compact";
+}
+
+const TabsList = React.forwardRef<HTMLDivElement, TabsListProps>(
+  ({ className, size = "default", children, ...props }, ref) => {
+    const ctx = React.useContext(TabsContext);
+    const tabValues: string[] = [];
+    React.Children.forEach(children, (child) => {
+      if (React.isValidElement(child) && child.props.value) {
+        tabValues.push(child.props.value);
+      }
+    });
+
+    return (
+      <div ref={ref} {...props}>
+        <MuiTabs
+          value={ctx.value || false}
+          onChange={(_, newVal) => ctx.onValueChange(newVal)}
+          variant="scrollable"
+          scrollButtons={false}
+          className={cn(className)}
+          sx={{
+            minHeight: size === "compact" ? 32 : 40,
+            borderBottom: "1px solid rgba(var(--border-rgb, 0 0 0) / 0.07)",
+            "& .MuiTabs-indicator": {
+              background: "linear-gradient(90deg, rgb(var(--primary-600-rgb)), rgb(var(--primary-400-rgb)))",
+              height: "2px",
+              borderRadius: 4,
+            },
+            "& .MuiTab-root": {
+              textTransform: "none",
+              fontWeight: 500,
+              fontSize: size === "compact" ? "12px" : "14px",
+              minHeight: size === "compact" ? 32 : 40,
+              padding: size === "compact" ? "6px 10px" : "8px 16px",
+              color: "var(--color-text-tertiary)",
+              "&:hover": { color: "var(--color-text-secondary)", backgroundColor: "var(--color-surface-2)" },
+              "&.Mui-selected": { color: "var(--color-text)", fontWeight: 600 },
+            },
+          }}
+        >
+          {React.Children.map(children, (child) => {
+            if (React.isValidElement(child) && child.props.value) {
+              return (
+                <MuiTab
+                  value={child.props.value}
+                  label={child.props.children}
+                  disableRipple
+                />
+              );
+            }
+            return null;
+          })}
+        </MuiTabs>
+      </div>
+    );
   },
 );
+TabsList.displayName = "TabsList";
 
-const tabsTriggerVariants = cva(
-  [
-    "relative -mb-px inline-flex shrink-0 items-center justify-center whitespace-nowrap",
-    "border-b-2 border-transparent bg-transparent font-medium text-text-tertiary",
-    "transition-[color,background-color,border-color] duration-150 ease-out",
-    "hover:bg-surface-2 hover:text-text-secondary",
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/20",
-    "disabled:pointer-events-none disabled:opacity-50",
-    "data-[state=active]:border-accent data-[state=active]:font-semibold data-[state=active]:text-text",
-  ],
-  {
-    variants: {
-      size: {
-        default: "px-4 py-2 text-[14px]",
-        compact: "px-2.5 py-1.5 text-[12px] data-[state=active]:font-medium",
-      },
-    },
-    defaultVariants: { size: "default" },
+interface TabsTriggerProps extends React.HTMLAttributes<HTMLButtonElement> {
+  value: string;
+  size?: "default" | "compact";
+}
+
+const TabsTrigger = React.forwardRef<HTMLButtonElement, TabsTriggerProps>(
+  ({ value, children, ...props }, ref) => {
+    return <span data-value={value} {...(props as any)}>{children}</span>;
   },
 );
+TabsTrigger.displayName = "TabsTrigger";
 
-type TabsListProps = React.ComponentPropsWithoutRef<typeof TabsPrimitive.List> & VariantProps<typeof tabsListVariants>;
-type TabsTriggerProps = React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger> &
-  VariantProps<typeof tabsTriggerVariants>;
+interface TabsContentProps extends React.HTMLAttributes<HTMLDivElement> {
+  value: string;
+}
 
-const TabsList = React.forwardRef<React.ElementRef<typeof TabsPrimitive.List>, TabsListProps>(
-  ({ className, size, ...props }, ref) => (
-    <TabsPrimitive.List ref={ref} className={cn(tabsListVariants({ size }), className)} {...props} />
-  ),
+const TabsContent = React.forwardRef<HTMLDivElement, TabsContentProps>(
+  ({ className, value, ...props }, ref) => {
+    const ctx = React.useContext(TabsContext);
+    if (ctx.value !== value) return null;
+    return (
+      <div
+        ref={ref}
+        role="tabpanel"
+        className={cn(
+          "mt-4 min-w-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/20",
+          className,
+        )}
+        {...props}
+      />
+    );
+  },
 );
-TabsList.displayName = TabsPrimitive.List.displayName;
-
-const TabsTrigger = React.forwardRef<React.ElementRef<typeof TabsPrimitive.Trigger>, TabsTriggerProps>(
-  ({ className, size, ...props }, ref) => (
-    <TabsPrimitive.Trigger ref={ref} className={cn(tabsTriggerVariants({ size }), className)} {...props} />
-  ),
-);
-TabsTrigger.displayName = TabsPrimitive.Trigger.displayName;
-
-const TabsContent = React.forwardRef<
-  React.ElementRef<typeof TabsPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content>
->(({ className, ...props }, ref) => (
-  <TabsPrimitive.Content
-    ref={ref}
-    className={cn("mt-4 min-w-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/20", className)}
-    {...props}
-  />
-));
-TabsContent.displayName = TabsPrimitive.Content.displayName;
+TabsContent.displayName = "TabsContent";
 
 export { Tabs, TabsList, TabsTrigger, TabsContent };

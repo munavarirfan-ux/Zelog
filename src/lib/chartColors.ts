@@ -5,14 +5,16 @@ export const CHART_AXIS_TICK = {
   fill: "rgb(var(--text-tertiary-rgb))",
 };
 
-export const CHART_ACCENT = "rgb(var(--accent-500-rgb))";
-export const CHART_ACCENT_SOFT = "rgb(var(--accent-500-rgb) / 0.16)";
+export const CHART_ACCENT = "rgb(var(--primary-main-rgb))";
+export const CHART_ACCENT_SOFT = "rgb(var(--primary-main-rgb) / 0.16)";
 
 export const CATEGORICAL_PALETTE = [
-  "#6366f1",
-  "#8b5cf6",
-  "#0ea5e9",
-  "#10b981",
-  "#f59e0b",
-  "#f43f5e",
+  "rgb(var(--chart-1-rgb))",
+  "rgb(var(--chart-2-rgb))",
+  "rgb(var(--chart-3-rgb))",
+  "rgb(var(--chart-4-rgb))",
+  "rgb(var(--chart-5-rgb))",
+  "rgb(var(--chart-6-rgb))",
+  "rgb(var(--chart-7-rgb))",
+  "rgb(var(--chart-8-rgb))",
 ];

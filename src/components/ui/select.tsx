@@ -1,107 +1,126 @@
 "use client";
 
 import * as React from "react";
-import * as SelectPrimitive from "@radix-ui/react-select";
-import { Check, ChevronDown, ChevronUp } from "lucide-react";
+import MuiSelect from "@mui/material/Select";
+import MuiMenuItem from "@mui/material/MenuItem";
+import FormControl from "@mui/material/FormControl";
+import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const Select = SelectPrimitive.Root;
-const SelectGroup = SelectPrimitive.Group;
-const SelectValue = SelectPrimitive.Value;
+interface SelectContextValue {
+  value: string;
+  onValueChange: (v: string) => void;
+}
 
-const SelectTrigger = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
->(({ className, children, ...props }, ref) => (
-  <SelectPrimitive.Trigger
-    ref={ref}
-    className={cn(
-      "flex h-9 w-full items-center justify-between gap-2 rounded-[10px] border border-border/10 bg-surface px-3 text-sm font-medium text-text shadow-none",
-      "transition-all duration-200 ease-out hover:border-border/20",
-      "focus:outline-none focus:ring-2 focus:ring-accent/20 disabled:cursor-not-allowed disabled:opacity-50",
-      "[&>span]:line-clamp-1 dark:border-white/10",
-      className,
-    )}
-    {...props}
-  >
-    {children}
-    <SelectPrimitive.Icon asChild>
-      <ChevronDown className="h-3.5 w-3.5 shrink-0 text-text-tertiary" strokeWidth={2} />
-    </SelectPrimitive.Icon>
-  </SelectPrimitive.Trigger>
-));
-SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;
+const SelectContext = React.createContext<SelectContextValue>({ value: "", onValueChange: () => {} });
 
-const SelectScrollUpButton = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.ScrollUpButton>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollUpButton>
->(({ className, ...props }, ref) => (
-  <SelectPrimitive.ScrollUpButton ref={ref} className={cn("flex cursor-default items-center justify-center py-1", className)} {...props}>
-    <ChevronUp className="h-4 w-4 text-text-tertiary" />
-  </SelectPrimitive.ScrollUpButton>
-));
-SelectScrollUpButton.displayName = SelectPrimitive.ScrollUpButton.displayName;
+function Select({ value, onValueChange, defaultValue, children }: {
+  value?: string;
+  onValueChange?: (v: string) => void;
+  defaultValue?: string;
+  children: React.ReactNode;
+}) {
+  const [internalValue, setInternalValue] = React.useState(defaultValue || "");
+  const isControlled = value !== undefined;
+  const currentValue = isControlled ? value : internalValue;
 
-const SelectScrollDownButton = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.ScrollDownButton>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollDownButton>
->(({ className, ...props }, ref) => (
-  <SelectPrimitive.ScrollDownButton ref={ref} className={cn("flex cursor-default items-center justify-center py-1", className)} {...props}>
-    <ChevronDown className="h-4 w-4 text-text-tertiary" />
-  </SelectPrimitive.ScrollDownButton>
-));
-SelectScrollDownButton.displayName = SelectPrimitive.ScrollDownButton.displayName;
+  const handleChange = React.useCallback((v: string) => {
+    if (!isControlled) setInternalValue(v);
+    onValueChange?.(v);
+  }, [isControlled, onValueChange]);
 
-const SelectContent = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
->(({ className, children, position = "popper", ...props }, ref) => (
-  <SelectPrimitive.Portal>
-    <SelectPrimitive.Content
-      ref={ref}
-      className={cn(
-        "relative z-50 max-h-96 min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-[14px] border border-border/[0.07] bg-surface text-text",
-        "shadow-[0_8px_32px_rgba(15,23,42,0.12)] data-[state=open]:animate-radix-in data-[state=closed]:animate-radix-out dark:border-white/[0.08]",
-        position === "popper" &&
-          "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
-        className,
-      )}
-      position={position}
-      {...props}
-    >
-      <SelectScrollUpButton />
-      <SelectPrimitive.Viewport
-        className={cn("p-1", position === "popper" && "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]")}
-      >
-        {children}
-      </SelectPrimitive.Viewport>
-      <SelectScrollDownButton />
-    </SelectPrimitive.Content>
-  </SelectPrimitive.Portal>
-));
-SelectContent.displayName = SelectPrimitive.Content.displayName;
+  return (
+    <SelectContext.Provider value={{ value: currentValue, onValueChange: handleChange }}>
+      {children}
+    </SelectContext.Provider>
+  );
+}
 
-const SelectItem = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
->(({ className, children, ...props }, ref) => (
-  <SelectPrimitive.Item
-    ref={ref}
-    className={cn(
-      "relative flex w-full cursor-default select-none items-center rounded-[8px] py-1.5 pl-8 pr-2 text-sm outline-none",
-      "focus:bg-surface-2 data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-      className,
-    )}
-    {...props}
-  >
-    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
-      <SelectPrimitive.ItemIndicator>
-        <Check className="h-4 w-4 text-accent" strokeWidth={2} />
-      </SelectPrimitive.ItemIndicator>
-    </span>
-    <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
-  </SelectPrimitive.Item>
-));
-SelectItem.displayName = SelectPrimitive.Item.displayName;
+const SelectGroup = ({ children }: { children: React.ReactNode }) => <>{children}</>;
+
+function SelectValue({ placeholder }: { placeholder?: string }) {
+  const { value } = React.useContext(SelectContext);
+  return <span className="truncate">{value || placeholder || ""}</span>;
+}
+
+interface SelectTriggerProps {
+  className?: string;
+  children: React.ReactNode;
+}
+
+const SelectTriggerContext = React.createContext<{
+  items: { value: string; label: React.ReactNode }[];
+  setItems: (items: { value: string; label: React.ReactNode }[]) => void;
+}>({ items: [], setItems: () => {} });
+
+const SelectTrigger = React.forwardRef<HTMLDivElement, SelectTriggerProps>(
+  ({ className, children }, ref) => {
+    const { value, onValueChange } = React.useContext(SelectContext);
+    const [items, setItems] = React.useState<{ value: string; label: React.ReactNode }[]>([]);
+
+    return (
+      <SelectTriggerContext.Provider value={{ items, setItems }}>
+        <FormControl size="small" fullWidth ref={ref}>
+          <MuiSelect
+            value={value}
+            onChange={(e) => onValueChange(e.target.value as string)}
+            displayEmpty
+            IconComponent={() => <ChevronDown className="mr-2 h-3.5 w-3.5 shrink-0 text-text-tertiary" strokeWidth={2} />}
+            className={cn("!rounded-[10px] !text-sm !font-medium", className)}
+            renderValue={() => children}
+            MenuProps={{
+              slotProps: {
+                paper: {
+                  className: "!rounded-[14px] !border !border-border/[0.07] !bg-surface !shadow-float dark:!border-white/[0.06] !mt-1",
+                  sx: { backgroundImage: "none" },
+                },
+                list: { className: "!p-1" },
+              },
+            }}
+            sx={{
+              "& .MuiOutlinedInput-notchedOutline": { borderColor: "rgb(var(--border-rgb) / 0.1)" },
+              "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "rgb(var(--primary-300-rgb) / 0.4)" },
+              "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "rgb(var(--primary-500-rgb) / 0.6)", borderWidth: "2px" },
+              "& .MuiSelect-select": { color: "var(--color-text)", display: "flex", alignItems: "center", gap: "0.5rem" },
+              backgroundColor: "rgb(var(--primary-50-rgb) / 0.4)",
+            }}
+          >
+            {items.map((item) => (
+              <MuiMenuItem
+                key={item.value}
+                value={item.value}
+                className="!rounded-[8px] !mx-1 !px-2 !py-1.5 !text-sm !text-text hover:!bg-surface-2"
+                sx={{ minHeight: "unset" }}
+              >
+                {item.label}
+              </MuiMenuItem>
+            ))}
+          </MuiSelect>
+        </FormControl>
+      </SelectTriggerContext.Provider>
+    );
+  }
+);
+SelectTrigger.displayName = "SelectTrigger";
+
+function SelectContent({ children }: { children: React.ReactNode; className?: string }) {
+  const { setItems } = React.useContext(SelectTriggerContext);
+
+  React.useEffect(() => {
+    const items: { value: string; label: React.ReactNode }[] = [];
+    React.Children.forEach(children, (child) => {
+      if (React.isValidElement(child) && child.props.value !== undefined) {
+        items.push({ value: child.props.value, label: child.props.children });
+      }
+    });
+    setItems(items);
+  }, [children, setItems]);
+
+  return null;
+}
+
+function SelectItem({ value, disabled, children }: { value: string; disabled?: boolean; children: React.ReactNode }) {
+  return null;
+}
 
 export { Select, SelectGroup, SelectValue, SelectTrigger, SelectContent, SelectItem };

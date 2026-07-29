@@ -7,7 +7,7 @@ import { Bell, LogOut, Menu, Moon, PanelLeftClose, PanelLeftOpen, Settings, Sun,
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS, APP_NAME, COMPANY_NAME } from "@/config/nav";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import MuiTooltip from "@mui/material/Tooltip";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import {
@@ -94,8 +94,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               ) : null}
             </div>
 
-            <nav className={cn("flex-1 overflow-auto py-3", collapsed ? "px-2" : "px-2.5")}>
-              <div className="space-y-0.5">
+            <nav className={cn("flex-1 overflow-auto py-4", collapsed ? "px-2" : "px-4")}>
+              <div className="space-y-1.5">
                 {NAV_ITEMS.map((item) => {
                   const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
                   const Icon = item.icon;
@@ -104,25 +104,39 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       key={item.href}
                       href={item.href}
                       className={cn(
-                        "group flex items-center rounded-[10px] font-medium transition-colors duration-150",
-                        collapsed ? "h-10 w-10 justify-center" : "h-10 gap-2.5 px-3",
+                        "group flex items-center font-medium transition-all duration-[180ms] ease-out",
+                        collapsed ? "h-11 w-11 justify-center rounded-xl" : "h-11 gap-3 rounded-xl px-3",
                         active
-                          ? "bg-accent/10 text-accent"
-                          : "text-text-secondary hover:bg-surface-2 hover:text-text",
+                          ? "border border-[rgba(122,77,255,0.10)] dark:border-[rgba(138,107,255,0.15)]"
+                          : "border border-transparent hover:translate-x-0.5 hover:border-transparent",
+                        !active && "text-[#5F6285] hover:bg-[rgba(122,77,255,0.06)] hover:text-text dark:text-[#8B8DAF] dark:hover:text-text",
                       )}
+                      style={active ? {
+                        background: "linear-gradient(90deg, rgba(122,77,255,0.12) 0%, rgba(122,77,255,0.06) 100%)",
+                      } : undefined}
                     >
-                      <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.75} />
-                      {!collapsed ? <span className="truncate text-[13px]">{item.label}</span> : null}
+                      <Icon
+                        className={cn(
+                          "h-5 w-5 shrink-0 transition-colors duration-[180ms]",
+                          active ? "text-[#5A43D5] dark:text-[#8A6BFF]" : "text-[#6D7195] group-hover:text-[#5A43D5] dark:text-[#7B7DA0] dark:group-hover:text-[#8A6BFF]",
+                        )}
+                        strokeWidth={1.75}
+                      />
+                      {!collapsed ? (
+                        <span className={cn(
+                          "truncate text-[13px] transition-colors duration-[180ms]",
+                          active ? "font-semibold text-[#2F2775] dark:text-[#E8DFFF]" : "font-medium",
+                        )}>
+                          {item.label}
+                        </span>
+                      ) : null}
                     </Link>
                   );
                   if (!collapsed) return link;
                   return (
-                    <Tooltip key={item.href} delayDuration={200}>
-                      <TooltipTrigger asChild>{link}</TooltipTrigger>
-                      <TooltipContent side="right" sideOffset={8}>
-                        {item.label}
-                      </TooltipContent>
-                    </Tooltip>
+                    <MuiTooltip key={item.href} title={item.label} placement="right" arrow={false}>
+                      {link}
+                    </MuiTooltip>
                   );
                 })}
               </div>
@@ -148,15 +162,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto overflow-x-hidden px-3 py-3 sm:px-4 sm:py-4 lg:px-6">
           <header className="sticky top-0 z-[100] mb-4 shrink-0 rounded-[16px] border border-border/[0.06] bg-surface/95 shadow-xs backdrop-blur dark:border-white/[0.06]">
             <div className="flex items-center gap-3 px-3 py-2.5">
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-9 w-9 shrink-0 lg:hidden"
+              <button
+                type="button"
+                className="shrink-0 lg:pointer-events-none"
                 onClick={() => setMobileOpen(true)}
                 aria-label="Open navigation"
               >
-                <Menu className="h-4 w-4" strokeWidth={1.75} />
-              </Button>
+                <img src="/zessta-logo.png" alt="Zessta" className="h-6 w-auto" />
+              </button>
 
               <div className="hidden min-w-0 flex-1 sm:block">
                 <span className="text-sm font-light text-text-tertiary">Zessta Software Solutions</span>

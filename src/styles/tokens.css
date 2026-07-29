@@ -1,98 +1,233 @@
 /**
- * ZeLog design tokens — sibling of the ZeCode token system, retuned to ZeLog's
- * own indigo/violet identity. Components consume these via Tailwind utilities
- * (bg-surface, text-text-secondary, etc.) which read the rgb(var(--*)) bridge below.
+ * ZeLog Design System Tokens
+ * Derived from the hero card gradient:
+ * linear-gradient(135deg, #2F2775 0%, #4133A5 35%, #5A43D5 70%, #7A4DFF 100%)
+ *
+ * Primary palette generated from the gradient anchor points.
+ * Every interactive surface, border, and accent references these tokens.
  */
 
 :root,
 [data-theme="light"] {
   color-scheme: light;
 
-  --app-bg-rgb: 250 250 252;
+  /* ═══════════════════════════════════════════════════════════
+     PRIMARY PALETTE (hero gradient-derived)
+     ═══════════════════════════════════════════════════════════ */
+  --primary-900-rgb: 34 28 90;
+  --primary-800-rgb: 47 39 117;
+  --primary-700-rgb: 65 51 165;
+  --primary-600-rgb: 90 67 213;
+  --primary-500-rgb: 110 79 247;
+  --primary-400-rgb: 138 107 255;
+  --primary-300-rgb: 169 140 255;
+  --primary-200-rgb: 201 182 255;
+  --primary-100-rgb: 232 223 255;
+  --primary-50-rgb: 246 242 255;
+
+  /* Semantic primary aliases */
+  --primary-main-rgb: 110 79 247;
+  --primary-hover-rgb: 90 67 213;
+  --primary-active-rgb: 65 51 165;
+  --primary-soft-rgb: 232 223 255;
+  --primary-subtle-rgb: 246 242 255;
+  --primary-outline-rgb: 138 107 255;
+
+  /* ═══════════════════════════════════════════════════════════
+     SURFACES
+     ═══════════════════════════════════════════════════════════ */
+  --app-bg-rgb: 250 249 254;
   --surface-rgb: 255 255 255;
-  --surface-2-rgb: 246 246 250;
-  --surface-3-rgb: 237 237 244;
+  --surface-2-rgb: 248 246 253;
+  --surface-3-rgb: 241 238 250;
+  --surface-elevated-rgb: 255 255 255;
+  --surface-hover-rgb: 246 242 255;
 
-  --border-rgb: 15 23 42;
-  --border-strong-rgb: 15 23 42;
+  /* ═══════════════════════════════════════════════════════════
+     BORDERS
+     ═══════════════════════════════════════════════════════════ */
+  --border-rgb: 34 28 90;
+  --border-light-rgb: 201 182 255;
+  --border-medium-rgb: 169 140 255;
+  --border-strong-rgb: 65 51 165;
 
-  --text-rgb: 17 17 24;
-  --text-secondary-rgb: 100 100 115;
-  --text-tertiary-rgb: 150 150 165;
-  --muted-rgb: 150 150 165;
+  /* ═══════════════════════════════════════════════════════════
+     TEXT
+     ═══════════════════════════════════════════════════════════ */
+  --text-rgb: 20 16 48;
+  --text-secondary-rgb: 90 85 120;
+  --text-tertiary-rgb: 135 130 160;
+  --text-disabled-rgb: 180 175 200;
+  --text-on-primary-rgb: 255 255 255;
+  --muted-rgb: 135 130 160;
 
+  /* ═══════════════════════════════════════════════════════════
+     NAVIGATION
+     ═══════════════════════════════════════════════════════════ */
   --nav-bg-rgb: 255 255 255;
 
-  --accent-50-rgb: 238 238 253;
-  --accent-100-rgb: 224 224 251;
-  --accent-200-rgb: 199 199 249;
-  --accent-500-rgb: 99 102 241;
-  --accent-600-rgb: 79 70 229;
-  --accent-700-rgb: 67 56 202;
-  --accent-900-rgb: 49 46 129;
-  --accent-hover-rgb: 79 70 229;
-  --accent-soft-rgb: 238 238 253;
+  /* ═══════════════════════════════════════════════════════════
+     ACCENT (mapped to primary for backward compat)
+     ═══════════════════════════════════════════════════════════ */
+  --accent-50-rgb: 246 242 255;
+  --accent-100-rgb: 232 223 255;
+  --accent-200-rgb: 201 182 255;
+  --accent-500-rgb: 110 79 247;
+  --accent-600-rgb: 90 67 213;
+  --accent-700-rgb: 65 51 165;
+  --accent-900-rgb: 34 28 90;
+  --accent-hover-rgb: 90 67 213;
+  --accent-soft-rgb: 246 242 255;
 
-  --success-rgb: 22 163 74;
-  --warning-rgb: 217 119 6;
-  --danger-rgb: 220 38 38;
-  --info-rgb: 37 99 235;
+  /* ═══════════════════════════════════════════════════════════
+     STATUS (muted to harmonize with purple system)
+     ═══════════════════════════════════════════════════════════ */
+  --success-rgb: 45 140 100;
+  --warning-rgb: 168 120 30;
+  --danger-rgb: 190 55 55;
+  --info-rgb: 60 100 200;
 
-  --hero-from-rgb: 30 27 75;
-  --hero-via-rgb: 67 56 202;
-  --hero-to-rgb: 124 58 237;
+  /* ═══════════════════════════════════════════════════════════
+     HERO GRADIENT
+     ═══════════════════════════════════════════════════════════ */
+  --hero-from-rgb: 47 39 117;
+  --hero-via-rgb: 65 51 165;
+  --hero-to-rgb: 122 77 255;
 
-  --card-shadow-color: 15 23 42;
+  /* ═══════════════════════════════════════════════════════════
+     PROJECT CHIP COLORS (harmonized with primary)
+     ═══════════════════════════════════════════════════════════ */
+  --chip-indigo-rgb: 113 98 214;
+  --chip-violet-rgb: 139 107 220;
+  --chip-sky-rgb: 75 160 220;
+  --chip-emerald-rgb: 60 185 135;
+  --chip-amber-rgb: 210 150 60;
+  --chip-rose-rgb: 215 110 160;
+
+  /* ═══════════════════════════════════════════════════════════
+     CHARTS (gradient-derived harmony)
+     ═══════════════════════════════════════════════════════════ */
+  --chart-1-rgb: 110 79 247;
+  --chart-2-rgb: 90 67 213;
+  --chart-3-rgb: 138 107 255;
+  --chart-4-rgb: 70 100 190;
+  --chart-5-rgb: 169 140 255;
+  --chart-6-rgb: 65 51 165;
+  --chart-7-rgb: 201 182 255;
+  --chart-8-rgb: 47 39 117;
+
+  /* ═══════════════════════════════════════════════════════════
+     SHADOWS
+     ═══════════════════════════════════════════════════════════ */
+  --card-shadow-color: 34 28 90;
 }
 
 [data-theme="dark"],
 html.dark {
   color-scheme: dark;
 
-  --app-bg-rgb: 10 10 14;
-  --surface-rgb: 17 17 23;
-  --surface-2-rgb: 24 24 31;
-  --surface-3-rgb: 32 32 40;
+  /* Primary palette (slightly lifted for dark mode readability) */
+  --primary-900-rgb: 232 223 255;
+  --primary-800-rgb: 201 182 255;
+  --primary-700-rgb: 169 140 255;
+  --primary-600-rgb: 138 107 255;
+  --primary-500-rgb: 138 107 255;
+  --primary-400-rgb: 110 79 247;
+  --primary-300-rgb: 90 67 213;
+  --primary-200-rgb: 65 51 165;
+  --primary-100-rgb: 40 35 80;
+  --primary-50-rgb: 25 22 50;
 
-  --border-rgb: 255 255 255;
-  --border-strong-rgb: 255 255 255;
+  --primary-main-rgb: 138 107 255;
+  --primary-hover-rgb: 169 140 255;
+  --primary-active-rgb: 201 182 255;
+  --primary-soft-rgb: 40 35 80;
+  --primary-subtle-rgb: 25 22 50;
+  --primary-outline-rgb: 138 107 255;
 
-  --text-rgb: 237 237 243;
-  --text-secondary-rgb: 161 161 176;
-  --text-tertiary-rgb: 113 113 130;
-  --muted-rgb: 113 113 130;
+  /* Surfaces */
+  --app-bg-rgb: 10 9 18;
+  --surface-rgb: 18 16 30;
+  --surface-2-rgb: 26 23 44;
+  --surface-3-rgb: 34 30 56;
+  --surface-elevated-rgb: 30 27 52;
+  --surface-hover-rgb: 34 30 56;
 
-  --nav-bg-rgb: 15 15 20;
+  /* Borders */
+  --border-rgb: 201 182 255;
+  --border-light-rgb: 55 50 90;
+  --border-medium-rgb: 75 65 120;
+  --border-strong-rgb: 138 107 255;
 
-  --accent-50-rgb: 30 27 75;
-  --accent-100-rgb: 40 37 90;
-  --accent-200-rgb: 55 51 115;
-  --accent-500-rgb: 129 140 248;
-  --accent-600-rgb: 129 140 248;
-  --accent-700-rgb: 165 180 252;
-  --accent-900-rgb: 224 231 255;
-  --accent-hover-rgb: 165 180 252;
-  --accent-soft-rgb: 40 37 90;
+  /* Text */
+  --text-rgb: 237 234 248;
+  --text-secondary-rgb: 165 158 190;
+  --text-tertiary-rgb: 120 115 150;
+  --text-disabled-rgb: 80 76 105;
+  --text-on-primary-rgb: 255 255 255;
+  --muted-rgb: 120 115 150;
 
-  --success-rgb: 74 222 128;
-  --warning-rgb: 250 204 21;
-  --danger-rgb: 248 113 113;
-  --info-rgb: 96 165 250;
+  /* Navigation */
+  --nav-bg-rgb: 14 12 26;
 
-  --hero-from-rgb: 20 18 45;
-  --hero-via-rgb: 49 46 129;
-  --hero-to-rgb: 91 51 189;
+  /* Accent (dark mode) */
+  --accent-50-rgb: 25 22 50;
+  --accent-100-rgb: 40 35 80;
+  --accent-200-rgb: 65 51 165;
+  --accent-500-rgb: 138 107 255;
+  --accent-600-rgb: 138 107 255;
+  --accent-700-rgb: 169 140 255;
+  --accent-900-rgb: 232 223 255;
+  --accent-hover-rgb: 169 140 255;
+  --accent-soft-rgb: 40 35 80;
+
+  /* Status */
+  --success-rgb: 80 200 140;
+  --warning-rgb: 220 180 80;
+  --danger-rgb: 240 110 110;
+  --info-rgb: 110 160 240;
+
+  /* Hero gradient */
+  --hero-from-rgb: 20 18 40;
+  --hero-via-rgb: 47 39 117;
+  --hero-to-rgb: 90 55 200;
+
+  /* Chip colors (dark mode) */
+  --chip-indigo-rgb: 155 140 255;
+  --chip-violet-rgb: 180 155 255;
+  --chip-sky-rgb: 130 215 255;
+  --chip-emerald-rgb: 120 235 190;
+  --chip-amber-rgb: 255 200 135;
+  --chip-rose-rgb: 255 160 210;
+
+  /* Charts (dark mode) */
+  --chart-1-rgb: 138 107 255;
+  --chart-2-rgb: 110 79 247;
+  --chart-3-rgb: 169 140 255;
+  --chart-4-rgb: 100 140 220;
+  --chart-5-rgb: 201 182 255;
+  --chart-6-rgb: 90 67 213;
+  --chart-7-rgb: 232 223 255;
+  --chart-8-rgb: 65 51 165;
 
   --card-shadow-color: 0 0 0;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   GLOBAL DEFAULTS
+   ═══════════════════════════════════════════════════════════ */
 
 * {
   border-color: rgb(var(--border-rgb) / 0.08);
 }
 
 ::selection {
-  background: rgb(var(--accent-500-rgb) / 0.22);
+  background: rgb(var(--primary-main-rgb) / 0.2);
 }
+
+/* ═══════════════════════════════════════════════════════════
+   SCROLLBARS
+   ═══════════════════════════════════════════════════════════ */
 
 ::-webkit-scrollbar {
   width: 10px;
@@ -102,13 +237,13 @@ html.dark {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgb(var(--text-rgb) / 0.12);
+  background: rgb(var(--primary-300-rgb) / 0.3);
   border-radius: 999px;
   border: 2px solid transparent;
   background-clip: content-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgb(var(--text-rgb) / 0.2);
+  background: rgb(var(--primary-500-rgb) / 0.4);
   background-clip: content-box;
 }
 
@@ -118,4 +253,13 @@ html.dark {
 }
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   FOCUS RINGS
+   ═══════════════════════════════════════════════════════════ */
+
+:focus-visible {
+  outline: 2px solid rgb(var(--primary-400-rgb) / 0.5);
+  outline-offset: 2px;
 }

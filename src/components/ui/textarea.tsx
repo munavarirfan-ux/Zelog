@@ -1,19 +1,39 @@
 "use client";
 
 import * as React from "react";
+import MuiTextField from "@mui/material/TextField";
 import { cn } from "@/lib/utils";
 
 export type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement>;
 
-const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(({ className, ...props }, ref) => (
-  <textarea
-    ref={ref}
-    className={cn(
-      "flex min-h-[80px] w-full rounded-[10px] border border-border/10 bg-surface px-3 py-2 text-sm text-text shadow-none placeholder:text-text-tertiary",
-      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/20 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10",
-      className,
-    )}
-    {...props}
+const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(({ className, rows = 3, ...props }, ref) => (
+  <MuiTextField
+    inputRef={ref}
+    variant="outlined"
+    size="small"
+    fullWidth
+    multiline
+    rows={rows}
+    slotProps={{
+      input: {
+        className: cn("!rounded-[10px] !text-sm !text-text !bg-surface", className),
+      },
+    }}
+    sx={{
+      "& .MuiOutlinedInput-root": {
+        borderRadius: "10px",
+        backgroundColor: "rgb(var(--primary-50-rgb) / 0.4)",
+        "& fieldset": { borderColor: "rgb(var(--border-rgb) / 0.08)" },
+        "&:hover fieldset": { borderColor: "rgb(var(--primary-300-rgb) / 0.4) !important" },
+        "&.Mui-focused fieldset": { borderColor: "rgb(var(--primary-500-rgb) / 0.6) !important", borderWidth: "2px" },
+      },
+      "& .MuiInputBase-input": {
+        color: "var(--color-text)",
+        fontSize: "0.875rem",
+        "&::placeholder": { color: "var(--color-text-tertiary)", opacity: 1 },
+      },
+    }}
+    {...(props as any)}
   />
 ));
 Textarea.displayName = "Textarea";

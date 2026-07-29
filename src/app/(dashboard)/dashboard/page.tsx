@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import {
   Calendar,
   ChevronDown,
@@ -98,7 +98,15 @@ export default function DashboardPage() {
       .sort((a, b) => a.date.localeCompare(b.date));
   }, [entries]);
 
-  const maxDaily = Math.max(...dailyData.map((d) => d.total), 1);
+  const uniqueProjects = useMemo(() => {
+    const seen = new Map<string, { id: string; name: string; color: ProjectColor }>();
+    dailyByProject.forEach((day) => {
+      day.projects.forEach(({ project }) => {
+        if (!seen.has(project.id)) seen.set(project.id, project);
+      });
+    });
+    return Array.from(seen.values());
+  }, [dailyByProject]);
 
   const teamActivity = useMemo(() => {
     return TEAM_MEMBERS.map((member, idx) => {
@@ -209,140 +217,15 @@ export default function DashboardPage() {
 
 
       {/* Time Tracked Chart */}
-      <div className="rounded-card border border-border/[0.07] bg-surface p-5 shadow-card dark:border-white/[0.06]">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-text">Time tracked</h3>
-          <div className="flex items-center gap-4">
-            {chartView === "billability" ? (
-              <div className="flex items-center gap-4 text-[11px] text-text-tertiary">
-                <span className="flex items-center gap-1.5"><span className="h-2.5 w-6 rounded-sm bg-accent/80" /> Billable</span>
-                <span className="flex items-center gap-1.5"><span className="h-2.5 w-6 rounded-sm bg-accent/25" /> Non-billable</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-3 text-[11px] text-text-tertiary">
-                {projectStats.slice(0, 4).map(({ project }) => (
-                  <span key={project.id} className="flex items-center gap-1">
-                    <span className={cn("h-2 w-2 rounded-full", PROJECT_COLOR_DOT[project.color])} />
-                    {project.name}
-                  </span>
-                ))}
-              </div>
-            )}
-            {/* View by dropdown */}
-            <div className="relative ml-2">
-              <button
-                type="button"
-                onClick={() => setChartViewOpen(!chartViewOpen)}
-                className="inline-flex h-10 items-center gap-1.5 rounded-[10px] border border-border/10 bg-surface-2/60 px-3 text-xs font-medium text-text-secondary hover:bg-surface-2 transition-colors dark:border-white/10"
-              >
-                <span className="text-text-tertiary">View by</span>
-                <span className="text-text font-medium">{chartView === "billability" ? "Billability" : "Projects"}</span>
-                <ChevronDown className="h-3 w-3 opacity-60" />
-              </button>
-              {chartViewOpen && (
-                <>
-                  <div className="fixed inset-0 z-30" onClick={() => setChartViewOpen(false)} />
-                  <div className="absolute right-0 top-full z-40 mt-1.5 w-44 rounded-card border border-border/10 bg-surface p-1.5 shadow-float dark:border-white/10">
-                    <button
-                      type="button"
-                      onClick={() => { setChartView("billability"); setChartViewOpen(false); }}
-                      className={cn(
-                        "flex w-full items-center gap-2 rounded-md px-3 py-2 text-xs transition-colors",
-                        chartView === "billability" ? "bg-accent/10 text-accent font-medium" : "text-text hover:bg-surface-2",
-                      )}
-                    >
-                      Billability
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { setChartView("projects"); setChartViewOpen(false); }}
-                      className={cn(
-                        "flex w-full items-center gap-2 rounded-md px-3 py-2 text-xs transition-colors",
-                        chartView === "projects" ? "bg-accent/10 text-accent font-medium" : "text-text hover:bg-surface-2",
-                      )}
-                    >
-                      Projects
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Chart Bars */}
-        <div className="flex items-end gap-1.5 h-44 transition-all duration-300">
-          {chartView === "billability" ? (
-            dailyData.map((day) => {
-              const totalH = day.total / 3600;
-              const billablePct = day.total > 0 ? day.billable / day.total : 0;
-              const heightPct = day.total / maxDaily;
-              return (
-                <div key={day.date} className="group/bar relative flex flex-1 flex-col items-center gap-1">
-                  <div className="relative w-full flex flex-col justify-end" style={{ height: "140px" }}>
-                    <div
-                      className="w-full rounded-t-md bg-accent/25 transition-all duration-200"
-                      style={{ height: `${heightPct * 100}%` }}
-                    >
-                      <div
-                        className="w-full rounded-t-md bg-accent/80 transition-all duration-200"
-                        style={{ height: `${billablePct * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                  <span className="text-[9px] text-text-tertiary tabular-nums">
-                    {format(parseISO(day.date), "dd")}
-                  </span>
-                  <div className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 rounded-md bg-surface-3 px-2 py-1 text-[10px] font-medium text-text opacity-0 shadow-sm transition-opacity group-hover/bar:opacity-100 whitespace-nowrap">
-                    {totalH.toFixed(1)}h
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            dailyByProject.map((day) => {
-              const pct = day.total / maxDaily;
-              return (
-                <div key={day.date} className="relative flex flex-1 flex-col items-center gap-1 [&:hover>.chart-tooltip]:opacity-100">
-                  <div className="relative w-full flex flex-col justify-end" style={{ height: "140px" }}>
-                    <div className="w-full flex flex-col-reverse rounded-t-md overflow-hidden transition-all duration-200" style={{ height: `${pct * 100}%` }}>
-                      {day.projects.map(({ project, seconds }) => {
-                        const segPct = seconds / day.total;
-                        return (
-                          <div
-                            key={project.id}
-                            className="w-full transition-opacity hover:opacity-80"
-                            style={{ height: `${segPct * 100}%`, backgroundColor: PROJECT_COLOR_HEX[project.color] + "cc" }}
-                          />
-                        );
-                      })}
-                    </div>
-                  </div>
-                  <span className="text-[9px] text-text-tertiary tabular-nums">
-                    {format(parseISO(day.date), "dd")}
-                  </span>
-                  <div className="chart-tooltip pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 rounded-lg bg-surface px-3 py-2.5 text-[11px] text-text shadow-float border border-border/10 dark:border-white/10 dark:bg-surface-2 w-max max-w-[180px] opacity-0 transition-opacity">
-                    <p className="font-semibold text-text-secondary mb-1.5">{format(parseISO(day.date), "MMM dd")}</p>
-                    <div className="space-y-1">
-                      {day.projects.map(({ project, seconds }) => (
-                        <div key={project.id} className="flex items-center gap-2">
-                          <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: PROJECT_COLOR_HEX[project.color] }} />
-                          <span className="flex-1 truncate text-text">{project.name}</span>
-                          <span className="tabular-nums text-text-tertiary ml-1">{formatHoursShort(seconds)}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="mt-1.5 pt-1.5 border-t border-border/10 dark:border-white/10 flex items-center justify-between font-semibold text-text">
-                      <span>Total</span>
-                      <span className="tabular-nums">{formatHoursShort(day.total)}</span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-      </div>
+      <DashboardChart
+        chartView={chartView}
+        setChartView={setChartView}
+        chartViewOpen={chartViewOpen}
+        setChartViewOpen={setChartViewOpen}
+        dailyData={dailyData}
+        dailyByProject={dailyByProject}
+        uniqueProjects={uniqueProjects}
+      />
 
       {/* Two Column: Donut + Top Projects */}
       <div className="grid gap-5 lg:grid-cols-[320px_1fr]">
@@ -476,6 +359,158 @@ export default function DashboardPage() {
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+
+/* ─── Dashboard Chart (MUI X Charts) ─── */
+function DashboardChart({
+  chartView,
+  setChartView,
+  chartViewOpen,
+  setChartViewOpen,
+  dailyData,
+  dailyByProject,
+  uniqueProjects,
+}: {
+  chartView: "billability" | "projects";
+  setChartView: (v: "billability" | "projects") => void;
+  chartViewOpen: boolean;
+  setChartViewOpen: (v: boolean) => void;
+  dailyData: { date: string; billable: number; nonBillable: number; total: number }[];
+  dailyByProject: { date: string; projects: { project: { id: string; name: string; color: ProjectColor }; seconds: number }[]; total: number }[];
+  uniqueProjects: { id: string; name: string; color: ProjectColor }[];
+}) {
+  const { BarChart } = require("@mui/x-charts/BarChart");
+
+  const formatDurationTooltip = useCallback((value: number | null) => {
+    if (!value) return "0h 0m";
+    const h = Math.floor(value / 3600);
+    const m = Math.floor((value % 3600) / 60);
+    const s = value % 60;
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  }, []);
+
+  const formatYAxis = useCallback((value: number) => `${Math.round(value / 3600)}h`, []);
+
+  const billabilityDataset = useMemo(
+    () => dailyData.map((d) => ({
+      date: format(parseISO(d.date), "MMM dd"),
+      billable: d.billable,
+      nonBillable: d.nonBillable,
+    })),
+    [dailyData],
+  );
+
+  const projectDataset = useMemo(
+    () => dailyByProject.map((day) => {
+      const row: Record<string, any> = { date: format(parseISO(day.date), "MMM dd") };
+      uniqueProjects.forEach((p) => { row[p.id] = 0; });
+      day.projects.forEach(({ project, seconds }) => { row[project.id] = seconds; });
+      return row;
+    }),
+    [dailyByProject, uniqueProjects],
+  );
+
+  const projectSeries = useMemo(
+    () => uniqueProjects.map((p) => ({
+      dataKey: p.id,
+      label: p.name,
+      stack: "total",
+      color: PROJECT_COLOR_HEX[p.color],
+      valueFormatter: formatDurationTooltip,
+    })),
+    [uniqueProjects, formatDurationTooltip],
+  );
+
+  const chartSx = {
+    width: "100%",
+    "& .MuiChartsAxis-line": { stroke: "transparent" },
+    "& .MuiChartsAxis-tick": { stroke: "transparent" },
+    "& .MuiChartsGrid-line": { stroke: "rgba(90, 67, 213, 0.08)", strokeDasharray: "4 4" },
+    "& .MuiChartsAxis-tickLabel": { fill: "rgb(var(--text-tertiary-rgb))", fontSize: 12 },
+    "& .MuiBarElement-root": { rx: 4, ry: 4 },
+  };
+
+  return (
+    <div className="rounded-card border border-border/[0.07] bg-surface p-5 shadow-card dark:border-white/[0.06]">
+      <div className="flex items-center justify-between mb-1">
+        <h3 className="text-sm font-semibold text-text">Time tracked</h3>
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setChartViewOpen(!chartViewOpen)}
+            className="inline-flex h-9 items-center gap-1.5 rounded-[10px] border border-border/10 bg-surface-2/60 px-3 text-xs font-medium text-text-secondary hover:bg-surface-2 transition-colors dark:border-white/10"
+          >
+            <span className="text-text-tertiary">View by</span>
+            <span className="text-text font-medium">{chartView === "billability" ? "Billability" : "Projects"}</span>
+            <ChevronDown className="h-3 w-3 opacity-60" />
+          </button>
+          {chartViewOpen && (
+            <>
+              <div className="fixed inset-0 z-30" onClick={() => setChartViewOpen(false)} />
+              <div className="absolute right-0 top-full z-40 mt-1.5 w-44 rounded-card border border-border/10 bg-surface p-1.5 shadow-float dark:border-white/10">
+                <button
+                  type="button"
+                  onClick={() => { setChartView("billability"); setChartViewOpen(false); }}
+                  className={cn(
+                    "flex w-full items-center gap-2 rounded-md px-3 py-2 text-xs transition-colors",
+                    chartView === "billability" ? "bg-primary-100/60 text-primary-600 font-medium" : "text-text hover:bg-surface-2",
+                  )}
+                >
+                  Billability
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setChartView("projects"); setChartViewOpen(false); }}
+                  className={cn(
+                    "flex w-full items-center gap-2 rounded-md px-3 py-2 text-xs transition-colors",
+                    chartView === "projects" ? "bg-primary-100/60 text-primary-600 font-medium" : "text-text hover:bg-surface-2",
+                  )}
+                >
+                  Projects
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      {chartView === "billability" ? (
+        <BarChart
+          dataset={billabilityDataset}
+          xAxis={[{ scaleType: "band", dataKey: "date", categoryGapRatio: 0.35, barGapRatio: 0.1 }]}
+          yAxis={[{ valueFormatter: formatYAxis }]}
+          series={[
+            { dataKey: "billable", label: "Billable", stack: "total", color: "#5A43D5", valueFormatter: formatDurationTooltip },
+            { dataKey: "nonBillable", label: "Non-billable", stack: "total", color: "#C9B6FF", valueFormatter: formatDurationTooltip },
+          ]}
+          height={280}
+          grid={{ horizontal: true }}
+          borderRadius={8}
+          margin={{ top: 24, right: 24, bottom: 32, left: 52 }}
+          slotProps={{
+            legend: { direction: "row", position: { vertical: "top", horizontal: "right" } },
+          }}
+          sx={chartSx}
+        />
+      ) : (
+        <BarChart
+          dataset={projectDataset}
+          xAxis={[{ scaleType: "band", dataKey: "date", categoryGapRatio: 0.35, barGapRatio: 0.1 }]}
+          yAxis={[{ valueFormatter: formatYAxis }]}
+          series={projectSeries}
+          height={280}
+          grid={{ horizontal: true }}
+          borderRadius={8}
+          margin={{ top: 24, right: 24, bottom: 32, left: 52 }}
+          slotProps={{
+            legend: { direction: "row", position: { vertical: "top", horizontal: "right" } },
+          }}
+          sx={chartSx}
+        />
+      )}
     </div>
   );
 }

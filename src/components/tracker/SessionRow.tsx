@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Copy, MoreHorizontal, Pencil, Play, Trash2 } from "lucide-react";
+import Checkbox from "@mui/material/Checkbox";
 import { useTrackerStore } from "@/store/trackerStore";
 import { projectById } from "@/data/mockEntries";
 import { formatDuration, formatTimeRange } from "@/lib/time";
@@ -20,7 +21,13 @@ import { DeleteSessionAlert } from "./DeleteSessionAlert";
 import type { TimeEntry } from "@/types/tracker";
 import { cn } from "@/lib/utils";
 
-export function SessionRow({ entry }: { entry: TimeEntry }) {
+interface SessionRowProps {
+  entry: TimeEntry;
+  selected?: boolean;
+  onToggleSelect?: () => void;
+}
+
+export function SessionRow({ entry, selected = false, onToggleSelect }: SessionRowProps) {
   const project = projectById(entry.projectId);
   const continueEntry = useTrackerStore((s) => s.continueEntry);
   const duplicateEntry = useTrackerStore((s) => s.duplicateEntry);
@@ -36,12 +43,27 @@ export function SessionRow({ entry }: { entry: TimeEntry }) {
     <>
       <div
         className={cn(
-          "group grid h-14 items-center gap-3 px-6 transition-colors duration-150",
-          "grid-cols-[minmax(180px,1fr)_130px_110px_150px_72px_32px_32px]",
-          "hover:bg-accent/[0.03] dark:hover:bg-accent/[0.05]",
-          "max-md:grid-cols-[1fr_auto] max-md:h-auto max-md:gap-2 max-md:px-4 max-md:py-3",
+          "group grid h-14 items-center gap-3 px-4 transition-colors duration-150",
+          "grid-cols-[32px_minmax(180px,1fr)_130px_110px_150px_72px_32px_32px]",
+          "hover:bg-primary-50/60 dark:hover:bg-primary-50/30",
+          "max-md:grid-cols-[32px_1fr_auto] max-md:h-auto max-md:gap-2 max-md:px-4 max-md:py-3",
+          selected && "bg-primary-100/50 dark:bg-primary-100/40",
         )}
       >
+        {/* Checkbox */}
+        <Checkbox
+          size="small"
+          checked={selected}
+          onChange={onToggleSelect}
+          sx={{
+            padding: 0,
+            width: 20,
+            height: 20,
+            color: "rgb(var(--primary-main-rgb) / 0.3)",
+            "&.Mui-checked": { color: "rgb(var(--primary-600-rgb))" },
+          }}
+        />
+
         {/* Task name — inline editable */}
         <div className="min-w-0">
           {isEditing ? (
@@ -144,7 +166,7 @@ export function SessionRow({ entry }: { entry: TimeEntry }) {
         </Button>
 
         {/* More menu */}
-        <div className="justify-self-end max-md:col-start-2 max-md:row-start-1">
+        <div className="justify-self-end max-md:col-start-3 max-md:row-start-1">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button

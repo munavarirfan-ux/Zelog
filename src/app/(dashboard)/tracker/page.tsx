@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useHydratedTracker, useTrackerStore } from "@/store/trackerStore";
 import { applyFilters, groupEntriesByDay } from "@/lib/trackerSelectors";
 import { Hero } from "@/components/tracker/Hero";
@@ -13,9 +13,29 @@ export default function TrackerPage() {
   const entries = useTrackerStore((s) => s.entries);
   const filters = useTrackerStore((s) => s.filters);
   const taskInputRef = useRef<HTMLInputElement>(null);
+  const [selectedEntryIds, setSelectedEntryIds] = useState<string[]>([]);
 
   const filtered = useMemo(() => applyFilters(entries, filters), [entries, filters]);
   const groups = useMemo(() => groupEntriesByDay(filtered), [filtered]);
+
+  function toggleEntrySelection(id: string) {
+    setSelectedEntryIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  }
+
+  function toggleGroupSelection(groupEntryIds: string[]) {
+    const allSelected = groupEntryIds.every((id) => selectedEntryIds.includes(id));
+    if (allSelected) {
+      setSelectedEntryIds((prev) => prev.filter((id) => !groupEntryIds.includes(id)));
+    } else {
+      setSelectedEntryIds((prev) => [...new Set([...prev, ...groupEntryIds])]);
+    }
+  }
+
+  function clearSelection() {
+    setSelectedEntryIds([]);
+  }
 
   if (!hydrated) {
     return <TrackerSkeleton />;
@@ -27,7 +47,16 @@ export default function TrackerPage() {
 
       <div className="space-y-3">
         {groups.length ? (
-          groups.map((group) => <DayGroup key={group.date} group={group} />)
+          groups.map((group) => (
+            <DayGroup
+              key={group.date}
+              group={group}
+              selectedEntryIds={selectedEntryIds}
+              onToggleEntry={toggleEntrySelection}
+              onToggleGroup={toggleGroupSelection}
+              onClearSelection={clearSelection}
+            />
+          ))
         ) : (
           <EmptyState
             title="No sessions yet"

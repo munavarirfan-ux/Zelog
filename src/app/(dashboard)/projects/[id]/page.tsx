@@ -264,7 +264,7 @@ function MembersTab() {
           <option value="member">Member</option>
           <option value="viewer">Viewer</option>
         </select>
-        <Button size="sm" className="gap-1.5">
+        <Button variant="white" size="sm" className="gap-1.5">
           <UserPlus className="h-3.5 w-3.5" /> Invite Member
         </Button>
       </div>

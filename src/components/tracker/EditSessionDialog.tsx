@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { useTrackerStore } from "@/store/trackerStore";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import MuiTextField from "@mui/material/TextField";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -62,7 +62,14 @@ export function EditSessionDialog({
         <div className="mt-4 space-y-4">
           <div>
             <Label htmlFor="edit-task">Task</Label>
-            <Input id="edit-task" value={task} onChange={(e) => setTask(e.target.value)} className="mt-1.5" />
+            <MuiTextField
+              id="edit-task"
+              value={task}
+              onChange={(e) => setTask(e.target.value)}
+              fullWidth
+              size="small"
+              sx={{ mt: 0.75, "& .MuiOutlinedInput-root": { borderRadius: "10px" } }}
+            />
           </div>
 
           <div>
@@ -87,11 +94,27 @@ export function EditSessionDialog({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label htmlFor="edit-start">Start time</Label>
-              <Input id="edit-start" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="mt-1.5" />
+              <MuiTextField
+                id="edit-start"
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                fullWidth
+                size="small"
+                sx={{ mt: 0.75, "& .MuiOutlinedInput-root": { borderRadius: "10px" } }}
+              />
             </div>
             <div>
               <Label htmlFor="edit-end">End time</Label>
-              <Input id="edit-end" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="mt-1.5" />
+              <MuiTextField
+                id="edit-end"
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                fullWidth
+                size="small"
+                sx={{ mt: 0.75, "& .MuiOutlinedInput-root": { borderRadius: "10px" } }}
+              />
             </div>
           </div>
 

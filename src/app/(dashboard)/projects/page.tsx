@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { MoreHorizontal, Plus, Search, X } from "lucide-react";
+import MuiTextField from "@mui/material/TextField";
+import MuiSwitch from "@mui/material/Switch";
 import { useTrackerStore } from "@/store/trackerStore";
 import { PROJECTS } from "@/data/mockEntries";
 import { formatDuration } from "@/lib/time";
@@ -34,17 +36,17 @@ type AccessFilter = "all" | "public" | "private";
 type BillingFilter = "all" | "billable" | "non-billable";
 
 const COLOR_OPTIONS: { value: ProjectColor; hex: string }[] = [
-  { value: "indigo", hex: "#6366f1" },
-  { value: "violet", hex: "#8b5cf6" },
-  { value: "sky", hex: "#0ea5e9" },
-  { value: "emerald", hex: "#10b981" },
-  { value: "amber", hex: "#f59e0b" },
-  { value: "rose", hex: "#f43f5e" },
+  { value: "indigo", hex: "#5A43D5" },
+  { value: "violet", hex: "#7C3AED" },
+  { value: "sky", hex: "#4664BE" },
+  { value: "emerald", hex: "#2D8C64" },
+  { value: "amber", hex: "#9B6E28" },
+  { value: "rose", hex: "#A5415F" },
 ];
 
 const EXTENDED_COLORS = [
-  { hex: "#6366f1", label: "Indigo" },
-  { hex: "#8b5cf6", label: "Violet" },
+  { hex: "#5A43D5", label: "Indigo" },
+  { hex: "#7C3AED", label: "Violet" },
   { hex: "#3b82f6", label: "Blue" },
   { hex: "#0ea5e9", label: "Sky" },
   { hex: "#06b6d4", label: "Cyan" },
@@ -118,8 +120,9 @@ export default function ProjectsPage() {
             <Dialog open={createOpen} onOpenChange={setCreateOpen}>
               <DialogTrigger asChild>
                 <Button
+                  variant="white"
                   size="lg"
-                  className="gap-2 rounded-[10px] bg-white px-6 text-sm font-semibold text-accent-900 shadow-lg hover:bg-white/90"
+                  className="gap-2 rounded-[10px] px-6"
                 >
                   <Plus className="h-4 w-4" /> New project
                 </Button>
@@ -202,7 +205,7 @@ export default function ProjectsPage() {
 /* ─── Create Project Dialog ─── */
 function CreateProjectDialog({ onClose }: { onClose: () => void }) {
   const [name, setName] = useState("");
-  const [selectedColor, setSelectedColor] = useState("#6366f1");
+  const [selectedColor, setSelectedColor] = useState("#5A43D5");
   const [client, setClient] = useState("");
   const [note, setNote] = useState("");
   const [estimatedHours, setEstimatedHours] = useState("");
@@ -226,13 +229,14 @@ function CreateProjectDialog({ onClose }: { onClose: () => void }) {
           <label className="mb-1.5 block text-xs font-medium text-text-secondary">
             Name <span className="text-rose-500">*</span>
           </label>
-          <input
-            type="text"
+          <MuiTextField
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Project name"
-            className="h-10 w-full rounded-[10px] border border-border/10 bg-surface-2/60 px-3 text-sm text-text placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/20 dark:border-white/10"
+            fullWidth
+            size="small"
             autoFocus
+            sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px" } }}
           />
         </div>
 
@@ -277,68 +281,61 @@ function CreateProjectDialog({ onClose }: { onClose: () => void }) {
         {/* Note */}
         <div>
           <label className="mb-1.5 block text-xs font-medium text-text-secondary">Note</label>
-          <textarea
+          <MuiTextField
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="Add a note about this project..."
+            fullWidth
+            size="small"
+            multiline
             rows={3}
-            className="w-full rounded-[10px] border border-border/10 bg-surface-2/60 px-3 py-2.5 text-sm text-text placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/20 resize-none dark:border-white/10"
+            sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px" } }}
           />
         </div>
 
         {/* Estimated Hours */}
         <div>
           <label className="mb-1.5 block text-xs font-medium text-text-secondary">Estimated Hours</label>
-          <input
+          <MuiTextField
             type="number"
             value={estimatedHours}
             onChange={(e) => setEstimatedHours(e.target.value)}
             placeholder="e.g. 120"
-            className="h-10 w-full rounded-[10px] border border-border/10 bg-surface-2/60 px-3 text-sm text-text placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/20 dark:border-white/10"
+            fullWidth
+            size="small"
+            sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px" } }}
           />
         </div>
 
         {/* Toggles */}
         <div className="space-y-3">
           <label className="flex items-center gap-3 cursor-pointer">
-            <button
-              type="button"
-              role="switch"
-              aria-checked={isPublic}
-              onClick={() => setIsPublic(!isPublic)}
-              className={cn(
-                "relative h-5 w-9 shrink-0 rounded-full transition-colors duration-200",
-                isPublic ? "bg-accent" : "bg-border/20 dark:bg-white/20",
-              )}
-            >
-              <span
-                className={cn(
-                  "absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200",
-                  isPublic && "translate-x-4",
-                )}
-              />
-            </button>
+            <MuiSwitch
+              checked={isPublic}
+              onChange={(_, v) => setIsPublic(v)}
+              size="small"
+              sx={{
+                width: 36, height: 20, padding: 0,
+                "& .MuiSwitch-switchBase": { padding: "2px", "&.Mui-checked": { transform: "translateX(16px)", color: "#fff", "& + .MuiSwitch-track": { background: "linear-gradient(135deg, #4133A5, #7A4DFF)", opacity: 1 } } },
+                "& .MuiSwitch-thumb": { width: 16, height: 16 },
+                "& .MuiSwitch-track": { borderRadius: 10, opacity: 1, backgroundColor: "var(--color-surface-3)" },
+              }}
+            />
             <span className="text-sm text-text">Public — visible to all workspace members</span>
           </label>
 
           <label className="flex items-center gap-3 cursor-pointer">
-            <button
-              type="button"
-              role="switch"
-              aria-checked={isBillable}
-              onClick={() => setIsBillable(!isBillable)}
-              className={cn(
-                "relative h-5 w-9 shrink-0 rounded-full transition-colors duration-200",
-                isBillable ? "bg-accent" : "bg-border/20 dark:bg-white/20",
-              )}
-            >
-              <span
-                className={cn(
-                  "absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200",
-                  isBillable && "translate-x-4",
-                )}
-              />
-            </button>
+            <MuiSwitch
+              checked={isBillable}
+              onChange={(_, v) => setIsBillable(v)}
+              size="small"
+              sx={{
+                width: 36, height: 20, padding: 0,
+                "& .MuiSwitch-switchBase": { padding: "2px", "&.Mui-checked": { transform: "translateX(16px)", color: "#fff", "& + .MuiSwitch-track": { background: "linear-gradient(135deg, #4133A5, #7A4DFF)", opacity: 1 } } },
+                "& .MuiSwitch-thumb": { width: 16, height: 16 },
+                "& .MuiSwitch-track": { borderRadius: 10, opacity: 1, backgroundColor: "var(--color-surface-3)" },
+              }}
+            />
             <span className="text-sm text-text">Billable</span>
           </label>
         </div>
@@ -423,24 +420,41 @@ function FilterPillHero({ label, value, onChange, options }: {
   onChange: (v: string) => void;
   options: { value: string; label: string }[];
 }) {
+  const MuiSelectImport = require("@mui/material/Select").default;
+  const MuiMenuItemImport = require("@mui/material/MenuItem").default;
   const active = value !== "all";
   return (
-    <select
+    <MuiSelectImport
       value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className={cn(
-        "h-9 cursor-pointer appearance-none rounded-[10px] border px-3 pr-8 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-white/15",
-        active
-          ? "border-white/25 bg-white/20 text-white"
-          : "border-white/10 bg-white/10 text-white/60",
-      )}
-      style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' opacity='0.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center" }}
+      onChange={(e: any) => onChange(e.target.value)}
+      size="small"
+      displayEmpty
+      renderValue={() => <span className="text-xs font-medium">{value === "all" ? label : options.find(o => o.value === value)?.label}</span>}
+      sx={{
+        height: 36,
+        borderRadius: "10px",
+        fontSize: "0.75rem",
+        fontWeight: 500,
+        color: active ? "white" : "rgba(255,255,255,0.6)",
+        backgroundColor: active ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.1)",
+        "& .MuiOutlinedInput-notchedOutline": { borderColor: active ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.1)" },
+        "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.3)" },
+        "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.15)" },
+        "& .MuiSelect-icon": { color: "rgba(255,255,255,0.5)" },
+        "& .MuiSelect-select": { paddingRight: "28px !important", paddingLeft: "12px" },
+      }}
+      MenuProps={{
+        PaperProps: {
+          className: "!rounded-[14px] !border !border-border/[0.07] !bg-surface !shadow-float dark:!border-white/[0.06]",
+          sx: { backgroundImage: "none" },
+        },
+      }}
     >
       {options.map((opt) => (
-        <option key={opt.value} value={opt.value}>
+        <MuiMenuItemImport key={opt.value} value={opt.value} sx={{ fontSize: "0.75rem" }}>
           {opt.value === "all" ? label : opt.label}
-        </option>
+        </MuiMenuItemImport>
       ))}
-    </select>
+    </MuiSelectImport>
   );
 }

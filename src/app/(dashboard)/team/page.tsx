@@ -14,6 +14,13 @@ import {
   Users,
   X,
 } from "lucide-react";
+import Box from "@mui/material/Box";
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
+import MuiSelect from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
+import MuiTextField from "@mui/material/TextField";
+import InputAdornment from "@mui/material/InputAdornment";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -142,7 +149,7 @@ export default function TeamPage() {
           </div>
           <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-1.5 bg-white text-accent font-medium hover:bg-white/90 shadow-sm">
+              <Button variant="white" className="gap-1.5">
                 <UserPlus className="h-3.5 w-3.5" /> Invite member
               </Button>
             </DialogTrigger>
@@ -199,50 +206,85 @@ export default function TeamPage() {
       </section>
 
       {/* Filter Toolbar */}
-      <div className="flex flex-wrap items-center gap-3 rounded-card border border-border/[0.07] bg-surface px-5 py-3 shadow-card dark:border-white/[0.06]">
-        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as "all" | "active" | "inactive")}>
-          <SelectTrigger className="h-10 w-40">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All members</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="inactive">Inactive</SelectItem>
-          </SelectContent>
-        </Select>
+      <div className="rounded-card border border-border/[0.07] bg-surface px-5 py-3 shadow-card dark:border-white/[0.06]">
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+            width: "100%",
+            flexWrap: { xs: "wrap", md: "nowrap" },
+          }}
+        >
+          <FormControl
+            size="small"
+            sx={{ width: { xs: "100%", md: 180 }, flexShrink: 0 }}
+          >
+            <InputLabel id="status-label">Status</InputLabel>
+            <MuiSelect
+              labelId="status-label"
+              value={statusFilter}
+              label="Status"
+              onChange={(e) => setStatusFilter(e.target.value as "all" | "active" | "inactive")}
+              sx={{ height: 40, borderRadius: "10px" }}
+            >
+              <MenuItem value="all">All members</MenuItem>
+              <MenuItem value="active">Active</MenuItem>
+              <MenuItem value="inactive">Inactive</MenuItem>
+            </MuiSelect>
+          </FormControl>
 
-        <div className="relative flex-1 min-w-[200px] max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-text-tertiary" />
-          <input
-            type="text"
+          <MuiTextField
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by name or email"
-            className="h-10 w-full rounded-[10px] border border-border/10 bg-surface-2/50 pl-9 pr-3 text-xs text-text placeholder:text-text-tertiary focus:border-accent/30 focus:outline-none focus:ring-2 focus:ring-accent/20 dark:border-white/10"
+            size="small"
+            fullWidth
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search className="h-4 w-4 text-text-tertiary" />
+                  </InputAdornment>
+                ),
+              },
+            }}
+            sx={{
+              flex: 1,
+              minWidth: 0,
+              "& .MuiOutlinedInput-root": { height: 40, borderRadius: "10px" },
+            }}
           />
-        </div>
 
-        <Select value={roleFilter} onValueChange={setRoleFilter}>
-          <SelectTrigger className="h-10 w-44">
-            <SelectValue placeholder="Role" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All roles</SelectItem>
-            <SelectItem value="admin">Admin</SelectItem>
-            <SelectItem value="project_manager">Project Manager</SelectItem>
-            <SelectItem value="team_member">Team Member</SelectItem>
-          </SelectContent>
-        </Select>
-
-        {hasFilters && (
-          <button
-            type="button"
-            onClick={() => { setStatusFilter("all"); setRoleFilter("all"); setSearchQuery(""); }}
-            className="text-xs font-medium text-text-tertiary hover:text-text transition-colors"
+          <FormControl
+            size="small"
+            sx={{ width: { xs: "100%", md: 220 }, flexShrink: 0 }}
           >
-            Clear filters
-          </button>
-        )}
+            <InputLabel id="role-label">Role</InputLabel>
+            <MuiSelect
+              labelId="role-label"
+              value={roleFilter}
+              label="Role"
+              onChange={(e) => setRoleFilter(e.target.value)}
+              sx={{ height: 40, borderRadius: "10px" }}
+            >
+              <MenuItem value="all">All roles</MenuItem>
+              <MenuItem value="admin">Admin</MenuItem>
+              <MenuItem value="project_manager">Project Manager</MenuItem>
+              <MenuItem value="team_member">Team Member</MenuItem>
+            </MuiSelect>
+          </FormControl>
+
+          {hasFilters && (
+            <button
+              type="button"
+              onClick={() => { setStatusFilter("all"); setRoleFilter("all"); setSearchQuery(""); }}
+              className="shrink-0 text-xs font-medium text-text-tertiary hover:text-text transition-colors whitespace-nowrap"
+            >
+              Clear filters
+            </button>
+          )}
+        </Box>
       </div>
 
 

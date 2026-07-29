@@ -7,11 +7,14 @@ import { Pause, Play, Plus, Square, X } from "lucide-react";
 import { useTrackerStore } from "@/store/trackerStore";
 import { useNow } from "@/hooks/useNow";
 import { formatDuration, runningTimerElapsedSeconds } from "@/lib/time";
-import { Input } from "@/components/ui/input";
+import MuiTextField from "@mui/material/TextField";
+import Box from "@mui/material/Box";
+import FormControl from "@mui/material/FormControl";
+import MuiSelect from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PROJECT_COLOR_DOT } from "@/lib/projectColors";
 import { cn } from "@/lib/utils";
 
@@ -209,37 +212,92 @@ export const Hero = React.forwardRef<HTMLInputElement>(function Hero(_props, tas
         <label htmlFor="hero-task" className="text-sm font-medium text-white/60">
           What are you working on?
         </label>
-        <Input
-          id="hero-task"
-          ref={taskInputRef}
-          value={task}
-          onChange={(e) => setTask(e.target.value)}
-          placeholder="e.g. Redesign onboarding flow"
-          className="h-14 border-white/10 bg-white/10 text-lg text-white placeholder:text-white/30 focus-visible:border-white/25 focus-visible:ring-white/15"
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && mode === "live") handleStart();
-            if (e.key === "Enter" && mode === "manual") handleManualAdd();
-          }}
-        />
 
-        <div className="flex flex-wrap items-center gap-3 pt-1">
-          <Select value={projectId} onValueChange={setProjectId}>
-            <SelectTrigger className="h-10 w-auto min-w-[140px] gap-2 rounded-lg border-white/10 bg-white/10 text-sm text-white [&>svg]:text-white/50">
-              <SelectValue placeholder="Project" />
-            </SelectTrigger>
-            <SelectContent>
-              {projects.map((p) => (
-                <SelectItem key={p.id} value={p.id}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+            width: "100%",
+            flexWrap: { xs: "wrap", lg: "nowrap" },
+          }}
+        >
+          <MuiTextField
+            id="hero-task"
+            inputRef={taskInputRef}
+            value={task}
+            onChange={(e) => setTask(e.target.value)}
+            placeholder="e.g. Redesign onboarding flow"
+            variant="outlined"
+            size="small"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && mode === "live") handleStart();
+              if (e.key === "Enter" && mode === "manual") handleManualAdd();
+            }}
+            sx={{
+              flex: "1 1 0",
+              minWidth: 200,
+              "& .MuiOutlinedInput-root": {
+                height: 56,
+                borderRadius: "12px",
+                fontSize: "1.125rem",
+                color: "white",
+                backgroundColor: "rgba(255,255,255,0.10)",
+                "& fieldset": { borderColor: "rgba(255,255,255,0.1)" },
+                "&:hover fieldset": { borderColor: "rgba(255,255,255,0.25)" },
+                "&.Mui-focused fieldset": { borderColor: "rgba(255,255,255,0.15)", borderWidth: 2 },
+              },
+              "& .MuiInputBase-input::placeholder": { color: "rgba(255,255,255,0.3)", opacity: 1 },
+            }}
+          />
+
+          <FormControl
+            size="small"
+            sx={{ width: 180, minWidth: 180, flexShrink: 0 }}
+          >
+            <MuiSelect
+              value={projectId}
+              onChange={(e) => setProjectId(e.target.value)}
+              displayEmpty
+              renderValue={(value) => {
+                const p = projects.find((proj) => proj.id === value);
+                if (!p) return <span style={{ color: "rgba(255,255,255,0.5)" }}>Project</span>;
+                return (
                   <span className="inline-flex items-center gap-2">
                     <span className={cn("h-2 w-2 rounded-full", PROJECT_COLOR_DOT[p.color])} />
                     {p.name}
                   </span>
-                </SelectItem>
+                );
+              }}
+              sx={{
+                height: 48,
+                borderRadius: "12px",
+                color: "#fff",
+                backgroundColor: "rgba(255,255,255,0.08)",
+                "& .MuiSelect-select": {
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "8px 36px 8px 14px",
+                  minHeight: "unset",
+                },
+                "& .MuiSelect-icon": { color: "rgba(255,255,255,0.7)" },
+                "& .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.12)" },
+                "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.24)" },
+                "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.4)" },
+              }}
+            >
+              {projects.map((p) => (
+                <MenuItem key={p.id} value={p.id}>
+                  <span className="inline-flex items-center gap-2">
+                    <span className={cn("h-2 w-2 rounded-full", PROJECT_COLOR_DOT[p.color])} />
+                    {p.name}
+                  </span>
+                </MenuItem>
               ))}
-            </SelectContent>
-          </Select>
+            </MuiSelect>
+          </FormControl>
 
-          <div className="flex items-center gap-2">
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexShrink: 0, whiteSpace: "nowrap", mx: 0.5 }}>
             <Switch
               id="hero-billable"
               checked={billable}
@@ -249,40 +307,15 @@ export const Hero = React.forwardRef<HTMLInputElement>(function Hero(_props, tas
             <Label htmlFor="hero-billable" className="cursor-pointer text-sm font-medium text-white/60">
               Billable
             </Label>
-          </div>
-
-          {mode === "manual" && (
-            <>
-              <input
-                type="date"
-                value={manualDate}
-                onChange={(e) => { setManualDate(e.target.value); setManualError(""); }}
-                className="h-10 rounded-lg border border-white/10 bg-white/10 px-3 text-sm text-white focus:border-white/25 focus:outline-none focus:ring-1 focus:ring-white/15 [color-scheme:dark]"
-              />
-              <input
-                type="time"
-                value={manualStart}
-                onChange={(e) => { setManualStart(e.target.value); setManualError(""); }}
-                className="h-10 rounded-lg border border-white/10 bg-white/10 px-2.5 text-sm text-white focus:border-white/25 focus:outline-none focus:ring-1 focus:ring-white/15 [color-scheme:dark]"
-              />
-              <input
-                type="time"
-                value={manualEnd}
-                onChange={(e) => { setManualEnd(e.target.value); setManualError(""); }}
-                className="h-10 rounded-lg border border-white/10 bg-white/10 px-2.5 text-sm text-white focus:border-white/25 focus:outline-none focus:ring-1 focus:ring-white/15 [color-scheme:dark]"
-              />
-              <span className="flex h-10 items-center rounded-lg bg-white/5 px-3 text-sm font-bold tabular-nums text-white/80">
-                {formatDuration(manualDuration)}
-              </span>
-            </>
-          )}
+          </Box>
 
           {mode === "live" ? (
             <Button
+              variant="white"
               size="lg"
               onClick={handleStart}
               disabled={!task.trim()}
-              className="ml-auto h-11 shrink-0 gap-2 rounded-[10px] bg-white px-6 text-sm font-semibold text-accent-900 shadow-lg hover:bg-white/90 disabled:bg-white/40 disabled:text-accent-900/50 disabled:shadow-none"
+              className="h-12 shrink-0 gap-2 rounded-xl px-6"
             >
               <Play className="h-4 w-4 fill-current" /> Start
             </Button>
@@ -290,12 +323,77 @@ export const Hero = React.forwardRef<HTMLInputElement>(function Hero(_props, tas
             <Button
               size="lg"
               onClick={handleManualAdd}
-              className="ml-auto h-11 shrink-0 gap-2 rounded-[10px] bg-white px-6 text-sm font-semibold text-accent-900 shadow-lg hover:bg-white/90 disabled:bg-white/40 disabled:text-accent-900/50 disabled:shadow-none"
+              className="h-12 shrink-0 gap-2 rounded-xl bg-white px-6 text-sm font-semibold text-accent-900 shadow-lg hover:bg-white/90 disabled:bg-white/40 disabled:text-accent-900/50 disabled:shadow-none"
             >
               <Plus className="h-4 w-4" /> Add entry
             </Button>
           )}
-        </div>
+        </Box>
+
+        {mode === "manual" && (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 2,
+              flexWrap: "wrap",
+              width: "100%",
+              pt: 1,
+            }}
+          >
+            <MuiTextField
+              type="date"
+              value={manualDate}
+              onChange={(e) => { setManualDate(e.target.value); setManualError(""); }}
+              size="small"
+              sx={{
+                width: 160,
+                "& .MuiOutlinedInput-root": {
+                  height: 40, borderRadius: "8px", color: "white", backgroundColor: "rgba(255,255,255,0.1)",
+                  "& fieldset": { borderColor: "rgba(255,255,255,0.1)" },
+                  "&:hover fieldset": { borderColor: "rgba(255,255,255,0.25)" },
+                  "&.Mui-focused fieldset": { borderColor: "rgba(255,255,255,0.15)" },
+                },
+                "& input": { colorScheme: "dark", fontSize: "0.875rem" },
+              }}
+            />
+            <MuiTextField
+              type="time"
+              value={manualStart}
+              onChange={(e) => { setManualStart(e.target.value); setManualError(""); }}
+              size="small"
+              sx={{
+                width: 120,
+                "& .MuiOutlinedInput-root": {
+                  height: 40, borderRadius: "8px", color: "white", backgroundColor: "rgba(255,255,255,0.1)",
+                  "& fieldset": { borderColor: "rgba(255,255,255,0.1)" },
+                  "&:hover fieldset": { borderColor: "rgba(255,255,255,0.25)" },
+                  "&.Mui-focused fieldset": { borderColor: "rgba(255,255,255,0.15)" },
+                },
+                "& input": { colorScheme: "dark", fontSize: "0.875rem" },
+              }}
+            />
+            <MuiTextField
+              type="time"
+              value={manualEnd}
+              onChange={(e) => { setManualEnd(e.target.value); setManualError(""); }}
+              size="small"
+              sx={{
+                width: 120,
+                "& .MuiOutlinedInput-root": {
+                  height: 40, borderRadius: "8px", color: "white", backgroundColor: "rgba(255,255,255,0.1)",
+                  "& fieldset": { borderColor: "rgba(255,255,255,0.1)" },
+                  "&:hover fieldset": { borderColor: "rgba(255,255,255,0.25)" },
+                  "&.Mui-focused fieldset": { borderColor: "rgba(255,255,255,0.15)" },
+                },
+                "& input": { colorScheme: "dark", fontSize: "0.875rem" },
+              }}
+            />
+            <span className="flex h-10 items-center rounded-lg bg-white/5 px-3 text-sm font-bold tabular-nums text-white/80">
+              {formatDuration(manualDuration)}
+            </span>
+          </Box>
+        )}
 
         {/* Inline validation error */}
         {manualError && mode === "manual" && (
