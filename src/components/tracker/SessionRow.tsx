@@ -1,8 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Copy, MoreHorizontal, Pencil, Play, Trash2 } from "lucide-react";
 import Checkbox from "@mui/material/Checkbox";
+import Tooltip from "@mui/material/Tooltip";
 import { useTrackerStore } from "@/store/trackerStore";
 import { projectById } from "@/data/mockEntries";
 import { formatDuration, formatTimeRange } from "@/lib/time";
@@ -37,7 +38,11 @@ export function SessionRow({ entry, selected = false, onToggleSelect }: SessionR
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(entry.task);
+  const [isTruncated, setIsTruncated] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const textRef = useCallback((node: HTMLParagraphElement | null) => {
+    if (node) setIsTruncated(node.scrollWidth > node.clientWidth);
+  }, [entry.task]);
 
   return (
     <>
@@ -98,19 +103,44 @@ export function SessionRow({ entry, selected = false, onToggleSelect }: SessionR
               />
             </div>
           ) : (
-            <p
-              className="cursor-text truncate text-sm font-light text-text"
-              onClick={() => {
-                setDraft(entry.task);
-                setIsEditing(true);
-                setTimeout(() => {
-                  inputRef.current?.focus();
-                  inputRef.current?.select();
-                }, 0);
+            <Tooltip
+              title={isTruncated ? entry.task : ""}
+              placement="top-start"
+              enterDelay={300}
+              arrow={false}
+              disableHoverListener={!isTruncated}
+              slotProps={{
+                tooltip: {
+                  sx: {
+                    maxWidth: 380,
+                    borderRadius: "10px",
+                    px: 2,
+                    py: 1.25,
+                    fontSize: "0.8125rem",
+                    fontWeight: 400,
+                    lineHeight: 1.5,
+                    whiteSpace: "normal",
+                    backgroundColor: "rgba(30, 25, 60, 0.92)",
+                    boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+                  },
+                },
               }}
             >
-              {entry.task}
-            </p>
+              <p
+                ref={textRef}
+                className="cursor-text truncate text-sm font-light text-text"
+                onClick={() => {
+                  setDraft(entry.task);
+                  setIsEditing(true);
+                  setTimeout(() => {
+                    inputRef.current?.focus();
+                    inputRef.current?.select();
+                  }, 0);
+                }}
+              >
+                {entry.task}
+              </p>
+            </Tooltip>
           )}
           {/* Mobile: stacked metadata */}
           <div className="mt-1.5 flex flex-wrap items-center gap-1.5 md:hidden">

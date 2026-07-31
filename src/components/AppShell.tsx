@@ -71,7 +71,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className={cn("border-b border-border/[0.06] dark:border-white/[0.06]", collapsed ? "px-2 py-3.5" : "px-3.5 py-3.5")}>
               <div className={cn("flex items-center", collapsed ? "justify-center" : "justify-between")}>
                 <Link href="/tracker" className={cn("flex items-center", collapsed ? "justify-center" : "gap-0")}>
-                  <img src="/zelog-logo.png" alt="ZeLog" className={cn("shrink-0", collapsed ? "h-9 w-9 rounded-[10px]" : "h-10 w-auto")} />
+                  {collapsed ? (
+                    <div className="h-9 w-9 overflow-hidden rounded-[10px]">
+                      <img src="/zelog-logo.png" alt="ZeLog" className="h-9 w-auto max-w-none" />
+                    </div>
+                  ) : (
+                    <img src="/zelog-logo.png" alt="ZeLog" className="h-10 w-auto shrink-0" />
+                  )}
                 </Link>
                 {!collapsed ? (
                   <Button
