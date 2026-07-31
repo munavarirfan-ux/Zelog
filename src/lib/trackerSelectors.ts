@@ -54,6 +54,41 @@ export function groupEntriesByDay(entries: TimeEntry[]): DayGroupData[] {
     .sort((a, b) => (a.date < b.date ? 1 : -1));
 }
 
+export interface WeekGroupData {
+  weekStart: string;
+  weekEnd: string;
+  totalSeconds: number;
+  days: DayGroupData[];
+}
+
+export function groupEntriesByWeek(dayGroups: DayGroupData[]): WeekGroupData[] {
+  const weekMap = new Map<string, DayGroupData[]>();
+  for (const day of dayGroups) {
+    const d = parseISO(day.date);
+    const ws = startOfWeek(d, { weekStartsOn: 1 });
+    const key = format(ws, "yyyy-MM-dd");
+    const list = weekMap.get(key) ?? [];
+    list.push(day);
+    weekMap.set(key, list);
+  }
+  return Array.from(weekMap.entries())
+    .map(([weekStartStr, days]) => {
+      const ws = parseISO(weekStartStr);
+      const we = endOfWeek(ws, { weekStartsOn: 1 });
+      return {
+        weekStart: format(ws, "MMM dd"),
+        weekEnd: format(we, "MMM dd"),
+        totalSeconds: days.reduce((s, d) => s + d.totalSeconds, 0),
+        days: days.sort((a, b) => (a.date < b.date ? 1 : -1)),
+      };
+    })
+    .sort((a, b) => {
+      const aFirst = a.days[0]?.date ?? "";
+      const bFirst = b.days[0]?.date ?? "";
+      return aFirst < bFirst ? 1 : -1;
+    });
+}
+
 export function totalForDate(entries: TimeEntry[], dateStr: string): number {
   return entries.filter((e) => e.date === dateStr).reduce((s, e) => s + e.durationSeconds, 0);
 }

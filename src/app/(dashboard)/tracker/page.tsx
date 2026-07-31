@@ -2,7 +2,8 @@
 
 import { useMemo, useRef, useState } from "react";
 import { useHydratedTracker, useTrackerStore } from "@/store/trackerStore";
-import { applyFilters, groupEntriesByDay } from "@/lib/trackerSelectors";
+import { applyFilters, groupEntriesByDay, groupEntriesByWeek } from "@/lib/trackerSelectors";
+import { formatDuration } from "@/lib/time";
 import { Hero } from "@/components/tracker/Hero";
 import { DayGroup } from "@/components/tracker/DayGroup";
 import { EmptyState } from "@/components/empty-states/EmptyState";
@@ -16,7 +17,8 @@ export default function TrackerPage() {
   const [selectedEntryIds, setSelectedEntryIds] = useState<string[]>([]);
 
   const filtered = useMemo(() => applyFilters(entries, filters), [entries, filters]);
-  const groups = useMemo(() => groupEntriesByDay(filtered), [filtered]);
+  const dayGroups = useMemo(() => groupEntriesByDay(filtered), [filtered]);
+  const weekGroups = useMemo(() => groupEntriesByWeek(dayGroups), [dayGroups]);
 
   function toggleEntrySelection(id: string) {
     setSelectedEntryIds((prev) =>
@@ -45,17 +47,35 @@ export default function TrackerPage() {
     <div className="space-y-6 pb-12">
       <Hero ref={taskInputRef} />
 
-      <div className="space-y-3">
-        {groups.length ? (
-          groups.map((group) => (
-            <DayGroup
-              key={group.date}
-              group={group}
-              selectedEntryIds={selectedEntryIds}
-              onToggleEntry={toggleEntrySelection}
-              onToggleGroup={toggleGroupSelection}
-              onClearSelection={clearSelection}
-            />
+      <div className="space-y-5">
+        {weekGroups.length ? (
+          weekGroups.map((week) => (
+            <div key={`${week.weekStart}-${week.weekEnd}`}>
+              {/* Week header */}
+              <div className="flex items-center justify-between px-1 pb-2">
+                <span className="text-xs font-medium text-text-tertiary">
+                  {week.weekStart} – {week.weekEnd}
+                </span>
+                <span className="text-xs font-medium text-text-tertiary">
+                  Week total{" "}
+                  <span className="font-semibold text-text-secondary">{formatDuration(week.totalSeconds)}</span>
+                </span>
+              </div>
+
+              {/* Day groups within the week */}
+              <div className="space-y-3">
+                {week.days.map((group) => (
+                  <DayGroup
+                    key={group.date}
+                    group={group}
+                    selectedEntryIds={selectedEntryIds}
+                    onToggleEntry={toggleEntrySelection}
+                    onToggleGroup={toggleGroupSelection}
+                    onClearSelection={clearSelection}
+                  />
+                ))}
+              </div>
+            </div>
           ))
         ) : (
           <EmptyState

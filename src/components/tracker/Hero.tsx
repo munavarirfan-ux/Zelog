@@ -321,9 +321,11 @@ export const Hero = React.forwardRef<HTMLInputElement>(function Hero(_props, tas
             </Button>
           ) : (
             <Button
+              variant="white"
               size="lg"
               onClick={handleManualAdd}
-              className="h-12 shrink-0 gap-2 rounded-xl bg-white px-6 text-sm font-semibold text-accent-900 shadow-lg hover:bg-white/90 disabled:bg-white/40 disabled:text-accent-900/50 disabled:shadow-none"
+              disabled={!task.trim()}
+              className="h-12 shrink-0 gap-2 rounded-xl px-6"
             >
               <Plus className="h-4 w-4" /> Add entry
             </Button>

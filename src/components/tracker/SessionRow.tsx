@@ -57,47 +57,49 @@ export function SessionRow({ entry, selected = false, onToggleSelect }: SessionR
           onChange={onToggleSelect}
           sx={{
             padding: 0,
-            width: 20,
-            height: 20,
-            color: "rgb(var(--primary-main-rgb) / 0.3)",
-            "&.Mui-checked": { color: "rgb(var(--primary-600-rgb))" },
+            width: 18,
+            height: 18,
+            color: "rgb(var(--primary-main-rgb) / 0.15)",
+            "&.Mui-checked": { color: "rgb(var(--primary-main-rgb) / 0.45)" },
           }}
         />
 
         {/* Task name — inline editable */}
         <div className="min-w-0">
           {isEditing ? (
-            <input
-              ref={inputRef}
-              type="text"
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
+            <div className="flex h-9 items-center rounded-lg border border-primary-200 bg-white px-3 ring-1 ring-primary-100/60 dark:bg-surface-2 dark:ring-primary-500/10">
+              <input
+                ref={inputRef}
+                type="text"
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    const trimmed = draft.trim();
+                    if (trimmed) {
+                      updateEntry(entry.id, { task: trimmed });
+                    }
+                    setIsEditing(false);
+                  } else if (e.key === "Escape") {
+                    setDraft(entry.task);
+                    setIsEditing(false);
+                  }
+                }}
+                onBlur={() => {
                   const trimmed = draft.trim();
                   if (trimmed) {
                     updateEntry(entry.id, { task: trimmed });
+                  } else {
+                    setDraft(entry.task);
                   }
                   setIsEditing(false);
-                } else if (e.key === "Escape") {
-                  setDraft(entry.task);
-                  setIsEditing(false);
-                }
-              }}
-              onBlur={() => {
-                const trimmed = draft.trim();
-                if (trimmed) {
-                  updateEntry(entry.id, { task: trimmed });
-                } else {
-                  setDraft(entry.task);
-                }
-                setIsEditing(false);
-              }}
-              className="w-full truncate border-0 bg-transparent p-0 text-sm font-medium text-text outline-none ring-0 focus:ring-0"
-            />
+                }}
+                className="w-full truncate border-0 bg-transparent p-0 text-sm font-light text-text outline-none ring-0 focus:ring-0"
+              />
+            </div>
           ) : (
             <p
-              className="group/task cursor-text truncate text-sm font-medium text-text"
+              className="cursor-text truncate text-sm font-light text-text"
               onClick={() => {
                 setDraft(entry.task);
                 setIsEditing(true);
@@ -107,7 +109,7 @@ export function SessionRow({ entry, selected = false, onToggleSelect }: SessionR
                 }, 0);
               }}
             >
-              <span className="border-b border-transparent group-hover/task:border-border/30">{entry.task}</span>
+              {entry.task}
             </p>
           )}
           {/* Mobile: stacked metadata */}

@@ -83,10 +83,10 @@ export function DayGroup({
           onClick={(e) => e.stopPropagation()}
           sx={{
             padding: 0,
-            width: 20,
-            height: 20,
-            color: "rgb(var(--primary-main-rgb) / 0.35)",
-            "&.Mui-checked, &.MuiCheckbox-indeterminate": { color: "rgb(var(--primary-600-rgb))" },
+            width: 18,
+            height: 18,
+            color: "rgb(var(--primary-main-rgb) / 0.15)",
+            "&.Mui-checked, &.MuiCheckbox-indeterminate": { color: "rgb(var(--primary-main-rgb) / 0.45)" },
           }}
         />
 

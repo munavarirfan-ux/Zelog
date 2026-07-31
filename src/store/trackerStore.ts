@@ -42,7 +42,7 @@ export const useTrackerStore = create<TrackerState>()(
       entries: MOCK_ENTRIES,
       projects: PROJECTS,
       runningTimer: null,
-      filters: { projectIds: [], range: "week" },
+      filters: { projectIds: [], range: "all" },
 
       startTimer: (input) => {
         if (get().runningTimer) get().stopTimer();
@@ -156,7 +156,7 @@ export const useTrackerStore = create<TrackerState>()(
       setFilters: (patch) => set((state) => ({ filters: { ...state.filters, ...patch } })),
     }),
     {
-      name: "zelog-tracker-store-v2",
+      name: "zelog-tracker-store-v4",
       skipHydration: true,
       partialize: (state) => ({ entries: state.entries, runningTimer: state.runningTimer, filters: state.filters }),
     },

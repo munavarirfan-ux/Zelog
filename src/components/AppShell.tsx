@@ -168,7 +168,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 onClick={() => setMobileOpen(true)}
                 aria-label="Open navigation"
               >
-                <img src="/zessta-logo.png" alt="Zessta" className="h-6 w-auto" />
+                <img src="/zessta-logo.png" alt="Zessta" className="h-4 w-auto" />
               </button>
 
               <div className="hidden min-w-0 flex-1 sm:block">

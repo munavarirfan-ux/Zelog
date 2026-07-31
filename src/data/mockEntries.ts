@@ -40,6 +40,104 @@ function seg(
 }
 
 export const MOCK_ENTRIES: TimeEntry[] = [
+  // 2026-06-01 (Monday)
+  seg("e200", "Q2 kickoff — roadmap alignment", "internal", false, "2026-06-01", "09:00", "10:30", ["meeting"]),
+  seg("e201", "Meridian Health onboarding flow wireframes", "meridian", true, "2026-06-01", "11:00", "14:00", ["design", "frontend"]),
+  seg("e202", "Atlas Robotics sensor SDK research", "atlas", true, "2026-06-01", "14:30", "17:00", ["research", "backend"]),
+
+  // 2026-06-02 (Tuesday)
+  seg("e203", "ZeCode CI pipeline optimization", "zecode", false, "2026-06-02", "09:00", "11:30", ["devops"]),
+  seg("e204", "Meridian Health appointment booking API", "meridian", true, "2026-06-02", "12:00", "15:00", ["api", "backend"]),
+  seg("e205", "ZeMeet chat feature — message threading", "zemeet", false, "2026-06-02", "15:30", "18:00", ["frontend", "backend"]),
+
+  // 2026-06-03 (Wednesday)
+  seg("e206", "1:1 with tech lead", "internal", false, "2026-06-03", "09:00", "09:45", ["meeting"]),
+  seg("e207", "Atlas Robotics navigation module", "atlas", true, "2026-06-03", "10:00", "13:30", ["backend", "algorithm"]),
+  seg("e208", "ZeCode theme engine refactor", "zecode", false, "2026-06-03", "14:00", "17:00", ["frontend", "theming"]),
+
+  // 2026-06-04 (Thursday)
+  seg("e209", "Meridian Health patient vitals dashboard", "meridian", true, "2026-06-04", "09:00", "12:30", ["frontend", "charts"]),
+  seg("e210", "Learning — Next.js App Router deep dive", "training", false, "2026-06-04", "13:30", "15:30", ["learning"]),
+  seg("e211", "ZeMeet emoji reactions feature", "zemeet", false, "2026-06-04", "16:00", "18:00", ["frontend"]),
+
+  // 2026-06-05 (Friday)
+  seg("e212", "Atlas Robotics collision detection module", "atlas", true, "2026-06-05", "09:00", "12:00", ["backend", "algorithm"]),
+  seg("e213", "Team retro + demos", "internal", false, "2026-06-05", "14:00", "15:30", ["meeting"]),
+
+  // 2026-06-08 (Monday)
+  seg("e214", "Sprint planning — sprint 14", "internal", false, "2026-06-08", "09:00", "10:15", ["meeting"]),
+  seg("e215", "Meridian Health e-prescriptions module", "meridian", true, "2026-06-08", "10:30", "14:00", ["backend", "api"]),
+  seg("e216", "ZeCode collaborative editing prototype", "zecode", false, "2026-06-08", "14:30", "18:00", ["frontend", "websocket"]),
+
+  // 2026-06-09 (Tuesday)
+  seg("e217", "Atlas Robotics battery management system", "atlas", true, "2026-06-09", "09:00", "12:30", ["backend", "hardware"]),
+  seg("e218", "ZeMeet virtual backgrounds feature", "zemeet", false, "2026-06-09", "13:00", "16:00", ["frontend", "ml"]),
+  seg("e219", "Code review — Meridian PRs", "meridian", true, "2026-06-09", "16:30", "18:00", ["review"]),
+
+  // 2026-06-10 (Wednesday)
+  seg("e220", "Internal tooling — deployment dashboard", "zecode", false, "2026-06-10", "09:00", "12:00", ["frontend", "devops"]),
+  seg("e221", "Meridian Health insurance claims processor", "meridian", true, "2026-06-10", "12:30", "15:30", ["backend"]),
+  seg("e222", "Atlas Robotics remote diagnostics panel", "atlas", true, "2026-06-10", "16:00", "18:30", ["frontend"]),
+
+  // 2026-06-11 (Thursday)
+  seg("e223", "Learning — WebRTC internals", "training", false, "2026-06-11", "09:00", "11:00", ["learning"]),
+  seg("e224", "ZeMeet noise cancellation integration", "zemeet", false, "2026-06-11", "11:30", "14:30", ["backend", "audio"]),
+  seg("e225", "Meridian Health provider scheduling", "meridian", true, "2026-06-11", "15:00", "18:00", ["frontend", "api"]),
+
+  // 2026-06-12 (Friday)
+  seg("e226", "Atlas Robotics warehouse mapping service", "atlas", true, "2026-06-12", "09:00", "12:00", ["backend", "geo"]),
+  seg("e227", "Friday demos + sprint review", "internal", false, "2026-06-12", "14:00", "15:00", ["meeting"]),
+  seg("e228", "ZeCode extension API documentation", "zecode", false, "2026-06-12", "15:30", "17:30", ["docs"]),
+
+  // 2026-06-15 (Monday)
+  seg("e229", "Weekly sync + priority shuffling", "internal", false, "2026-06-15", "09:00", "10:00", ["meeting"]),
+  seg("e230", "Meridian Health telehealth video integration", "meridian", true, "2026-06-15", "10:15", "13:30", ["frontend", "webrtc"]),
+  seg("e231", "Atlas Robotics obstacle avoidance AI", "atlas", true, "2026-06-15", "14:00", "17:30", ["ml", "backend"]),
+
+  // 2026-06-16 (Tuesday)
+  seg("e232", "ZeCode snippet manager feature", "zecode", false, "2026-06-16", "09:00", "12:00", ["frontend"]),
+  seg("e233", "ZeMeet meeting templates system", "zemeet", false, "2026-06-16", "12:30", "15:00", ["backend", "frontend"]),
+  seg("e234", "Meridian Health audit trail logging", "meridian", true, "2026-06-16", "15:30", "18:00", ["backend", "compliance"]),
+
+  // 2026-06-17 (Wednesday)
+  seg("e235", "Atlas Robotics multi-robot coordination", "atlas", true, "2026-06-17", "09:00", "12:30", ["backend", "algorithm"]),
+  seg("e236", "Internal hiring — screening calls", "internal", false, "2026-06-17", "13:30", "15:00", ["hiring"]),
+  seg("e237", "ZeCode git integration improvements", "zecode", false, "2026-06-17", "15:30", "18:00", ["backend", "git"]),
+
+  // 2026-06-18 (Thursday)
+  seg("e238", "Meridian Health referral management", "meridian", true, "2026-06-18", "09:00", "12:00", ["frontend", "api"]),
+  seg("e239", "Learning — Kubernetes orchestration", "training", false, "2026-06-18", "13:00", "15:00", ["learning"]),
+  seg("e240", "ZeMeet calendar sync feature", "zemeet", false, "2026-06-18", "15:30", "18:00", ["backend", "api"]),
+
+  // 2026-06-19 (Friday)
+  seg("e241", "Atlas Robotics safety protocol engine", "atlas", true, "2026-06-19", "09:00", "12:30", ["backend", "compliance"]),
+  seg("e242", "Week wrap-up + knowledge sharing", "internal", false, "2026-06-19", "14:00", "15:00", ["meeting"]),
+
+  // 2026-06-22 (Monday)
+  seg("e243", "Sprint planning — sprint 15", "internal", false, "2026-06-22", "09:00", "10:30", ["meeting"]),
+  seg("e244", "ZeCode workspace settings UI", "zecode", false, "2026-06-22", "10:45", "13:30", ["frontend"]),
+  seg("e245", "Meridian Health patient consent forms", "meridian", true, "2026-06-22", "14:00", "17:00", ["frontend", "backend"]),
+
+  // 2026-06-23 (Tuesday)
+  seg("e246", "Atlas Robotics inventory tracking system", "atlas", true, "2026-06-23", "09:00", "12:00", ["backend", "api"]),
+  seg("e247", "ZeMeet whiteboard collaboration tool", "zemeet", false, "2026-06-23", "12:30", "16:00", ["frontend", "canvas"]),
+  seg("e248", "1:1 with product manager", "internal", false, "2026-06-23", "16:30", "17:00", ["meeting"]),
+
+  // 2026-06-24 (Wednesday)
+  seg("e249", "Meridian Health lab order integration", "meridian", true, "2026-06-24", "09:00", "12:30", ["api", "backend"]),
+  seg("e250", "ZeCode performance benchmarking suite", "zecode", false, "2026-06-24", "13:00", "16:00", ["testing", "performance"]),
+  seg("e251", "Atlas Robotics customer onboarding wizard", "atlas", true, "2026-06-24", "16:30", "18:30", ["frontend"]),
+
+  // 2026-06-25 (Thursday)
+  seg("e252", "ZeMeet recording transcription feature", "zemeet", false, "2026-06-25", "09:00", "12:00", ["backend", "ai"]),
+  seg("e253", "Learning — system design patterns", "training", false, "2026-06-25", "13:00", "15:00", ["learning"]),
+  seg("e254", "Meridian Health notification preferences", "meridian", true, "2026-06-25", "15:30", "18:00", ["frontend", "backend"]),
+
+  // 2026-06-26 (Friday)
+  seg("e255", "Atlas Robotics QA test automation", "atlas", true, "2026-06-26", "09:00", "11:30", ["testing", "automation"]),
+  seg("e256", "ZeCode release prep + changelog", "zecode", false, "2026-06-26", "12:00", "14:00", ["release"]),
+  seg("e257", "End-of-sprint retro", "internal", false, "2026-06-26", "15:00", "16:00", ["meeting"]),
+
   // 2026-06-29 (Monday)
   seg("e100", "Sprint kickoff — Q3 planning", "internal", false, "2026-06-29", "09:00", "10:30", ["meeting"]),
   seg("e101", "Atlas Robotics sensor calibration API", "atlas", true, "2026-06-29", "11:00", "14:00", ["api", "backend"]),
@@ -155,7 +253,29 @@ export const MOCK_ENTRIES: TimeEntry[] = [
   seg("e11", "Meridian Health billing export feature", "meridian", true, "2026-07-27", "10:00", "13:30", ["backend"]),
   seg("e12", "Atlas Robotics deployment pipeline fixes", "atlas", true, "2026-07-27", "14:30", "18:00", ["devops"]),
 
-  // 2026-07-28 — today
+  // 2026-07-28 (Monday)
   seg("e13", "Morning stand-up + inbox triage", "internal", false, "2026-07-28", "09:00", "09:30", ["meeting"]),
   seg("e14", "ZeLog tracker redesign — component library", "zecode", false, "2026-07-28", "09:45", "12:15", ["frontend", "design-system"]),
+  seg("e15", "Meridian Health prescription module", "meridian", true, "2026-07-28", "13:00", "15:30", ["backend", "api"]),
+  seg("e16", "Atlas Robotics path planning algorithm", "atlas", true, "2026-07-28", "16:00", "18:00", ["backend", "ml"]),
+
+  // 2026-07-29 (Tuesday)
+  seg("e17", "Daily standup + task assignment", "internal", false, "2026-07-29", "09:00", "09:30", ["meeting"]),
+  seg("e18", "ZeCode plugin marketplace UI", "zecode", false, "2026-07-29", "09:45", "12:30", ["frontend"]),
+  seg("e19", "Meridian Health patient portal search", "meridian", true, "2026-07-29", "13:00", "15:45", ["frontend", "api"]),
+  seg("e20", "Atlas Robotics fleet diagnostics API", "atlas", true, "2026-07-29", "16:00", "18:30", ["backend", "api"]),
+
+  // 2026-07-30 (Wednesday)
+  seg("e21", "Design review — ZeLog dashboard", "zecode", false, "2026-07-30", "09:00", "10:00", ["meeting", "design"]),
+  seg("e22", "ZeMeet breakout rooms implementation", "zemeet", false, "2026-07-30", "10:15", "13:00", ["frontend", "webrtc"]),
+  seg("e23", "Meridian Health appointment reminders service", "meridian", true, "2026-07-30", "13:30", "16:00", ["backend", "notifications"]),
+  seg("e24", "Atlas Robotics sensor data visualization", "atlas", true, "2026-07-30", "16:15", "18:45", ["frontend", "charts"]),
+  seg("e25", "1:1 with product manager", "internal", false, "2026-07-30", "19:00", "19:30", ["meeting"]),
+
+  // 2026-07-31 (Thursday)
+  seg("e26", "Morning standup + sprint progress", "internal", false, "2026-07-31", "09:00", "09:30", ["meeting"]),
+  seg("e27", "ZeLog reports export to PDF", "zecode", false, "2026-07-31", "09:45", "12:15", ["backend", "pdf"]),
+  seg("e28", "Meridian Health provider directory", "meridian", true, "2026-07-31", "12:45", "15:30", ["frontend", "api"]),
+  seg("e29", "Atlas Robotics warehouse automation prototype", "atlas", true, "2026-07-31", "15:45", "18:00", ["prototype", "backend"]),
+  seg("e30", "Learning — GraphQL advanced patterns", "training", false, "2026-07-31", "18:15", "19:30", ["learning"]),
 ];
