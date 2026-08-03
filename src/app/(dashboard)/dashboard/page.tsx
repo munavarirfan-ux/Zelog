@@ -181,7 +181,7 @@ export default function DashboardPage() {
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {/* View Selector */}
-            <div className="flex items-center rounded-[10px] border border-white/20 bg-white/10 p-0.5">
+            <div className="flex h-8 items-center rounded-[10px] border border-white/20 bg-white/10 p-0.5">
               <button
                 type="button"
                 onClick={() => setViewMode("team")}
@@ -204,7 +204,7 @@ export default function DashboardPage() {
               </button>
             </div>
             {/* Date Range */}
-            <button className="inline-flex items-center gap-1.5 rounded-[10px] border border-white/20 bg-white/10 px-3 py-2 text-xs font-medium text-white hover:bg-white/20 transition-colors">
+            <button className="inline-flex h-8 items-center gap-1.5 rounded-[10px] border border-white/20 bg-white/10 px-3 text-xs font-medium text-white hover:bg-white/20 transition-colors">
               <Calendar className="h-3.5 w-3.5" /> This Month <ChevronDown className="h-3 w-3 opacity-60" />
             </button>
             {/* Export */}

@@ -15,12 +15,6 @@ import {
   X,
 } from "lucide-react";
 import Box from "@mui/material/Box";
-import FormControl from "@mui/material/FormControl";
-import InputLabel from "@mui/material/InputLabel";
-import MuiSelect from "@mui/material/Select";
-import MenuItem from "@mui/material/MenuItem";
-import MuiTextField from "@mui/material/TextField";
-import InputAdornment from "@mui/material/InputAdornment";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -90,6 +84,8 @@ export default function TeamPage() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<Role>("team_member");
   const [actionsOpen, setActionsOpen] = useState<string | null>(null);
+  const [rateMember, setRateMember] = useState<TeamMember | null>(null);
+  const [rateValue, setRateValue] = useState("");
 
   const filteredMembers = useMemo(() => {
     let result = MOCK_MEMBERS;
@@ -117,10 +113,10 @@ export default function TeamPage() {
         <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
         <div aria-hidden className="pointer-events-none absolute -bottom-24 left-1/3 h-64 w-64 rounded-full bg-white/5 blur-3xl" />
         <div className="relative flex flex-wrap items-start justify-between gap-4">
-          <div>
+          <div className="min-w-0 flex-1">
             <h1 className="text-2xl font-semibold tracking-tight">Team</h1>
             <p className="mt-0.5 text-sm text-white/60">Manage members, roles, access, and billing rates.</p>
-            <div className="mt-4 flex flex-wrap gap-3">
+            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div className="flex flex-col gap-1 rounded-lg bg-white/[0.14] px-5 py-4 backdrop-blur-sm">
                 <span className="text-[11px] font-medium text-white/50 uppercase tracking-wide">Active</span>
                 <div className="flex items-center gap-2">
@@ -149,8 +145,8 @@ export default function TeamPage() {
           </div>
           <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
             <DialogTrigger asChild>
-              <Button variant="white" className="gap-1.5">
-                <UserPlus className="h-3.5 w-3.5" /> Invite member
+              <Button variant="white" size="lg" className="gap-2">
+                <UserPlus className="h-4 w-4" /> Invite member
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -216,64 +212,43 @@ export default function TeamPage() {
             flexWrap: { xs: "wrap", md: "nowrap" },
           }}
         >
-          <FormControl
-            size="small"
-            sx={{ width: { xs: "100%", md: 180 }, flexShrink: 0 }}
-          >
-            <InputLabel id="status-label">Status</InputLabel>
-            <MuiSelect
-              labelId="status-label"
-              value={statusFilter}
-              label="Status"
-              onChange={(e) => setStatusFilter(e.target.value as "all" | "active" | "inactive")}
-              sx={{ height: 40, borderRadius: "10px" }}
-            >
-              <MenuItem value="all">All members</MenuItem>
-              <MenuItem value="active">Active</MenuItem>
-              <MenuItem value="inactive">Inactive</MenuItem>
-            </MuiSelect>
-          </FormControl>
+          <div className="relative min-w-0 flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by name or email"
+              className="h-10 w-full rounded-[10px] border border-border/10 bg-surface-2/60 pl-9 pr-3 text-sm text-text placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/20 dark:border-white/10"
+            />
+          </div>
 
-          <MuiTextField
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by name or email"
-            size="small"
-            fullWidth
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Search className="h-4 w-4 text-text-tertiary" />
-                  </InputAdornment>
-                ),
-              },
-            }}
-            sx={{
-              flex: 1,
-              minWidth: 0,
-              "& .MuiOutlinedInput-root": { height: 40, borderRadius: "10px" },
-            }}
-          />
+          <Box sx={{ width: { xs: "100%", md: 180 }, flexShrink: 0 }}>
+            <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as "all" | "active" | "inactive")}>
+              <SelectTrigger>
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All members</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+          </Box>
 
-          <FormControl
-            size="small"
-            sx={{ width: { xs: "100%", md: 220 }, flexShrink: 0 }}
-          >
-            <InputLabel id="role-label">Role</InputLabel>
-            <MuiSelect
-              labelId="role-label"
-              value={roleFilter}
-              label="Role"
-              onChange={(e) => setRoleFilter(e.target.value)}
-              sx={{ height: 40, borderRadius: "10px" }}
-            >
-              <MenuItem value="all">All roles</MenuItem>
-              <MenuItem value="admin">Admin</MenuItem>
-              <MenuItem value="project_manager">Project Manager</MenuItem>
-              <MenuItem value="team_member">Team Member</MenuItem>
-            </MuiSelect>
-          </FormControl>
+          <Box sx={{ width: { xs: "100%", md: 200 }, flexShrink: 0 }}>
+            <Select value={roleFilter} onValueChange={setRoleFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All roles</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="project_manager">Project Manager</SelectItem>
+                <SelectItem value="team_member">Team Member</SelectItem>
+              </SelectContent>
+            </Select>
+          </Box>
 
           {hasFilters && (
             <button
@@ -319,9 +294,15 @@ export default function TeamPage() {
                 {ROLE_LABELS[member.role]}
               </span>
               {/* Billable Rate */}
-              <span className="text-sm tabular-nums text-text-secondary">
-                {member.billableRate ? `${member.currency}${member.billableRate.toLocaleString()}/hr` : <span className="text-text-tertiary text-xs">Not set</span>}
-              </span>
+              <div>
+                <button
+                  type="button"
+                  onClick={() => { setRateMember(member); setRateValue(member.billableRate ? String(member.billableRate) : ""); }}
+                  className="inline-flex items-center gap-1 rounded-[8px] border border-dashed border-border/25 px-2.5 py-1 text-xs font-medium text-text-secondary transition-colors hover:border-accent/40 hover:bg-accent/5 hover:text-accent dark:border-white/15"
+                >
+                  <Plus className="h-3 w-3" /> Add rate
+                </button>
+              </div>
               {/* Actions */}
               <div className="relative">
                 <button
@@ -366,6 +347,53 @@ export default function TeamPage() {
           </div>
         </div>
       </div>
+
+      {/* Set rate dialog */}
+      <Dialog open={Boolean(rateMember)} onOpenChange={(open) => { if (!open) setRateMember(null); }}>
+        <DialogContent className="sm:max-w-[440px]">
+          <DialogHeader>
+            <DialogTitle>Set rate</DialogTitle>
+            <DialogDescription className="sr-only">Set the billable rate for this member.</DialogDescription>
+          </DialogHeader>
+          <div className="mt-2 space-y-4">
+            <div className="rounded-lg bg-accent/10 px-4 py-3 text-sm leading-relaxed text-text-secondary">
+              This rate will be applied to all entries made by{" "}
+              <span className="font-medium text-text">{rateMember?.name}</span>, unless projects have their own rate.
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-text-secondary">What is the new billable rate</label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-text-tertiary">$</span>
+                <input
+                  type="number"
+                  value={rateValue}
+                  onChange={(e) => setRateValue(e.target.value)}
+                  placeholder="0"
+                  autoFocus
+                  className="h-11 w-full rounded-[10px] border border-border/10 bg-surface-2/50 pl-7 pr-3 text-sm text-text placeholder:text-text-tertiary focus:border-accent/30 focus:outline-none focus:ring-2 focus:ring-accent/20 dark:border-white/10"
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <button
+              type="button"
+              onClick={() => setRateMember(null)}
+              className="h-10 rounded-[10px] px-4 text-sm font-semibold text-text-secondary transition-colors hover:text-text"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={!rateValue.trim()}
+              onClick={() => setRateMember(null)}
+              className="h-10 rounded-[10px] bg-[#84cc16] px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#74b814] disabled:opacity-50"
+            >
+              Save
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

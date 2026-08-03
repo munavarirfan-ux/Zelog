@@ -1,4 +1,4 @@
-import { BarChart3, FolderKanban, LayoutDashboard, Settings, Timer, Users } from "lucide-react";
+import { BarChart3, Building2, FolderKanban, LayoutDashboard, Settings, Timer, Users } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export interface NavItem {
@@ -10,6 +10,7 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   { href: "/tracker", label: "Tracker", icon: Timer },
   { href: "/projects", label: "Projects", icon: FolderKanban },
+  { href: "/clients", label: "Clients", icon: Building2 },
   { href: "/team", label: "Team", icon: Users },
   { href: "/reports", label: "Reports", icon: BarChart3 },
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },

@@ -110,11 +110,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       key={item.href}
                       href={item.href}
                       className={cn(
-                        "group flex items-center font-medium transition-all duration-[180ms] ease-out",
+                        "group flex items-center font-medium transition-colors duration-150 ease-out",
                         collapsed ? "h-11 w-11 justify-center rounded-xl" : "h-11 gap-3 rounded-xl px-3",
                         active
                           ? "border border-[rgba(122,77,255,0.10)] dark:border-[rgba(138,107,255,0.15)]"
-                          : "border border-transparent hover:translate-x-0.5 hover:border-transparent",
+                          : "border border-transparent hover:border-transparent",
                         !active && "text-[#5F6285] hover:bg-[rgba(122,77,255,0.06)] hover:text-text dark:text-[#8B8DAF] dark:hover:text-text",
                       )}
                       style={active ? {

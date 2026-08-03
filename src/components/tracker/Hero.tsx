@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useState } from "react";
 import { differenceInSeconds, format, parse } from "date-fns";
-import { Pause, Play, Plus, Square, X } from "lucide-react";
+import { Play, Plus, Square, X } from "lucide-react";
 import { useTrackerStore } from "@/store/trackerStore";
 import { useNow } from "@/hooks/useNow";
 import { formatDuration, runningTimerElapsedSeconds } from "@/lib/time";
@@ -30,8 +30,7 @@ export const Hero = React.forwardRef<HTMLInputElement>(function Hero(_props, tas
   const projects = useTrackerStore((s) => s.projects);
   const runningTimer = useTrackerStore((s) => s.runningTimer);
   const startTimer = useTrackerStore((s) => s.startTimer);
-  const pauseTimer = useTrackerStore((s) => s.pauseTimer);
-  const resumeTimer = useTrackerStore((s) => s.resumeTimer);
+  const updateRunningTimer = useTrackerStore((s) => s.updateRunningTimer);
   const stopTimer = useTrackerStore((s) => s.stopTimer);
   const entries = useTrackerStore((s) => s.entries);
 
@@ -113,58 +112,124 @@ export const Hero = React.forwardRef<HTMLInputElement>(function Hero(_props, tas
   const manualDuration = computeManualDuration();
 
   if (runningTimer) {
-    const project = projects.find((p) => p.id === runningTimer.projectId);
     return (
       <section className="relative overflow-hidden rounded-shell bg-hero px-6 py-8 text-white shadow-[0_20px_60px_-20px_rgba(49,46,129,0.5)] sm:px-10 sm:py-10">
         <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
         <div aria-hidden className="pointer-events-none absolute -bottom-24 left-1/3 h-64 w-64 rounded-full bg-white/5 blur-3xl" />
 
-        <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex min-w-0 items-center gap-4">
-            <span className="relative flex h-3.5 w-3.5 shrink-0">
-              {!runningTimer.isPaused && (
-                <span className="absolute inline-flex h-full w-full animate-pulse-ring rounded-full bg-emerald-300" />
-              )}
-              <span className={cn("relative inline-flex h-3.5 w-3.5 rounded-full", runningTimer.isPaused ? "bg-white/40" : "bg-emerald-300")} />
-            </span>
-            <div className="min-w-0">
-              <p className="truncate text-lg font-semibold">{runningTimer.task}</p>
-              <div className="mt-0.5 flex items-center gap-3 text-sm text-white/70">
-                {project && (
-                  <span className="inline-flex items-center gap-1.5">
-                    <span className={cn("h-2 w-2 rounded-full", PROJECT_COLOR_DOT[project.color])} />
-                    {project.name}
-                  </span>
+        <div className="relative space-y-4">
+          {/* Header row: live status + timer */}
+          <div className="flex items-center justify-between">
+            <span className="inline-flex items-center gap-2.5 text-sm font-medium text-white/70">
+              <span className="relative flex h-3 w-3 shrink-0">
+                {!runningTimer.isPaused && (
+                  <span className="absolute inline-flex h-full w-full animate-pulse-ring rounded-full bg-emerald-300" />
                 )}
-                {runningTimer.billable && <span className="font-medium text-emerald-200">Billable</span>}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between gap-5 sm:justify-end">
-            <span className="text-4xl font-bold tabular-nums">
+                <span className={cn("relative inline-flex h-3 w-3 rounded-full", runningTimer.isPaused ? "bg-white/40" : "bg-emerald-300")} />
+              </span>
+              {runningTimer.isPaused ? "Paused" : "Tracking"}
+            </span>
+            <span className="text-3xl font-bold tabular-nums">
               {formatDuration(runningTimerElapsedSeconds(runningTimer, now))}
             </span>
-            <div className="flex items-center gap-2.5">
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-12 w-12 rounded-full border-white/20 bg-white/10 text-white hover:bg-white/20"
-                onClick={() => (runningTimer.isPaused ? resumeTimer() : pauseTimer())}
-                aria-label={runningTimer.isPaused ? "Resume timer" : "Pause timer"}
+          </div>
+
+          {/* Editable controls row — same style as idle */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 2,
+              width: "100%",
+              flexWrap: { xs: "wrap", lg: "nowrap" },
+            }}
+          >
+            <MuiTextField
+              value={runningTimer.task}
+              onChange={(e) => updateRunningTimer({ task: e.target.value })}
+              placeholder="What are you working on?"
+              variant="outlined"
+              size="small"
+              sx={{
+                flex: "1 1 0",
+                minWidth: 200,
+                "& .MuiOutlinedInput-root": {
+                  height: 56,
+                  borderRadius: "12px",
+                  fontSize: "1.125rem",
+                  color: "white",
+                  backgroundColor: "rgba(255,255,255,0.10)",
+                  "& fieldset": { borderColor: "rgba(255,255,255,0.1)" },
+                  "&:hover fieldset": { borderColor: "rgba(255,255,255,0.25)" },
+                  "&.Mui-focused fieldset": { borderColor: "rgba(255,255,255,0.15)", borderWidth: 2 },
+                },
+                "& .MuiInputBase-input::placeholder": { color: "rgba(255,255,255,0.3)", opacity: 1 },
+              }}
+            />
+
+            <FormControl size="small" sx={{ width: 180, minWidth: 180, flexShrink: 0 }}>
+              <MuiSelect
+                value={runningTimer.projectId}
+                onChange={(e) => updateRunningTimer({ projectId: e.target.value })}
+                displayEmpty
+                renderValue={(value) => {
+                  const p = projects.find((proj) => proj.id === value);
+                  if (!p) return <span style={{ color: "rgba(255,255,255,0.5)" }}>Project</span>;
+                  return (
+                    <span className="inline-flex items-center gap-2">
+                      <span className={cn("h-2 w-2 rounded-full", PROJECT_COLOR_DOT[p.color])} />
+                      {p.name}
+                    </span>
+                  );
+                }}
+                sx={{
+                  height: 48,
+                  borderRadius: "12px",
+                  color: "#fff",
+                  backgroundColor: "rgba(255,255,255,0.08)",
+                  "& .MuiSelect-select": {
+                    display: "flex",
+                    alignItems: "center",
+                    padding: "8px 36px 8px 14px",
+                    minHeight: "unset",
+                  },
+                  "& .MuiSelect-icon": { color: "rgba(255,255,255,0.7)" },
+                  "& .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.12)" },
+                  "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.24)" },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.4)" },
+                }}
               >
-                {runningTimer.isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
-              </Button>
+                {projects.map((p) => (
+                  <MenuItem key={p.id} value={p.id}>
+                    <span className="inline-flex items-center gap-2">
+                      <span className={cn("h-2 w-2 rounded-full", PROJECT_COLOR_DOT[p.color])} />
+                      {p.name}
+                    </span>
+                  </MenuItem>
+                ))}
+              </MuiSelect>
+            </FormControl>
+
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexShrink: 0, whiteSpace: "nowrap", mx: 0.5 }}>
+              <Switch
+                checked={runningTimer.billable}
+                onCheckedChange={(v) => updateRunningTimer({ billable: v })}
+                className="data-[state=checked]:bg-emerald-400"
+              />
+              <Label className="cursor-pointer text-sm font-medium text-white/60">Billable</Label>
+            </Box>
+
+            <div className="flex shrink-0 items-center gap-2.5">
               <Button
-                size="icon"
-                className="h-12 w-12 rounded-full bg-white/15 text-white hover:bg-red-500/80"
+                variant="destructive"
+                size="lg"
                 onClick={stopTimer}
-                aria-label="Stop timer"
+                className="shrink-0 gap-2"
               >
-                <Square className="h-4 w-4" />
+                <Square className="h-4 w-4 fill-current" /> Stop
               </Button>
             </div>
-          </div>
+          </Box>
         </div>
       </section>
     );
@@ -315,7 +380,7 @@ export const Hero = React.forwardRef<HTMLInputElement>(function Hero(_props, tas
               size="lg"
               onClick={handleStart}
               disabled={!task.trim()}
-              className="h-12 shrink-0 gap-2 rounded-xl px-6"
+              className="shrink-0 gap-2"
             >
               <Play className="h-4 w-4 fill-current" /> Start
             </Button>
@@ -325,7 +390,7 @@ export const Hero = React.forwardRef<HTMLInputElement>(function Hero(_props, tas
               size="lg"
               onClick={handleManualAdd}
               disabled={!task.trim()}
-              className="h-12 shrink-0 gap-2 rounded-xl px-6"
+              className="shrink-0 gap-2"
             >
               <Plus className="h-4 w-4" /> Add entry
             </Button>

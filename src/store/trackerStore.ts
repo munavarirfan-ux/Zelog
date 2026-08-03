@@ -25,6 +25,7 @@ interface TrackerState {
   runningTimer: RunningTimer | null;
   filters: TrackerFilters;
   startTimer: (input: NewTimerInput) => void;
+  updateRunningTimer: (patch: Partial<Pick<RunningTimer, "task" | "projectId" | "billable" | "tags">>) => void;
   pauseTimer: () => void;
   resumeTimer: () => void;
   stopTimer: () => void;
@@ -58,6 +59,12 @@ export const useTrackerStore = create<TrackerState>()(
             isPaused: false,
           },
         });
+      },
+
+      updateRunningTimer: (patch) => {
+        const running = get().runningTimer;
+        if (!running) return;
+        set({ runningTimer: { ...running, ...patch } });
       },
 
       pauseTimer: () => {

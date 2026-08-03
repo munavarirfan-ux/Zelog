@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { MoreHorizontal, Plus, Search, X } from "lucide-react";
+import { MoreHorizontal, Plus, Search } from "lucide-react";
 import MuiTextField from "@mui/material/TextField";
 import MuiSwitch from "@mui/material/Switch";
 import { useTrackerStore } from "@/store/trackerStore";
@@ -28,12 +28,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FilterDropdown } from "@/components/ui/filter-dropdown";
 import { cn } from "@/lib/utils";
 import type { Project, ProjectColor } from "@/types/tracker";
-
-type StatusFilter = "all" | "active" | "archived";
-type AccessFilter = "all" | "public" | "private";
-type BillingFilter = "all" | "billable" | "non-billable";
 
 const COLOR_OPTIONS: { value: ProjectColor; hex: string }[] = [
   { value: "indigo", hex: "#5A43D5" },
@@ -80,11 +77,23 @@ export default function ProjectsPage() {
   const [createOpen, setCreateOpen] = useState(false);
 
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-  const [accessFilter, setAccessFilter] = useState<AccessFilter>("all");
-  const [billingFilter, setBillingFilter] = useState<BillingFilter>("all");
+  const [selectedClients, setSelectedClients] = useState<string[]>([]);
+  const [selectedStatus, setSelectedStatus] = useState<string[]>([]);
+  const [selectedAccess, setSelectedAccess] = useState<string[]>([]);
+  const [selectedBilling, setSelectedBilling] = useState<string[]>([]);
 
-  const hasFilters = search || statusFilter !== "all" || accessFilter !== "all" || billingFilter !== "all";
+  const clientOptions = useMemo(() => {
+    const set = new Set<string>();
+    PROJECTS.forEach((p) => set.add(p.client ?? "No Client"));
+    return Array.from(set).map((c) => ({ value: c, label: c }));
+  }, []);
+
+  const hasFilters =
+    Boolean(search) ||
+    selectedClients.length > 0 ||
+    selectedStatus.length > 0 ||
+    selectedAccess.length > 0 ||
+    selectedBilling.length > 0;
 
   const filteredProjects = useMemo(() => {
     let result = PROJECTS;
@@ -92,16 +101,28 @@ export default function ProjectsPage() {
       const q = search.toLowerCase();
       result = result.filter((p) => p.name.toLowerCase().includes(q) || p.client?.toLowerCase().includes(q));
     }
-    if (billingFilter === "billable") result = result.filter((p) => p.billableDefault);
-    if (billingFilter === "non-billable") result = result.filter((p) => !p.billableDefault);
+    if (selectedClients.length) {
+      result = result.filter((p) => selectedClients.includes(p.client ?? "No Client"));
+    }
+    if (selectedAccess.length) {
+      result = result.filter((p) => selectedAccess.includes(p.client ? "private" : "public"));
+    }
+    if (selectedBilling.length) {
+      result = result.filter((p) => selectedBilling.includes(p.billableDefault ? "billable" : "non-billable"));
+    }
+    if (selectedStatus.length) {
+      // All projects are currently "active"; filtering to only "archived" yields none.
+      result = result.filter(() => selectedStatus.includes("active"));
+    }
     return result;
-  }, [search, statusFilter, accessFilter, billingFilter]);
+  }, [search, selectedClients, selectedStatus, selectedAccess, selectedBilling]);
 
   function clearFilters() {
     setSearch("");
-    setStatusFilter("all");
-    setAccessFilter("all");
-    setBillingFilter("all");
+    setSelectedClients([]);
+    setSelectedStatus([]);
+    setSelectedAccess([]);
+    setSelectedBilling([]);
   }
 
   return (
@@ -122,7 +143,7 @@ export default function ProjectsPage() {
                 <Button
                   variant="white"
                   size="lg"
-                  className="gap-2 rounded-[10px] px-6"
+                  className="gap-2"
                 >
                   <Plus className="h-4 w-4" /> New project
                 </Button>
@@ -130,47 +151,67 @@ export default function ProjectsPage() {
               <CreateProjectDialog onClose={() => setCreateOpen(false)} />
             </Dialog>
           </div>
+        </div>
+      </section>
 
-          <div className="flex flex-wrap items-center gap-2.5">
-            <div className="relative min-w-0 flex-1 sm:max-w-xs">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search projects..."
-                className="h-9 w-full rounded-[10px] border border-white/10 bg-white/10 pl-9 pr-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-white/15"
-              />
-            </div>
-
-            <FilterPillHero label="Status" value={statusFilter} onChange={(v) => setStatusFilter(v as StatusFilter)} options={[
-              { value: "all", label: "All" },
+      {/* Filter strip */}
+      <div className="rounded-card border border-border/[0.07] bg-surface px-4 py-3 shadow-card dark:border-white/[0.06]">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative min-w-0 flex-1 sm:max-w-xs">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search projects..."
+              className="h-10 w-full rounded-[10px] border border-border/10 bg-surface-2/60 pl-9 pr-3 text-sm text-text placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/20 dark:border-white/10"
+            />
+          </div>
+          <FilterDropdown label="Client" options={clientOptions} selected={selectedClients} onChange={setSelectedClients} />
+          <FilterDropdown
+            label="Status"
+            options={[
               { value: "active", label: "Active" },
               { value: "archived", label: "Archived" },
-            ]} />
-            <FilterPillHero label="Access" value={accessFilter} onChange={(v) => setAccessFilter(v as AccessFilter)} options={[
-              { value: "all", label: "All" },
+            ]}
+            selected={selectedStatus}
+            onChange={setSelectedStatus}
+          />
+          <FilterDropdown
+            label="Access"
+            options={[
               { value: "public", label: "Public" },
               { value: "private", label: "Private" },
-            ]} />
-            <FilterPillHero label="Billing" value={billingFilter} onChange={(v) => setBillingFilter(v as BillingFilter)} options={[
-              { value: "all", label: "All" },
+            ]}
+            selected={selectedAccess}
+            onChange={setSelectedAccess}
+          />
+          <FilterDropdown
+            label="Billing"
+            options={[
               { value: "billable", label: "Billable" },
               { value: "non-billable", label: "Non-billable" },
-            ]} />
+            ]}
+            selected={selectedBilling}
+            onChange={setSelectedBilling}
+          />
 
+          <div className="ml-auto flex items-center gap-2">
             {hasFilters && (
               <button
                 type="button"
                 onClick={clearFilters}
-                className="flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium text-white/50 hover:bg-white/10 hover:text-white"
+                className="flex items-center gap-1 rounded-[10px] px-3 py-2 text-xs font-medium text-text-tertiary hover:bg-surface-2 hover:text-text transition-colors"
               >
-              <X className="h-3 w-3" /> Clear filters
-            </button>
+                Clear Filters
+              </button>
             )}
+            <Button size="sm" className="rounded-[10px] px-4 text-xs" disabled={!hasFilters}>
+              Apply
+            </Button>
           </div>
         </div>
-      </section>
+      </div>
 
       {/* Projects table card */}
       <div className="rounded-card border border-border/[0.07] bg-surface shadow-card dark:border-white/[0.06]">
@@ -414,47 +455,3 @@ function ProjectRow({ project, trackedSeconds }: { project: Project; trackedSeco
   );
 }
 
-function FilterPillHero({ label, value, onChange, options }: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  options: { value: string; label: string }[];
-}) {
-  const MuiSelectImport = require("@mui/material/Select").default;
-  const MuiMenuItemImport = require("@mui/material/MenuItem").default;
-  const active = value !== "all";
-  return (
-    <MuiSelectImport
-      value={value}
-      onChange={(e: any) => onChange(e.target.value)}
-      size="small"
-      displayEmpty
-      renderValue={() => <span className="text-xs font-medium">{value === "all" ? label : options.find(o => o.value === value)?.label}</span>}
-      sx={{
-        height: 36,
-        borderRadius: "10px",
-        fontSize: "0.75rem",
-        fontWeight: 500,
-        color: active ? "white" : "rgba(255,255,255,0.6)",
-        backgroundColor: active ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.1)",
-        "& .MuiOutlinedInput-notchedOutline": { borderColor: active ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.1)" },
-        "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.3)" },
-        "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.15)" },
-        "& .MuiSelect-icon": { color: "rgba(255,255,255,0.5)" },
-        "& .MuiSelect-select": { paddingRight: "28px !important", paddingLeft: "12px" },
-      }}
-      MenuProps={{
-        PaperProps: {
-          className: "!rounded-[14px] !border !border-border/[0.07] !bg-surface !shadow-float dark:!border-white/[0.06]",
-          sx: { backgroundImage: "none" },
-        },
-      }}
-    >
-      {options.map((opt) => (
-        <MuiMenuItemImport key={opt.value} value={opt.value} sx={{ fontSize: "0.75rem" }}>
-          {opt.value === "all" ? label : opt.label}
-        </MuiMenuItemImport>
-      ))}
-    </MuiSelectImport>
-  );
-}

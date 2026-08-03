@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -8,12 +9,10 @@ import {
   CheckCircle2,
   ChevronDown,
   Clock,
-  DollarSign,
   Download,
   AlertCircle,
-  RefreshCw,
+  Plus,
   Search,
-  Share2,
   Sparkles,
   Timer,
   X,
@@ -27,13 +26,12 @@ import { PROJECT_COLOR_DOT, PROJECT_COLOR_BADGE, PROJECT_COLOR_HEX } from "@/lib
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FilterDropdown } from "@/components/ui/filter-dropdown";
 import { cn } from "@/lib/utils";
 import type { TimeEntry, ProjectColor } from "@/types/tracker";
 
 type Tab = "summary" | "detailed" | "weekly";
 type QualityStatus = "good" | "review" | "bad" | "pending";
-
-const BILLABLE_RATE = 125;
 
 function getQuality(entry: TimeEntry): QualityStatus {
   if (entry.durationSeconds < 60) return "bad";
@@ -59,6 +57,7 @@ const STATUS_OPTIONS = [
 export default function ReportsPage() {
   const entries = useTrackerStore((s) => s.entries);
   const [activeTab, setActiveTab] = useState<Tab>("summary");
+  const router = useRouter();
   const [selectedTeam, setSelectedTeam] = useState<string[]>([]);
   const [selectedClients, setSelectedClients] = useState<string[]>([]);
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
@@ -102,7 +101,6 @@ export default function ReportsPage() {
   const totalSeconds = filteredEntries.reduce((s, e) => s + e.durationSeconds, 0);
   const billableEntries = filteredEntries.filter((e) => e.billable);
   const billableSeconds = billableEntries.reduce((s, e) => s + e.durationSeconds, 0);
-  const billableAmount = (billableSeconds / 3600) * BILLABLE_RATE;
 
   const qualityCounts = useMemo(() => {
     const counts: Record<QualityStatus, number> = { good: 0, review: 0, bad: 0, pending: 0 };
@@ -134,10 +132,10 @@ export default function ReportsPage() {
         <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
         <div aria-hidden className="pointer-events-none absolute -bottom-24 left-1/3 h-64 w-64 rounded-full bg-white/5 blur-3xl" />
         <div className="relative flex flex-wrap items-start justify-between gap-4">
-          <div>
+          <div className="min-w-0 flex-1">
             <h1 className="text-2xl font-semibold tracking-tight">Reports</h1>
             <p className="mt-0.5 text-sm text-white/60">Analyze productivity, billable hours, and team performance.</p>
-            <div className="mt-4 flex flex-wrap gap-3">
+            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="flex flex-col gap-1 rounded-lg bg-white/[0.14] px-5 py-4 backdrop-blur-sm">
                 <span className="text-[11px] font-medium text-white/50 uppercase tracking-wide">Total</span>
                 <div className="flex items-center gap-2">
@@ -154,28 +152,19 @@ export default function ReportsPage() {
                 </div>
                 <span className="text-[11px] text-white/40">{billableEntries.length} billable sessions</span>
               </div>
-              <div className="flex flex-col gap-1 rounded-lg bg-white/[0.14] px-5 py-4 backdrop-blur-sm">
-                <span className="text-[11px] font-medium text-white/50 uppercase tracking-wide">Amount</span>
-                <div className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-white/60" />
-                  <span className="text-xl font-bold text-white">${billableAmount.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
-                </div>
-                <span className="text-[11px] text-white/40">@ ${BILLABLE_RATE}/hr</span>
-              </div>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <button className="inline-flex items-center gap-1.5 rounded-[10px] border border-white/20 bg-white/10 px-3 py-2 text-xs font-medium text-white hover:bg-white/20 transition-colors">
+            {activeTab === "detailed" && (
+              <Button variant="white" size="sm" className="gap-1.5" onClick={() => router.push("/tracker")}>
+                <Plus className="h-3.5 w-3.5" /> Add entry
+              </Button>
+            )}
+            <button className="inline-flex h-8 items-center gap-1.5 rounded-[10px] border border-white/20 bg-white/10 px-3 text-xs font-medium text-white hover:bg-white/20 transition-colors">
               <Calendar className="h-3.5 w-3.5" /> {dateRange} <ChevronDown className="h-3 w-3 opacity-60" />
             </button>
             <Button variant="outline" size="sm" className="gap-1.5 border-white/20 bg-white/10 text-white hover:bg-white/20">
               <Download className="h-3.5 w-3.5" /> Export
-            </Button>
-            <Button variant="outline" size="sm" className="gap-1.5 border-white/20 bg-white/10 text-white hover:bg-white/20">
-              <Share2 className="h-3.5 w-3.5" /> Share
-            </Button>
-            <Button variant="outline" size="icon" className="h-8 w-8 border-white/20 bg-white/10 text-white hover:bg-white/20">
-              <RefreshCw className="h-3.5 w-3.5" />
             </Button>
           </div>
         </div>
@@ -324,87 +313,6 @@ export default function ReportsPage() {
 }
 
 /* ─── Filter Dropdown ─── */
-function FilterDropdown({ label, options, selected, onChange }: {
-  label: string;
-  options: { value: string; label: string }[];
-  selected: string[];
-  onChange: (v: string[]) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
-
-  const filtered = options.filter((o) => o.label.toLowerCase().includes(search.toLowerCase()));
-
-  return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen(!open)}
-        className={cn(
-          "inline-flex h-10 items-center gap-1.5 rounded-[10px] border px-3.5 text-xs font-medium transition-colors",
-          selected.length > 0
-            ? "border-accent/30 bg-accent/5 text-accent"
-            : "border-border/10 bg-surface-2/60 text-text-secondary hover:bg-surface-2 dark:border-white/10",
-        )}
-      >
-        {label} {selected.length > 0 && <span className="rounded-full bg-accent/15 px-1.5 text-[10px] font-bold">{selected.length}</span>}
-        <ChevronDown className="h-3 w-3 opacity-60" />
-      </button>
-      {open && (
-        <>
-          <div className="fixed inset-0 z-30" onClick={() => { setOpen(false); setSearch(""); }} />
-          <div className="absolute left-0 top-full z-40 mt-1.5 w-60 rounded-card border border-border/10 bg-surface p-2 shadow-float dark:border-white/10">
-            <div className="relative mb-2">
-              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-text-tertiary" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder={`Search ${label.toLowerCase()}...`}
-                className="h-8 w-full rounded-[8px] border-0 bg-surface-2/80 pl-8 pr-2 text-xs text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-accent/20"
-                autoFocus
-              />
-            </div>
-            {selected.length > 0 && (
-              <button
-                type="button"
-                onClick={() => onChange([])}
-                className="mb-1.5 flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-[11px] font-medium text-text-tertiary hover:bg-surface-2 hover:text-text transition-colors"
-              >
-                <X className="h-3 w-3" /> Clear All
-              </button>
-            )}
-            <div className="max-h-52 overflow-y-auto space-y-0.5">
-              {filtered.map((opt) => {
-                const isSelected = selected.includes(opt.value);
-                return (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => {
-                      onChange(isSelected ? selected.filter((v) => v !== opt.value) : [...selected, opt.value]);
-                    }}
-                    className={cn(
-                      "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs transition-colors",
-                      isSelected ? "bg-accent/10 text-accent font-medium" : "text-text hover:bg-surface-2",
-                    )}
-                  >
-                    <span className={cn("h-3.5 w-3.5 rounded border flex items-center justify-center shrink-0 transition-colors", isSelected ? "border-accent bg-accent" : "border-border/30 dark:border-white/20")}>
-                      {isSelected && <span className="text-white text-[9px] font-bold">✓</span>}
-                    </span>
-                    <span className="truncate">{opt.label}</span>
-                  </button>
-                );
-              })}
-              {filtered.length === 0 && <p className="px-2 py-3 text-center text-xs text-text-tertiary">No results</p>}
-            </div>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
 /* ─── Quality Metric (inline strip item) ─── */
 const QUALITY_DOT: Record<QualityStatus, string> = {
   good: "bg-emerald-500",
@@ -679,40 +587,44 @@ function SummaryTab({ entries }: { entries: TimeEntry[] }) {
       {/* Group By Toolbar */}
       <div className="flex items-center gap-3 rounded-card border border-border/[0.07] bg-surface px-5 py-3 shadow-card dark:border-white/[0.06]">
         <span className="text-xs font-medium text-text-secondary whitespace-nowrap">Group by:</span>
-        <Select
-          value={primaryGroup}
-          onValueChange={(val) => {
-            setPrimaryGroup(val);
-            if (val === secondaryGroup) setSecondaryGroup("none");
-          }}
-        >
-          <SelectTrigger className="h-10 w-44">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {["project", "client", "team", "user", "status", "billability", "description"].map((opt) => (
-              <SelectItem key={opt} value={opt} disabled={opt === secondaryGroup}>
-                {opt.charAt(0).toUpperCase() + opt.slice(1)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select
-          value={secondaryGroup}
-          onValueChange={(val) => setSecondaryGroup(val)}
-        >
-          <SelectTrigger className="h-10 w-44">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">None</SelectItem>
-            {["project", "client", "team", "user", "status", "billability", "description"].map((opt) => (
-              <SelectItem key={opt} value={opt} disabled={opt === primaryGroup}>
-                {opt.charAt(0).toUpperCase() + opt.slice(1)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="w-40 shrink-0">
+          <Select
+            value={primaryGroup}
+            onValueChange={(val) => {
+              setPrimaryGroup(val);
+              if (val === secondaryGroup) setSecondaryGroup("none");
+            }}
+          >
+            <SelectTrigger className="h-10">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {["project", "client", "team", "user", "status", "billability", "description"].map((opt) => (
+                <SelectItem key={opt} value={opt} disabled={opt === secondaryGroup}>
+                  {opt.charAt(0).toUpperCase() + opt.slice(1)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="w-40 shrink-0">
+          <Select
+            value={secondaryGroup}
+            onValueChange={(val) => setSecondaryGroup(val)}
+          >
+            <SelectTrigger className="h-10">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">None</SelectItem>
+              {["project", "client", "team", "user", "status", "billability", "description"].map((opt) => (
+                <SelectItem key={opt} value={opt} disabled={opt === primaryGroup}>
+                  {opt.charAt(0).toUpperCase() + opt.slice(1)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Two Column: Projects Table + Donut */}
@@ -727,10 +639,9 @@ function SummaryTab({ entries }: { entries: TimeEntry[] }) {
               </button>
             )}
           </div>
-          <div className="grid h-9 items-center gap-3 bg-[#F3F0FF] px-5 text-[10px] font-semibold uppercase tracking-wider text-text-secondary dark:bg-accent/[0.06] grid-cols-[1fr_120px_100px]">
+          <div className="grid h-9 items-center gap-3 bg-[#F3F0FF] px-5 text-[10px] font-semibold uppercase tracking-wider text-text-secondary dark:bg-accent/[0.06] grid-cols-[1fr_120px]">
             <span>Project</span>
-            <span>Duration</span>
-            <span className="text-right">Amount</span>
+            <span className="text-right">Duration</span>
           </div>
           <div className="divide-y divide-border/[0.06] dark:divide-white/[0.05]">
             {displayedProjects.map(({ project, seconds }) => (
@@ -739,7 +650,7 @@ function SummaryTab({ entries }: { entries: TimeEntry[] }) {
                 type="button"
                 onClick={() => setSelectedProject(selectedProject === project.id ? null : project.id)}
                 className={cn(
-                  "grid w-full h-14 items-center gap-3 px-5 text-left transition-colors duration-150 hover:bg-accent/[0.03] dark:hover:bg-accent/[0.05] grid-cols-[1fr_120px_100px]",
+                  "grid w-full h-14 items-center gap-3 px-5 text-left transition-colors duration-150 hover:bg-accent/[0.03] dark:hover:bg-accent/[0.05] grid-cols-[1fr_120px]",
                   selectedProject === project.id && "bg-accent/[0.05]",
                 )}
               >
@@ -747,10 +658,7 @@ function SummaryTab({ entries }: { entries: TimeEntry[] }) {
                   <span className={cn("h-2.5 w-2.5 shrink-0 rounded-full", PROJECT_COLOR_DOT[project.color])} />
                   <span className="truncate text-sm font-medium text-text">{project.name}</span>
                 </div>
-                <span className="text-sm tabular-nums text-text-secondary">{formatDuration(seconds)}</span>
-                <span className="text-right text-sm font-medium tabular-nums text-text">
-                  {project.billableDefault ? `$${((seconds / 3600) * BILLABLE_RATE).toFixed(0)}` : "—"}
-                </span>
+                <span className="text-right text-sm tabular-nums text-text-secondary">{formatDuration(seconds)}</span>
               </button>
             ))}
           </div>
@@ -851,11 +759,10 @@ function DetailedTab({ entries }: { entries: TimeEntry[] }) {
   return (
     <div className="rounded-card border border-border/[0.07] bg-surface shadow-card dark:border-white/[0.06]">
       {/* Header */}
-      <div className="grid h-11 items-center gap-3 rounded-t-card bg-[#F3F0FF] px-5 text-[10px] font-semibold uppercase tracking-wider text-text-secondary dark:bg-accent/[0.06] grid-cols-[minmax(200px,1.5fr)_130px_100px_90px_140px_90px_80px]">
+      <div className="grid h-11 items-center gap-3 rounded-t-card bg-[#F3F0FF] px-5 text-[10px] font-semibold uppercase tracking-wider text-text-secondary dark:bg-accent/[0.06] grid-cols-[minmax(200px,1.5fr)_130px_100px_140px_90px_80px]">
         <span>Task</span>
         <span>Project</span>
         <span>User</span>
-        <span className="text-right">Amount</span>
         <span>Time Range</span>
         <span>Date</span>
         <span className="text-right">Duration</span>
@@ -865,9 +772,8 @@ function DetailedTab({ entries }: { entries: TimeEntry[] }) {
       <div className="divide-y divide-border/[0.06] dark:divide-white/[0.05]">
         {sorted.length ? sorted.map((entry) => {
           const project = projectById(entry.projectId);
-          const amount = entry.billable ? (entry.durationSeconds / 3600) * BILLABLE_RATE : 0;
           return (
-            <div key={entry.id} className="group grid h-14 items-center gap-3 px-5 transition-colors duration-150 hover:bg-accent/[0.03] dark:hover:bg-accent/[0.05] grid-cols-[minmax(200px,1.5fr)_130px_100px_90px_140px_90px_80px]">
+            <div key={entry.id} className="group grid h-14 items-center gap-3 px-5 transition-colors duration-150 hover:bg-accent/[0.03] dark:hover:bg-accent/[0.05] grid-cols-[minmax(200px,1.5fr)_130px_100px_140px_90px_80px]">
               <span className="truncate text-sm font-medium text-text">{entry.task}</span>
               <span className={cn("inline-flex w-fit items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium leading-4", PROJECT_COLOR_BADGE[project.color])}>
                 <span className={cn("h-1.5 w-1.5 rounded-full", PROJECT_COLOR_DOT[project.color])} />
@@ -877,9 +783,6 @@ function DetailedTab({ entries }: { entries: TimeEntry[] }) {
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/10 text-[9px] font-bold text-accent">IA</span>
                 <span className="text-xs text-text-secondary">Irfan</span>
               </div>
-              <span className="text-right text-sm tabular-nums text-text-secondary">
-                {amount > 0 ? `$${amount.toFixed(0)}` : "—"}
-              </span>
               <span className="text-xs tabular-nums text-text-tertiary">{formatTimeRange(entry.startTime, entry.endTime)}</span>
               <span className="text-xs text-text-tertiary">{format(parseISO(entry.date), "MMM dd")}</span>
               <span className="text-right text-sm font-bold tabular-nums text-text">{formatDuration(entry.durationSeconds)}</span>
@@ -923,8 +826,6 @@ function WeeklyTab({ entries }: { entries: TimeEntry[] }) {
     })).sort((a, b) => b.total - a.total);
   }, [entries, days]);
 
-  const dayTotals = Array.from({ length: 7 }, (_, i) => projectWeekly.reduce((s, p) => s + p.days[i], 0));
-  const grandTotal = dayTotals.reduce((s, d) => s + d, 0);
 
   const projectEntries = useMemo(() => {
     if (!expandedProject) return [];
@@ -936,23 +837,22 @@ function WeeklyTab({ entries }: { entries: TimeEntry[] }) {
   return (
     <div className="rounded-card border border-border/[0.07] bg-surface shadow-card overflow-x-auto dark:border-white/[0.06]">
       {/* Header */}
-      <div className="grid min-w-[700px] h-11 items-center gap-px rounded-t-card bg-[#F3F0FF] px-5 text-[10px] font-semibold uppercase tracking-wider text-text-secondary dark:bg-accent/[0.06] grid-cols-[minmax(160px,1.3fr)_repeat(7,1fr)_90px]">
+      <div className="grid min-w-[700px] h-11 items-center gap-px rounded-t-card bg-[#F3F0FF] px-5 text-[10px] font-semibold uppercase tracking-wider text-text-secondary dark:bg-accent/[0.06] grid-cols-[minmax(160px,1.3fr)_repeat(7,1fr)]">
         <span className="sticky left-0 bg-[#F3F0FF] dark:bg-accent/[0.06] pl-0">Project</span>
         {dayLabels.map((d, i) => (
           <span key={d} className={cn("text-center", i >= 5 && "text-accent/60")}>{d}</span>
         ))}
-        <span className="text-right font-bold">Total</span>
       </div>
 
       {/* Rows */}
       <div className="divide-y divide-border/[0.06] dark:divide-white/[0.05] min-w-[700px]">
-        {projectWeekly.map(({ project, days: daySecs, total }) => (
+        {projectWeekly.map(({ project, days: daySecs }) => (
           <div key={project.id}>
             <button
               type="button"
               onClick={() => setExpandedProject(expandedProject === project.id ? null : project.id)}
               className={cn(
-                "grid w-full h-12 items-center gap-px px-5 text-left transition-colors duration-150 hover:bg-accent/[0.03] dark:hover:bg-accent/[0.05] grid-cols-[minmax(160px,1.3fr)_repeat(7,1fr)_90px]",
+                "grid w-full h-12 items-center gap-px px-5 text-left transition-colors duration-150 hover:bg-accent/[0.03] dark:hover:bg-accent/[0.05] grid-cols-[minmax(160px,1.3fr)_repeat(7,1fr)]",
                 expandedProject === project.id && "bg-accent/[0.03]",
               )}
             >
@@ -965,7 +865,6 @@ function WeeklyTab({ entries }: { entries: TimeEntry[] }) {
                   {sec > 0 ? formatHoursShort(sec) : "—"}
                 </span>
               ))}
-              <span className="text-right text-sm font-bold tabular-nums text-text">{formatHoursShort(total)}</span>
             </button>
 
             {/* Expanded tasks */}
@@ -974,14 +873,13 @@ function WeeklyTab({ entries }: { entries: TimeEntry[] }) {
                 {projectEntries.map((entry) => {
                   const dayIdx = days.findIndex((d) => isSameDay(d, parseISO(entry.date)));
                   return (
-                    <div key={entry.id} className="grid h-10 items-center gap-px px-5 grid-cols-[minmax(160px,1.3fr)_repeat(7,1fr)_90px]">
+                    <div key={entry.id} className="grid h-10 items-center gap-px px-5 grid-cols-[minmax(160px,1.3fr)_repeat(7,1fr)]">
                       <span className="truncate text-xs text-text-secondary pl-4">{entry.task}</span>
                       {Array.from({ length: 7 }, (_, i) => (
                         <span key={i} className="text-center text-[11px] tabular-nums text-text-tertiary">
                           {i === dayIdx ? formatHoursShort(entry.durationSeconds) : ""}
                         </span>
                       ))}
-                      <span className="text-right text-xs tabular-nums text-text-secondary">{formatHoursShort(entry.durationSeconds)}</span>
                     </div>
                   );
                 })}
@@ -989,17 +887,6 @@ function WeeklyTab({ entries }: { entries: TimeEntry[] }) {
             )}
           </div>
         ))}
-
-        {/* Totals row */}
-        <div className="grid h-12 items-center gap-px px-5 bg-surface-2/50 dark:bg-surface-2/30 grid-cols-[minmax(160px,1.3fr)_repeat(7,1fr)_90px]">
-          <span className="text-sm font-semibold text-text sticky left-0">Total</span>
-          {dayTotals.map((sec, i) => (
-            <span key={i} className={cn("text-center text-xs font-semibold tabular-nums text-text", i >= 5 && "text-accent")}>
-              {sec > 0 ? formatHoursShort(sec) : "—"}
-            </span>
-          ))}
-          <span className="text-right text-sm font-bold tabular-nums text-accent">{formatHoursShort(grandTotal)}</span>
-        </div>
       </div>
     </div>
   );

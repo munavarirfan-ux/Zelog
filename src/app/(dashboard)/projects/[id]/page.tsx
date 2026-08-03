@@ -6,15 +6,9 @@ import { useParams } from "next/navigation";
 import {
   Check,
   ChevronRight,
-  Copy,
-  Globe,
-  Lock,
   MoreHorizontal,
-  Pencil,
   Plus,
   Search,
-  Shield,
-  Trash2,
   UserPlus,
 } from "lucide-react";
 import { PROJECTS } from "@/data/mockEntries";
@@ -24,6 +18,7 @@ import { PROJECT_COLOR_DOT } from "@/lib/projectColors";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,7 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
-type Tab = "overview" | "members" | "settings";
+type Tab = "members" | "settings";
 
 const MOCK_MEMBERS = [
   { id: "m1", name: "Irfan Alisha", email: "irfan@zessta.com", role: "Admin" as const, status: "Active" as const, lastActive: "Just now", avatar: "IA" },
@@ -56,7 +51,7 @@ export default function ProjectDetailPage() {
   const projectId = params.id as string;
   const project = PROJECTS.find((p) => p.id === projectId);
   const entries = useTrackerStore((s) => s.entries);
-  const [activeTab, setActiveTab] = useState<Tab>("overview");
+  const [activeTab, setActiveTab] = useState<Tab>("members");
 
   if (!project) {
     return (
@@ -73,7 +68,6 @@ export default function ProjectDetailPage() {
   const isPrivate = Boolean(project.client);
 
   const tabs: { key: Tab; label: string }[] = [
-    { key: "overview", label: "Overview" },
     { key: "members", label: "Members" },
     { key: "settings", label: "Settings" },
   ];
@@ -108,46 +102,25 @@ export default function ProjectDetailPage() {
                 </span>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="gap-1.5 border-white/20 bg-white/10 text-white hover:bg-white/20">
-                <Pencil className="h-3.5 w-3.5" /> Edit Project
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon" className="h-8 w-8 border-white/20 bg-white/10 text-white hover:bg-white/20">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem><Copy className="h-4 w-4" /> Duplicate</DropdownMenuItem>
-                  <DropdownMenuItem><Shield className="h-4 w-4" /> Manage access</DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem destructive><Trash2 className="h-4 w-4" /> Delete project</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
           </div>
 
-          {/* Stats row */}
-          <div className="flex flex-wrap items-center gap-6 pt-2">
-            <div>
-              <p className="text-xs font-medium text-white/50">Total Tracked</p>
-              <p className="mt-0.5 text-lg font-bold tabular-nums">{formatDuration(trackedSeconds)}</p>
+          {/* Stats row — KPI cards */}
+          <div className="grid grid-cols-2 gap-3 pt-2 sm:grid-cols-4">
+            <div className="flex flex-col gap-1 rounded-lg bg-white/[0.14] px-5 py-4 backdrop-blur-sm">
+              <span className="text-[11px] font-medium uppercase tracking-wide text-white/50">Total Tracked</span>
+              <span className="text-xl font-bold tabular-nums text-white">{formatDuration(trackedSeconds)}</span>
             </div>
-            <div className="h-8 w-px bg-white/10" />
-            <div>
-              <p className="text-xs font-medium text-white/50">Sessions</p>
-              <p className="mt-0.5 text-lg font-bold">{entryCount}</p>
+            <div className="flex flex-col gap-1 rounded-lg bg-white/[0.14] px-5 py-4 backdrop-blur-sm">
+              <span className="text-[11px] font-medium uppercase tracking-wide text-white/50">Sessions</span>
+              <span className="text-xl font-bold text-white">{entryCount}</span>
             </div>
-            <div className="h-8 w-px bg-white/10" />
-            <div>
-              <p className="text-xs font-medium text-white/50">Members</p>
-              <p className="mt-0.5 text-lg font-bold">{MOCK_MEMBERS.length}</p>
+            <div className="flex flex-col gap-1 rounded-lg bg-white/[0.14] px-5 py-4 backdrop-blur-sm">
+              <span className="text-[11px] font-medium uppercase tracking-wide text-white/50">Members</span>
+              <span className="text-xl font-bold text-white">{MOCK_MEMBERS.length}</span>
             </div>
-            <div className="h-8 w-px bg-white/10" />
-            <div>
-              <p className="text-xs font-medium text-white/50">Billing</p>
-              <p className="mt-0.5 text-lg font-bold">{project.billableDefault ? "Billable" : "Non-billable"}</p>
+            <div className="flex flex-col gap-1 rounded-lg bg-white/[0.14] px-5 py-4 backdrop-blur-sm">
+              <span className="text-[11px] font-medium uppercase tracking-wide text-white/50">Billing</span>
+              <span className="text-xl font-bold text-white">{project.billableDefault ? "Billable" : "Non-billable"}</span>
             </div>
           </div>
         </div>
@@ -173,47 +146,8 @@ export default function ProjectDetailPage() {
       </div>
 
       {/* Tab content */}
-      {activeTab === "overview" && <OverviewTab project={project} trackedSeconds={trackedSeconds} entryCount={entryCount} isPrivate={isPrivate} />}
       {activeTab === "members" && <MembersTab />}
       {activeTab === "settings" && <SettingsTab project={project} />}
-    </div>
-  );
-}
-
-/* ─── Overview Tab ─── */
-function OverviewTab({ project, trackedSeconds, entryCount, isPrivate }: {
-  project: (typeof PROJECTS)[number]; trackedSeconds: number; entryCount: number; isPrivate: boolean;
-}) {
-  return (
-    <div className="space-y-5">
-      {/* Details card */}
-      <div className="rounded-card border border-border/[0.07] bg-surface p-5 shadow-card dark:border-white/[0.06]">
-        <h2 className="text-sm font-semibold text-text">Project Details</h2>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <div>
-            <p className="text-xs font-medium text-text-tertiary">Client</p>
-            <p className="mt-0.5 text-sm text-text">{project.client || "—"}</p>
-          </div>
-          <div>
-            <p className="text-xs font-medium text-text-tertiary">Visibility</p>
-            <p className="mt-0.5 flex items-center gap-1.5 text-sm text-text">
-              {isPrivate ? <Lock className="h-3.5 w-3.5 text-text-tertiary" /> : <Globe className="h-3.5 w-3.5 text-text-tertiary" />}
-              {isPrivate ? "Private" : "Public"}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs font-medium text-text-tertiary">Billing Default</p>
-            <p className="mt-0.5 text-sm text-text">{project.billableDefault ? "Billable" : "Non-billable"}</p>
-          </div>
-          <div>
-            <p className="text-xs font-medium text-text-tertiary">Color</p>
-            <p className="mt-0.5 flex items-center gap-1.5 text-sm capitalize text-text">
-              <span className={cn("h-2.5 w-2.5 rounded-full", PROJECT_COLOR_DOT[project.color])} />
-              {project.color}
-            </p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
@@ -249,40 +183,41 @@ function MembersTab() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search members..."
-            className="h-8 w-full rounded-[10px] border border-border/10 bg-surface-2/60 pl-8 pr-3 text-xs text-text placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/20 dark:border-white/10"
+            className="h-10 w-full rounded-[10px] border border-border/10 bg-surface-2/60 pl-8 pr-3 text-sm text-text placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/20 dark:border-white/10"
           />
         </div>
-        <select
-          value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value)}
-          className="h-8 cursor-pointer appearance-none rounded-[10px] border border-border/10 bg-surface-2/60 px-2.5 pr-7 text-xs font-medium text-text-secondary focus:outline-none focus:ring-2 focus:ring-accent/20 dark:border-white/10"
-          style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 6px center" }}
-        >
-          <option value="all">All roles</option>
-          <option value="admin">Admin</option>
-          <option value="manager">Manager</option>
-          <option value="member">Member</option>
-          <option value="viewer">Viewer</option>
-        </select>
+        <div className="w-40 shrink-0">
+          <Select value={roleFilter} onValueChange={setRoleFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="All roles" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All roles</SelectItem>
+              <SelectItem value="admin">Admin</SelectItem>
+              <SelectItem value="manager">Manager</SelectItem>
+              <SelectItem value="member">Member</SelectItem>
+              <SelectItem value="viewer">Viewer</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <Button variant="white" size="sm" className="gap-1.5">
           <UserPlus className="h-3.5 w-3.5" /> Invite Member
         </Button>
       </div>
 
       {/* Table header */}
-      <div className="grid h-9 items-center gap-3 bg-[#F3F0FF] px-5 text-[10px] font-semibold uppercase tracking-wider text-text-secondary dark:bg-accent/[0.06] grid-cols-[40px_minmax(200px,1fr)_120px_100px_120px_40px]">
+      <div className="grid h-9 items-center gap-3 bg-[#F3F0FF] px-5 text-[10px] font-semibold uppercase tracking-wider text-text-secondary dark:bg-accent/[0.06] grid-cols-[40px_minmax(200px,1fr)_120px_100px_40px]">
         <span />
         <span>Name</span>
         <span>Role</span>
         <span>Status</span>
-        <span>Last Active</span>
         <span />
       </div>
 
       {/* Member rows */}
       <div className="divide-y divide-border/[0.06] dark:divide-white/[0.05]">
         {filtered.length ? filtered.map((member) => (
-          <div key={member.id} className="group grid h-14 items-center gap-3 px-5 transition-colors duration-150 hover:bg-accent/[0.03] dark:hover:bg-accent/[0.05] grid-cols-[40px_minmax(200px,1fr)_120px_100px_120px_40px]">
+          <div key={member.id} className="group grid h-14 items-center gap-3 px-5 transition-colors duration-150 hover:bg-accent/[0.03] dark:hover:bg-accent/[0.05] grid-cols-[40px_minmax(200px,1fr)_120px_100px_40px]">
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent/10 text-[11px] font-bold text-accent">
               {member.avatar}
             </span>
@@ -296,7 +231,6 @@ function MembersTab() {
             <Badge variant={member.status === "Active" ? "success" : "warning"} className="w-fit text-[10px] px-2 py-0.5">
               {member.status}
             </Badge>
-            <span className="text-xs text-text-tertiary">{member.lastActive}</span>
             <div className="justify-self-end opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -363,12 +297,6 @@ function SettingsTab({ project }: { project: (typeof PROJECTS)[number] }) {
     setTimeout(() => setSaved(false), 2500);
   }
 
-  const selectStyle = {
-    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
-    backgroundRepeat: "no-repeat",
-    backgroundPosition: "right 10px center",
-  } as React.CSSProperties;
-
   return (
     <div className="rounded-card border border-border/[0.07] bg-surface p-6 shadow-card dark:border-white/[0.06]">
       <div className="space-y-6">
@@ -392,16 +320,18 @@ function SettingsTab({ project }: { project: (typeof PROJECTS)[number] }) {
         {/* Client */}
         <div>
           <label className="text-sm font-medium text-text">Client</label>
-          <select
-            value={client}
-            onChange={(e) => setClient(e.target.value)}
-            className="mt-1.5 h-10 w-full max-w-sm cursor-pointer appearance-none rounded-[10px] border border-border/10 bg-surface-2/60 px-3 pr-9 text-sm text-text focus:outline-none focus:ring-2 focus:ring-accent/20 dark:border-white/10"
-            style={selectStyle}
-          >
-            {CLIENTS.map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
+          <div className="mt-1.5 w-full max-w-sm">
+            <Select value={client} onValueChange={setClient}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select client" />
+              </SelectTrigger>
+              <SelectContent>
+                {CLIENTS.map((c) => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <p className="mt-1.5 text-xs text-text-tertiary">Used for grouping similar projects together.</p>
         </div>
 
