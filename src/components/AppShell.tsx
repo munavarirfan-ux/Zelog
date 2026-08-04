@@ -65,16 +65,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             "lg:relative lg:inset-auto lg:w-full lg:translate-x-0",
           )}
         >
-          <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-[18px] border border-border/[0.06] bg-surface dark:border-white/[0.06]">
+          <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-none border border-border/[0.06] bg-surface dark:border-white/[0.06]">
             <div className={cn("border-b border-border/[0.06] dark:border-white/[0.06]", collapsed ? "px-2 py-3.5" : "px-3.5 py-3.5")}>
               <div className={cn("flex items-center", collapsed ? "justify-center" : "justify-between")}>
                 <Link href="/tracker" className={cn("flex items-center", collapsed ? "justify-center" : "gap-0")}>
                   {collapsed ? (
-                    <div className="h-9 w-9 overflow-hidden rounded-[10px]">
-                      <img src="/zelog-logo.png" alt="ZeLog" className="h-9 w-auto max-w-none" />
-                    </div>
+                    <img src="/zelog-icon.png" alt="ZeLog" className="h-7 w-7 shrink-0 object-contain" />
                   ) : (
-                    <img src="/zelog-logo.png" alt="ZeLog" className="h-10 w-auto shrink-0" />
+                    <div className="h-7 w-[80px] shrink-0 overflow-hidden">
+                      <img src="/zelog-logo.png" alt="ZeLog" className="h-7 max-w-none -ml-[34px]" />
+                    </div>
                   )}
                 </Link>
                 {!collapsed ? (

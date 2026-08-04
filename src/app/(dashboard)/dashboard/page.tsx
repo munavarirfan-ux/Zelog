@@ -9,18 +9,20 @@ import {
   Download,
   Folder,
   Users,
+  X,
 } from "lucide-react";
-import { format, parseISO, formatDistanceToNow } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { useTrackerStore } from "@/store/trackerStore";
-import { PROJECTS, projectById } from "@/data/mockEntries";
+import { projectById } from "@/data/mockEntries";
 import { formatDuration } from "@/lib/time";
-import { PROJECT_COLOR_DOT, PROJECT_COLOR_BADGE, PROJECT_COLOR_HEX } from "@/lib/projectColors";
+import { PROJECT_COLOR_DOT, PROJECT_COLOR_HEX } from "@/lib/projectColors";
 import { Button } from "@/components/ui/button";
 import { DailyBarChart } from "@/components/charts/DailyBarChart";
+import { TeamActivityCard, type TeamMember } from "@/components/dashboard/TeamActivityCard";
 import { cn } from "@/lib/utils";
-import type { TimeEntry, ProjectColor } from "@/types/tracker";
+import type { ProjectColor } from "@/types/tracker";
 
-const TEAM_MEMBERS = [
+const TEAM_MEMBERS: TeamMember[] = [
   { id: "irfan", name: "Irfan Alisha", initials: "IA", color: "bg-accent" },
   { id: "sarah", name: "Sarah Chen", initials: "SC", color: "bg-sky-500" },
   { id: "mike", name: "Mike Rodriguez", initials: "MR", color: "bg-emerald-500" },
@@ -37,11 +39,18 @@ function formatHoursShort(seconds: number): string {
 }
 
 export default function DashboardPage() {
-  const entries = useTrackerStore((s) => s.entries);
+  const allEntries = useTrackerStore((s) => s.entries);
   const [viewMode, setViewMode] = useState<"team" | "individual">("team");
   const [chartView, setChartView] = useState<"billability" | "projects">("billability");
   const [chartViewOpen, setChartViewOpen] = useState(false);
   const [hoveredProject, setHoveredProject] = useState<string | null>(null);
+  const [projectFilter, setProjectFilter] = useState<string | null>(null);
+
+  const entries = useMemo(
+    () => (projectFilter ? allEntries.filter((e) => e.projectId === projectFilter) : allEntries),
+    [allEntries, projectFilter],
+  );
+  const filteredProject = projectFilter ? projectById(projectFilter) : null;
 
   const totalSeconds = entries.reduce((s, e) => s + e.durationSeconds, 0);
   const billableSeconds = entries.filter((e) => e.billable).reduce((s, e) => s + e.durationSeconds, 0);
@@ -108,24 +117,6 @@ export default function DashboardPage() {
     return Array.from(seen.values());
   }, [dailyByProject]);
 
-  const teamActivity = useMemo(() => {
-    return TEAM_MEMBERS.map((member, idx) => {
-      const memberEntries = entries.slice(idx * 8, idx * 8 + 8);
-      const latest = memberEntries[0];
-      const total = memberEntries.reduce((s, e) => s + e.durationSeconds, 0);
-      const billable = memberEntries.filter((e) => e.billable).reduce((s, e) => s + e.durationSeconds, 0);
-      return {
-        ...member,
-        latestTask: latest?.task || "No activity",
-        latestProject: latest ? projectById(latest.projectId) : null,
-        lastTracked: latest?.endTime || latest?.startTime || null,
-        total,
-        billable,
-        nonBillable: total - billable,
-      };
-    });
-  }, [entries]);
-
   return (
     <div className="space-y-5 pb-12">
       {/* Hero Header */}
@@ -137,6 +128,19 @@ export default function DashboardPage() {
             <div>
               <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
               <p className="mt-0.5 text-sm text-white/60">Track team performance, billability, and project activity.</p>
+              {filteredProject && (
+                <button
+                  type="button"
+                  onClick={() => setProjectFilter(null)}
+                  className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-white/15 py-1 pl-3 pr-2 text-xs font-medium text-white backdrop-blur-sm transition-colors hover:bg-white/25"
+                >
+                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: PROJECT_COLOR_HEX[filteredProject.color] }} />
+                  Filtered by {filteredProject.name}
+                  <span className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white/20">
+                    <X className="h-2.5 w-2.5" />
+                  </span>
+                </button>
+              )}
             </div>
           <div className="flex flex-wrap items-center gap-2">
             {/* View Selector */}
@@ -234,9 +238,11 @@ export default function DashboardPage() {
       {/* Two Column: Donut + Top Projects */}
       <div className="grid gap-5 lg:grid-cols-[320px_1fr]">
         {/* Donut Chart */}
-        <div className="rounded-card border border-border/[0.07] bg-surface p-5 shadow-card dark:border-white/[0.06]">
+        <div className="flex flex-col rounded-card border border-border/[0.07] bg-surface p-5 shadow-card dark:border-white/[0.06]">
           <h3 className="text-sm font-semibold text-text mb-4">Project Distribution</h3>
-          <DonutChart data={projectStats} total={totalSeconds} hoveredProject={hoveredProject} onHover={setHoveredProject} />
+          <div className="flex flex-1 items-center justify-center">
+            <DonutChart data={projectStats} total={totalSeconds} hoveredProject={hoveredProject} onHover={setHoveredProject} />
+          </div>
         </div>
 
         {/* Top Projects */}
@@ -281,54 +287,11 @@ export default function DashboardPage() {
       </div>
 
       {/* Team Activity */}
-      <div className="rounded-card border border-border/[0.07] bg-surface shadow-card dark:border-white/[0.06]">
-        <div className="flex items-center justify-between border-b border-border/[0.06] px-5 py-3.5 dark:border-white/[0.05]">
-          <h3 className="text-sm font-semibold text-text">Team activity</h3>
-          <span className="text-xs text-text-tertiary">{TEAM_MEMBERS.length} members</span>
-        </div>
-        <div className="overflow-x-auto">
-        <div className="min-w-[680px]">
-        {/* Header */}
-        <div className="sticky top-0 z-10 grid h-9 items-center gap-3 bg-[#F3F0FF] px-5 text-[10px] font-semibold uppercase tracking-wider text-text-secondary dark:bg-accent/[0.06] grid-cols-[180px_1fr_120px_100px_100px]">
-          <span>Member</span>
-          <span>Latest activity</span>
-          <span>Project</span>
-          <span>Last tracked</span>
-          <span>Total tracked</span>
-        </div>
-        {/* Rows */}
-        <div className="divide-y divide-border/[0.06] dark:divide-white/[0.05]">
-          {teamActivity.map((member) => (
-            <div key={member.id} className="grid h-[60px] items-center gap-3 px-5 transition-colors hover:bg-accent/[0.03] dark:hover:bg-accent/[0.05] grid-cols-[180px_1fr_120px_100px_100px]">
-              {/* Avatar + Name */}
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className={cn("flex h-8 w-8 items-center justify-center rounded-full text-[10px] font-bold text-white shrink-0", member.color)}>
-                  {member.initials}
-                </div>
-                <span className="truncate text-sm font-medium text-text">{member.name}</span>
-              </div>
-              {/* Latest Task */}
-              <span className="truncate text-xs text-text-secondary">{member.latestTask}</span>
-              {/* Project Pill */}
-              {member.latestProject ? (
-                <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium w-fit", PROJECT_COLOR_BADGE[member.latestProject.color])}>
-                  {member.latestProject.name}
-                </span>
-              ) : (
-                <span className="text-xs text-text-tertiary">—</span>
-              )}
-              {/* Last Tracked */}
-              <span className="text-xs text-text-tertiary">
-                {member.lastTracked ? formatDistanceToNow(parseISO(member.lastTracked), { addSuffix: true }) : "—"}
-              </span>
-              {/* Total */}
-              <span className="text-sm tabular-nums font-medium text-text">{formatDuration(member.total)}</span>
-            </div>
-          ))}
-        </div>
-        </div>
-        </div>
-      </div>
+      <TeamActivityCard
+        members={TEAM_MEMBERS}
+        entries={entries}
+        onFilterProject={setProjectFilter}
+      />
     </div>
   );
 }
