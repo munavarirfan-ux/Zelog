@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Bell, LogOut, Menu, Moon, PanelLeftClose, PanelLeftOpen, Settings, Sun, User } from "lucide-react";
+import { Bell, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Settings, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS, APP_NAME, COMPANY_NAME } from "@/config/nav";
 import { Button } from "@/components/ui/button";
@@ -18,12 +18,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useTheme } from "@/components/ThemeProvider";
 import { StickyMiniTimer } from "@/components/tracker/StickyMiniTimer";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { resolvedTheme, toggleTheme } = useTheme();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -195,20 +193,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     <p className="text-xs text-text-secondary">You&apos;re all caught up — no new notifications.</p>
                   </HoverCardContent>
                 </HoverCard>
-
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-9 w-9"
-                  onClick={toggleTheme}
-                  aria-label={mounted && resolvedTheme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
-                >
-                  {mounted && resolvedTheme === "dark" ? (
-                    <Sun className="h-4 w-4" strokeWidth={1.75} />
-                  ) : (
-                    <Moon className="h-4 w-4" strokeWidth={1.75} />
-                  )}
-                </Button>
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

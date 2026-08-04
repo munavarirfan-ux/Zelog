@@ -133,7 +133,7 @@ export default function ProjectsPage() {
         <div aria-hidden className="pointer-events-none absolute -bottom-24 left-1/3 h-64 w-64 rounded-full bg-white/5 blur-3xl" />
 
         <div className="relative space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h1 className="text-2xl font-semibold tracking-tight">Projects</h1>
               <p className="mt-0.5 text-sm text-white/60">Manage projects, clients, access, and billing</p>
@@ -214,10 +214,11 @@ export default function ProjectsPage() {
       </div>
 
       {/* Projects table card */}
-      <div className="rounded-card border border-border/[0.07] bg-surface shadow-card dark:border-white/[0.06]">
+      <div className="rounded-card border border-border/[0.07] bg-surface shadow-card dark:border-white/[0.06] overflow-x-auto">
+        <div className="min-w-[860px]">
         {/* Table header */}
         <div className="grid h-11 items-center gap-3 rounded-t-card bg-[#F3F0FF] px-6 text-[11px] font-semibold uppercase tracking-wider text-text-secondary dark:bg-accent/[0.08] grid-cols-[minmax(200px,1.8fr)_160px_120px_100px_110px_90px_40px]">
-          <span>Project</span>
+          <span className="text-[9px] text-red-500">Project</span>
           <span>Client</span>
           <span>Tracked</span>
           <span>Access</span>
@@ -237,6 +238,7 @@ export default function ProjectsPage() {
               No projects match your filters.
             </div>
           )}
+        </div>
         </div>
       </div>
     </div>

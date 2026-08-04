@@ -205,6 +205,8 @@ function MembersTab() {
         </Button>
       </div>
 
+      <div className="overflow-x-auto">
+      <div className="min-w-[560px]">
       {/* Table header */}
       <div className="grid h-9 items-center gap-3 bg-[#F3F0FF] px-5 text-[10px] font-semibold uppercase tracking-wider text-text-secondary dark:bg-accent/[0.06] grid-cols-[40px_minmax(200px,1fr)_120px_100px_40px]">
         <span />
@@ -250,6 +252,8 @@ function MembersTab() {
         )) : (
           <div className="flex h-24 items-center justify-center text-sm text-text-tertiary">No members match your search.</div>
         )}
+      </div>
+      </div>
       </div>
     </div>
   );

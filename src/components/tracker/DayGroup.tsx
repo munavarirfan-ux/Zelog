@@ -65,14 +65,14 @@ export function DayGroup({
       open={open}
       onOpenChange={setOpen}
       id={`day-${group.date}`}
-      className="rounded-card border border-border/[0.07] bg-surface shadow-card dark:border-white/[0.06]"
+      className="rounded-[14px] border border-[rgba(99,102,241,0.08)] bg-surface shadow-[0_1px_3px_rgba(40,30,90,0.05)] dark:border-white/[0.06]"
     >
       {/* Header row */}
       <div
-        className="flex h-12 w-full items-center gap-2 rounded-t-card border-b border-[rgba(90,67,213,0.08)] px-4 transition-colors duration-150 hover:bg-[linear-gradient(90deg,rgba(122,77,255,0.12)_0%,rgba(122,77,255,0.06)_100%)] dark:border-[rgba(138,107,255,0.1)]"
+        className="flex h-12 w-full items-center gap-2 rounded-t-[14px] border-b border-[rgba(99,102,241,0.08)] px-4 transition-colors duration-150 hover:bg-[linear-gradient(180deg,#EFEBFF_0%,#F4F2FF_100%)] dark:border-[rgba(138,107,255,0.1)]"
         style={{
-          background: "linear-gradient(90deg, rgba(122,77,255,0.08) 0%, rgba(122,77,255,0.04) 55%, rgba(122,77,255,0.02) 100%)",
-          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7)",
+          background: "linear-gradient(180deg, #F4F1FF 0%, #F8F7FF 100%)",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.6)",
         }}
       >
         <Checkbox

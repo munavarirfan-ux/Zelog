@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowDownRight,
@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FilterDropdown } from "@/components/ui/filter-dropdown";
+import { DailyBarChart } from "@/components/charts/DailyBarChart";
 import { cn } from "@/lib/utils";
 import type { TimeEntry, ProjectColor } from "@/types/tracker";
 
@@ -365,18 +366,6 @@ function DailyHoursChart({
   dailyByProject: { date: string; projects: { project: { id: string; name: string; color: ProjectColor }; seconds: number }[]; total: number }[];
   projectStats: { project: { id: string; name: string; color: ProjectColor }; seconds: number }[];
 }) {
-  const { BarChart } = require("@mui/x-charts/BarChart");
-
-  const formatDurationTooltip = useCallback((value: number | null) => {
-    if (!value) return "0h 0m";
-    const h = Math.floor(value / 3600);
-    const m = Math.floor((value % 3600) / 60);
-    const s = value % 60;
-    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-  }, []);
-
-  const formatYAxis = useCallback((value: number) => `${Math.round(value / 3600)}h`, []);
-
   const billabilityDataset = useMemo(
     () => dailyData.map((d) => ({
       date: format(parseISO(d.date), "MMM dd"),
@@ -409,22 +398,11 @@ function DailyHoursChart({
   const projectSeries = useMemo(
     () => uniqueProjects.map((p) => ({
       dataKey: p.id,
-      label: p.name,
-      stack: "total",
+      name: p.name,
       color: PROJECT_COLOR_HEX[p.color],
-      valueFormatter: formatDurationTooltip,
     })),
-    [uniqueProjects, formatDurationTooltip],
+    [uniqueProjects],
   );
-
-  const chartSx = {
-    width: "100%",
-    "& .MuiChartsAxis-line": { stroke: "transparent" },
-    "& .MuiChartsAxis-tick": { stroke: "transparent" },
-    "& .MuiChartsGrid-line": { stroke: "rgba(90, 67, 213, 0.08)", strokeDasharray: "4 4" },
-    "& .MuiChartsAxis-tickLabel": { fill: "rgb(var(--text-tertiary-rgb))", fontSize: 12 },
-    "& .MuiBarElement-root": { rx: 4, ry: 4 },
-  };
 
   return (
     <div className="rounded-card border border-border/[0.07] bg-surface p-5 shadow-card dark:border-white/[0.06]">
@@ -474,38 +452,16 @@ function DailyHoursChart({
       </div>
 
       {chartView === "billability" ? (
-        <BarChart
-          dataset={billabilityDataset}
-          xAxis={[{ scaleType: "band", dataKey: "date", categoryGapRatio: 0.35, barGapRatio: 0.1 }]}
-          yAxis={[{ valueFormatter: formatYAxis }]}
-          series={[
-            { dataKey: "billable", label: "Billable", stack: "total", color: "#5A43D5", valueFormatter: formatDurationTooltip },
-            { dataKey: "nonBillable", label: "Non-billable", stack: "total", color: "#C9B6FF", valueFormatter: formatDurationTooltip },
-          ]}
+        <DailyBarChart
+          data={billabilityDataset}
           height={320}
-          grid={{ horizontal: true }}
-          borderRadius={8}
-          margin={{ top: 24, right: 24, bottom: 32, left: 52 }}
-          slotProps={{
-            legend: { direction: "row", position: { vertical: "top", horizontal: "right" } },
-          }}
-          sx={chartSx}
+          series={[
+            { dataKey: "billable", name: "Billable", color: "#5A43D5" },
+            { dataKey: "nonBillable", name: "Non-billable", color: "#C9B6FF" },
+          ]}
         />
       ) : (
-        <BarChart
-          dataset={projectDataset}
-          xAxis={[{ scaleType: "band", dataKey: "date", categoryGapRatio: 0.35, barGapRatio: 0.1 }]}
-          yAxis={[{ valueFormatter: formatYAxis }]}
-          series={projectSeries}
-          height={320}
-          grid={{ horizontal: true }}
-          borderRadius={8}
-          margin={{ top: 24, right: 24, bottom: 32, left: 52 }}
-          slotProps={{
-            legend: { direction: "row", position: { vertical: "top", horizontal: "right" } },
-          }}
-          sx={chartSx}
-        />
+        <DailyBarChart data={projectDataset} series={projectSeries} height={320} />
       )}
     </div>
   );
@@ -757,7 +713,8 @@ function DetailedTab({ entries }: { entries: TimeEntry[] }) {
   const sorted = useMemo(() => [...entries].sort((a, b) => b.date.localeCompare(a.date) || b.startTime.localeCompare(a.startTime)), [entries]);
 
   return (
-    <div className="rounded-card border border-border/[0.07] bg-surface shadow-card dark:border-white/[0.06]">
+    <div className="rounded-card border border-border/[0.07] bg-surface shadow-card dark:border-white/[0.06] overflow-x-auto">
+      <div className="min-w-[780px]">
       {/* Header */}
       <div className="grid h-11 items-center gap-3 rounded-t-card bg-[#F3F0FF] px-5 text-[10px] font-semibold uppercase tracking-wider text-text-secondary dark:bg-accent/[0.06] grid-cols-[minmax(200px,1.5fr)_130px_100px_140px_90px_80px]">
         <span>Task</span>
@@ -791,6 +748,7 @@ function DetailedTab({ entries }: { entries: TimeEntry[] }) {
         }) : (
           <div className="flex h-32 items-center justify-center text-sm text-text-tertiary">No entries match your filters.</div>
         )}
+      </div>
       </div>
     </div>
   );

@@ -1,20 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Check, Monitor, Moon, RotateCcw, Sun, User } from "lucide-react";
+import { Check, RotateCcw } from "lucide-react";
 import MuiTextField from "@mui/material/TextField";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { useTheme } from "@/components/ThemeProvider";
 import { cn } from "@/lib/utils";
-
-type SettingsTab = "profile" | "time" | "appearance";
-
-const TABS: { key: SettingsTab; label: string }[] = [
-  { key: "profile", label: "Profile" },
-  { key: "time", label: "Time settings" },
-  { key: "appearance", label: "Appearance" },
-];
 
 const TIME_ZONES = [
   { value: "Asia/Kolkata", label: "Asia/Kolkata (IST, UTC+5:30)" },
@@ -45,8 +36,6 @@ const PRESET_COLORS = [
 const DEFAULT_COLOR = "#6366F1";
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
-
   return (
     <div className="space-y-5 pb-12">
       {/* Hero */}
@@ -59,54 +48,11 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      {/* Content */}
-      <div className="flex flex-col gap-5 lg:flex-row">
-        {/* Desktop Left Nav */}
-        <nav className="hidden shrink-0 lg:block lg:w-52">
-          <div className="sticky top-4 space-y-0.5 rounded-card border border-border/[0.07] bg-surface p-2 shadow-card dark:border-white/[0.06]">
-            {TABS.map((tab) => (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => setActiveTab(tab.key)}
-                className={cn(
-                  "flex w-full items-center rounded-[10px] px-3 py-2.5 text-[13px] font-medium transition-colors duration-150",
-                  activeTab === tab.key
-                    ? "bg-accent/10 text-accent"
-                    : "text-text-secondary hover:bg-surface-2 hover:text-text",
-                )}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </nav>
-
-        {/* Mobile/Tablet Top Segmented Control */}
-        <div className="flex h-10 w-fit items-center gap-0.5 rounded-lg bg-surface-2/80 p-0.5 dark:bg-surface-2 lg:hidden">
-          {TABS.map((tab) => (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => setActiveTab(tab.key)}
-              className={cn(
-                "rounded-md px-4 py-1.5 text-sm font-medium transition-all duration-150",
-                activeTab === tab.key
-                  ? "bg-surface text-text shadow-sm dark:bg-surface-3"
-                  : "text-text-tertiary hover:text-text",
-              )}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Right Content */}
-        <div className="min-w-0 flex-1">
-          {activeTab === "profile" && <ProfileSection />}
-          {activeTab === "time" && <TimeSection />}
-          {activeTab === "appearance" && <AppearanceSection />}
-        </div>
+      {/* All settings on one page */}
+      <div className="space-y-5">
+        <ProfileSection />
+        <TimeSection />
+        <AppearanceSection />
       </div>
     </div>
   );
@@ -114,67 +60,22 @@ export default function SettingsPage() {
 
 /* ─── Profile Section ─── */
 function ProfileSection() {
-  const [name, setName] = useState("Irfan Alisha");
-  const [savedName, setSavedName] = useState("Irfan Alisha");
-  const isDirty = name !== savedName;
-
-  function handleSave() {
-    setSavedName(name);
-  }
+  const fields = [
+    { label: "Full name", value: "Munavar Irfan Alisha" },
+    { label: "Email", value: "irfan.alisha@zessta.com" },
+    { label: "Role", value: "Admin" },
+  ];
 
   return (
     <div className="rounded-card border border-border/[0.07] bg-surface p-6 shadow-card dark:border-white/[0.06]">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-base font-semibold text-text">Profile</h2>
-        <Button
-          size="sm"
-          className="rounded-[10px] px-4 text-xs"
-          disabled={!isDirty}
-          onClick={handleSave}
-        >
-          Save changes
-        </Button>
-      </div>
-
-      <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
-        {/* Avatar */}
-        <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-accent/10 text-xl font-bold text-accent">
-          IA
-        </div>
-
-        {/* Fields */}
-        <div className="flex-1 space-y-5">
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-text-secondary">Full name</label>
-            <MuiTextField
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              fullWidth
-              size="small"
-              sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px", backgroundColor: "rgba(var(--surface-2-rgb, 0 0 0) / 0.6)" } }}
-            />
+      <h2 className="mb-5 text-base font-semibold text-text">Profile</h2>
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+        {fields.map((f) => (
+          <div key={f.label}>
+            <p className="text-xs text-text-tertiary">{f.label}</p>
+            <p className="mt-1 text-sm text-text">{f.value}</p>
           </div>
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-text-secondary">Email</label>
-            <MuiTextField
-              value="irfan@zelog.io"
-              fullWidth
-              size="small"
-              disabled
-              sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px", backgroundColor: "rgba(var(--surface-2-rgb, 0 0 0) / 0.3)" } }}
-            />
-          </div>
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-text-secondary">Role</label>
-            <MuiTextField
-              value="Admin"
-              fullWidth
-              size="small"
-              disabled
-              sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px", backgroundColor: "rgba(var(--surface-2-rgb, 0 0 0) / 0.3)" } }}
-            />
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );
@@ -205,13 +106,10 @@ function TimeSection() {
     <div className="rounded-card border border-border/[0.07] bg-surface p-6 shadow-card dark:border-white/[0.06]">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-base font-semibold text-text">Time settings</h2>
-        {saved && (
-          <span className="flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-            <Check className="h-3.5 w-3.5" /> Saved
-          </span>
-        )}
+        <span className="rounded-full bg-surface-2 px-2.5 py-1 text-[11px] font-medium text-text-tertiary">Read-only</span>
       </div>
 
+      <fieldset disabled className="pointer-events-none select-none opacity-60">
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <div>
           <label className="mb-1.5 block text-xs font-medium text-text-secondary">Time format</label>
@@ -263,20 +161,15 @@ function TimeSection() {
         </Select>
         <p className="mt-1 text-[11px] text-text-tertiary">Used for scheduling and time entry calculations.</p>
       </div>
+      </fieldset>
     </div>
   );
 }
 
 /* ─── Appearance Section ─── */
 function AppearanceSection() {
-  const { theme, setTheme } = useTheme();
   const [themeColor, setThemeColor] = useState(DEFAULT_COLOR);
   const [hexInput, setHexInput] = useState(DEFAULT_COLOR);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   function handleColorSelect(hex: string) {
     setThemeColor(hex);
@@ -295,39 +188,8 @@ function AppearanceSection() {
     setHexInput(DEFAULT_COLOR);
   }
 
-  const themeOptions: { key: string; label: string; icon: React.ReactNode }[] = [
-    { key: "light", label: "Light", icon: <Sun className="h-3.5 w-3.5" /> },
-    { key: "dark", label: "Dark", icon: <Moon className="h-3.5 w-3.5" /> },
-    { key: "system", label: "System", icon: <Monitor className="h-3.5 w-3.5" /> },
-  ];
-
   return (
     <div className="space-y-5">
-      {/* App Theme */}
-      <div className="rounded-card border border-border/[0.07] bg-surface p-6 shadow-card dark:border-white/[0.06]">
-        <h2 className="text-base font-semibold text-text mb-1">App theme</h2>
-        <p className="text-xs text-text-tertiary mb-4">Choose how ZeLog looks on your device.</p>
-
-        <div className="flex items-center gap-0.5 rounded-lg bg-surface-2/80 p-0.5 w-fit dark:bg-surface-2">
-          {themeOptions.map((opt) => (
-            <button
-              key={opt.key}
-              type="button"
-              onClick={() => setTheme(opt.key)}
-              className={cn(
-                "flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-medium transition-all duration-150",
-                mounted && theme === opt.key
-                  ? "bg-surface text-text shadow-sm dark:bg-surface-3"
-                  : "text-text-tertiary hover:text-text",
-              )}
-            >
-              {opt.icon}
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* Theme Color */}
       <div className="rounded-card border border-border/[0.07] bg-surface p-6 shadow-card dark:border-white/[0.06]">
         <h2 className="text-base font-semibold text-text mb-1">Theme color</h2>

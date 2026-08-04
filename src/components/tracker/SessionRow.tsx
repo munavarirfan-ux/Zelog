@@ -50,9 +50,9 @@ export function SessionRow({ entry, selected = false, onToggleSelect }: SessionR
         className={cn(
           "group grid h-14 items-center gap-3 px-4 transition-colors duration-150",
           "grid-cols-[32px_minmax(180px,1fr)_130px_110px_150px_72px_32px_32px]",
-          "hover:bg-primary-50/60 dark:hover:bg-primary-50/30",
+          "hover:bg-[rgba(99,102,241,0.035)] dark:hover:bg-primary-50/20",
           "max-md:grid-cols-[32px_1fr_auto] max-md:h-auto max-md:gap-2 max-md:px-4 max-md:py-3",
-          selected && "bg-primary-100/50 dark:bg-primary-100/40",
+          selected && "bg-[rgba(99,102,241,0.08)] dark:bg-primary-100/40",
         )}
       >
         {/* Checkbox */}

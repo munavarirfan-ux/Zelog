@@ -47,12 +47,15 @@ export default function TrackerPage() {
     <div className="space-y-6 pb-12">
       <Hero ref={taskInputRef} />
 
-      <div className="space-y-5">
+      <div className="space-y-6">
         {weekGroups.length ? (
           weekGroups.map((week) => (
-            <div key={`${week.weekStart}-${week.weekEnd}`}>
+            <div
+              key={`${week.weekStart}-${week.weekEnd}`}
+              className="rounded-[18px] border border-[rgba(99,102,241,0.08)] bg-surface p-4 shadow-[0_6px_24px_rgba(40,30,90,0.06)] sm:p-5 dark:border-white/[0.06]"
+            >
               {/* Week header */}
-              <div className="flex items-center justify-between px-1 pb-2">
+              <div className="flex items-center justify-between px-1 pb-3">
                 <span className="text-xs font-medium text-text-tertiary">
                   {week.weekStart} – {week.weekEnd}
                 </span>

@@ -265,6 +265,8 @@ export default function TeamPage() {
 
       {/* Team Table */}
       <div className="rounded-card border border-border/[0.07] bg-surface shadow-card dark:border-white/[0.06] overflow-hidden">
+        <div className="overflow-x-auto">
+        <div className="min-w-[760px]">
         {/* Header */}
         <div className="sticky top-0 z-10 grid h-9 items-center gap-3 bg-[#F3F0FF] px-5 text-[10px] font-semibold uppercase tracking-wider text-text-secondary dark:bg-accent/[0.06] grid-cols-[minmax(180px,1.2fr)_minmax(200px,1.4fr)_140px_130px_40px]">
           <span>Member</span>
@@ -334,6 +336,8 @@ export default function TeamPage() {
               No members match your filters.
             </div>
           )}
+        </div>
+        </div>
         </div>
         {/* Pagination */}
         <div className="flex items-center justify-between border-t border-border/[0.06] px-5 py-3 dark:border-white/[0.05]">

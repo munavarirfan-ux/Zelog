@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState } from "react";
 import {
   Calendar,
   ChevronDown,
@@ -8,15 +8,15 @@ import {
   DollarSign,
   Download,
   Folder,
-  MoreHorizontal,
   Users,
 } from "lucide-react";
 import { format, parseISO, formatDistanceToNow } from "date-fns";
 import { useTrackerStore } from "@/store/trackerStore";
 import { PROJECTS, projectById } from "@/data/mockEntries";
-import { formatDuration, formatDurationShort } from "@/lib/time";
+import { formatDuration } from "@/lib/time";
 import { PROJECT_COLOR_DOT, PROJECT_COLOR_BADGE, PROJECT_COLOR_HEX } from "@/lib/projectColors";
 import { Button } from "@/components/ui/button";
+import { DailyBarChart } from "@/components/charts/DailyBarChart";
 import { cn } from "@/lib/utils";
 import type { TimeEntry, ProjectColor } from "@/types/tracker";
 
@@ -132,53 +132,12 @@ export default function DashboardPage() {
       <section className="relative overflow-hidden rounded-shell bg-hero px-6 py-7 text-white shadow-[0_20px_60px_-20px_rgba(49,46,129,0.5)] sm:px-10 sm:py-8">
         <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
         <div aria-hidden className="pointer-events-none absolute -bottom-24 left-1/3 h-64 w-64 rounded-full bg-white/5 blur-3xl" />
-        <div className="relative flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-            <p className="mt-0.5 text-sm text-white/60">Track team performance, billability, and project activity.</p>
-            <div className="mt-4 flex flex-wrap gap-3">
-              <div className="flex flex-col gap-1 rounded-lg bg-white/[0.14] px-5 py-4 backdrop-blur-sm">
-                <span className="text-[11px] font-medium text-white/50 uppercase tracking-wide">Tracked</span>
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-white/60" />
-                  <span className="text-xl font-bold text-white">{formatDuration(totalSeconds)}</span>
-                </div>
-                <span className="text-[11px] text-white/40">{entries.length} sessions</span>
-              </div>
-              <div className="flex flex-col gap-1 rounded-lg bg-white/[0.14] px-5 py-4 backdrop-blur-sm">
-                <span className="text-[11px] font-medium text-white/50 uppercase tracking-wide">Billable</span>
-                <div className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-white/60" />
-                  <span className="text-xl font-bold text-white">{formatDuration(billableSeconds)}</span>
-                </div>
-                <span className="text-[11px] text-white/40">{Math.round((billableSeconds / totalSeconds) * 100)}% of total</span>
-              </div>
-              <div className="flex flex-col gap-1 rounded-lg bg-white/[0.14] px-5 py-4 backdrop-blur-sm">
-                <span className="text-[11px] font-medium text-white/50 uppercase tracking-wide">Non-billable</span>
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-white/60" />
-                  <span className="text-xl font-bold text-white">{formatDuration(nonBillableSeconds)}</span>
-                </div>
-                <span className="text-[11px] text-white/40">{Math.round((nonBillableSeconds / totalSeconds) * 100)}% of total</span>
-              </div>
-              <div className="flex flex-col gap-1 rounded-lg bg-white/[0.14] px-5 py-4 backdrop-blur-sm">
-                <span className="text-[11px] font-medium text-white/50 uppercase tracking-wide">Top Project</span>
-                <div className="flex items-center gap-2">
-                  <Folder className="h-4 w-4 text-white/60" />
-                  <span className="text-xl font-bold text-white">{topProject?.project.name || "—"}</span>
-                </div>
-                <span className="text-[11px] text-white/40">{topProject ? formatHoursShort(topProject.seconds) : ""}</span>
-              </div>
-              <div className="flex flex-col gap-1 rounded-lg bg-white/[0.14] px-5 py-4 backdrop-blur-sm">
-                <span className="text-[11px] font-medium text-white/50 uppercase tracking-wide">Top Client</span>
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-white/60" />
-                  <span className="text-xl font-bold text-white">{topClient?.[0] || "—"}</span>
-                </div>
-                <span className="text-[11px] text-white/40">{topClient ? formatHoursShort(topClient[1]) : ""}</span>
-              </div>
+        <div className="relative space-y-5">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+              <p className="mt-0.5 text-sm text-white/60">Track team performance, billability, and project activity.</p>
             </div>
-          </div>
           <div className="flex flex-wrap items-center gap-2">
             {/* View Selector */}
             <div className="flex h-8 items-center rounded-[10px] border border-white/20 bg-white/10 p-0.5">
@@ -212,6 +171,51 @@ export default function DashboardPage() {
               <Download className="h-3.5 w-3.5" /> Export
             </Button>
           </div>
+          </div>
+
+          {/* KPI cards — full width */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+            <div className="flex flex-col gap-1 rounded-lg bg-white/[0.14] px-5 py-4 backdrop-blur-sm">
+              <span className="text-[11px] font-medium text-white/50 uppercase tracking-wide">Tracked</span>
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-white/60" />
+                <span className="text-xl font-bold text-white">{formatDuration(totalSeconds)}</span>
+              </div>
+              <span className="text-[11px] text-white/40">{entries.length} sessions</span>
+            </div>
+            <div className="flex flex-col gap-1 rounded-lg bg-white/[0.14] px-5 py-4 backdrop-blur-sm">
+              <span className="text-[11px] font-medium text-white/50 uppercase tracking-wide">Billable</span>
+              <div className="flex items-center gap-2">
+                <DollarSign className="h-4 w-4 text-white/60" />
+                <span className="text-xl font-bold text-white">{formatDuration(billableSeconds)}</span>
+              </div>
+              <span className="text-[11px] text-white/40">{Math.round((billableSeconds / totalSeconds) * 100)}% of total</span>
+            </div>
+            <div className="flex flex-col gap-1 rounded-lg bg-white/[0.14] px-5 py-4 backdrop-blur-sm">
+              <span className="text-[11px] font-medium text-white/50 uppercase tracking-wide">Non-billable</span>
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-white/60" />
+                <span className="text-xl font-bold text-white">{formatDuration(nonBillableSeconds)}</span>
+              </div>
+              <span className="text-[11px] text-white/40">{Math.round((nonBillableSeconds / totalSeconds) * 100)}% of total</span>
+            </div>
+            <div className="flex flex-col gap-1 rounded-lg bg-white/[0.14] px-5 py-4 backdrop-blur-sm">
+              <span className="text-[11px] font-medium text-white/50 uppercase tracking-wide">Top Project</span>
+              <div className="flex items-center gap-2">
+                <Folder className="h-4 w-4 text-white/60" />
+                <span className="truncate text-xl font-bold text-white">{topProject?.project.name || "—"}</span>
+              </div>
+              <span className="text-[11px] text-white/40">{topProject ? formatHoursShort(topProject.seconds) : ""}</span>
+            </div>
+            <div className="flex flex-col gap-1 rounded-lg bg-white/[0.14] px-5 py-4 backdrop-blur-sm">
+              <span className="text-[11px] font-medium text-white/50 uppercase tracking-wide">Top Client</span>
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-white/60" />
+                <span className="truncate text-xl font-bold text-white">{topClient?.[0] || "—"}</span>
+              </div>
+              <span className="text-[11px] text-white/40">{topClient ? formatHoursShort(topClient[1]) : ""}</span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -233,31 +237,6 @@ export default function DashboardPage() {
         <div className="rounded-card border border-border/[0.07] bg-surface p-5 shadow-card dark:border-white/[0.06]">
           <h3 className="text-sm font-semibold text-text mb-4">Project Distribution</h3>
           <DonutChart data={projectStats} total={totalSeconds} hoveredProject={hoveredProject} onHover={setHoveredProject} />
-          <div className="mt-4 space-y-2">
-            {projectStats.map(({ project, seconds }) => {
-              const pct = Math.round((seconds / totalSeconds) * 100);
-              return (
-                <div
-                  key={project.id}
-                  className={cn("flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors cursor-pointer", hoveredProject === project.id && "bg-accent/5")}
-                  onMouseEnter={() => setHoveredProject(project.id)}
-                  onMouseLeave={() => setHoveredProject(null)}
-                >
-                  <span className={cn("h-2.5 w-2.5 rounded-full shrink-0", PROJECT_COLOR_DOT[project.color])} />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium text-text truncate">{project.name}</span>
-                      <span className="text-[10px] text-text-tertiary ml-2">{pct}%</span>
-                    </div>
-                    <div className="mt-0.5 h-1 w-full rounded-full bg-border/10 dark:bg-white/10">
-                      <div className={cn("h-full rounded-full", PROJECT_COLOR_DOT[project.color])} style={{ width: `${pct}%` }} />
-                    </div>
-                  </div>
-                  <span className="text-[10px] tabular-nums text-text-secondary ml-1 shrink-0">{formatDurationShort(seconds)}</span>
-                </div>
-              );
-            })}
-          </div>
         </div>
 
         {/* Top Projects */}
@@ -265,6 +244,8 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between border-b border-border/[0.06] px-5 py-3.5 dark:border-white/[0.05]">
             <h3 className="text-sm font-semibold text-text">Top Projects</h3>
           </div>
+          <div className="overflow-x-auto">
+          <div className="min-w-[520px]">
           <div className="grid h-9 items-center gap-3 bg-[#F3F0FF] px-5 text-[10px] font-semibold uppercase tracking-wider text-text-secondary dark:bg-accent/[0.06] grid-cols-[1fr_120px_90px_50px_100px]">
             <span>Project</span>
             <span>Client</span>
@@ -294,6 +275,8 @@ export default function DashboardPage() {
               );
             })}
           </div>
+          </div>
+          </div>
         </div>
       </div>
 
@@ -303,20 +286,20 @@ export default function DashboardPage() {
           <h3 className="text-sm font-semibold text-text">Team activity</h3>
           <span className="text-xs text-text-tertiary">{TEAM_MEMBERS.length} members</span>
         </div>
+        <div className="overflow-x-auto">
+        <div className="min-w-[680px]">
         {/* Header */}
-        <div className="sticky top-0 z-10 grid h-9 items-center gap-3 bg-[#F3F0FF] px-5 text-[10px] font-semibold uppercase tracking-wider text-text-secondary dark:bg-accent/[0.06] grid-cols-[180px_1fr_120px_100px_100px_120px_40px]">
+        <div className="sticky top-0 z-10 grid h-9 items-center gap-3 bg-[#F3F0FF] px-5 text-[10px] font-semibold uppercase tracking-wider text-text-secondary dark:bg-accent/[0.06] grid-cols-[180px_1fr_120px_100px_100px]">
           <span>Member</span>
           <span>Latest activity</span>
           <span>Project</span>
           <span>Last tracked</span>
           <span>Total tracked</span>
-          <span>Billable split</span>
-          <span />
         </div>
         {/* Rows */}
         <div className="divide-y divide-border/[0.06] dark:divide-white/[0.05]">
           {teamActivity.map((member) => (
-            <div key={member.id} className="grid h-[60px] items-center gap-3 px-5 transition-colors hover:bg-accent/[0.03] dark:hover:bg-accent/[0.05] grid-cols-[180px_1fr_120px_100px_100px_120px_40px]">
+            <div key={member.id} className="grid h-[60px] items-center gap-3 px-5 transition-colors hover:bg-accent/[0.03] dark:hover:bg-accent/[0.05] grid-cols-[180px_1fr_120px_100px_100px]">
               {/* Avatar + Name */}
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className={cn("flex h-8 w-8 items-center justify-center rounded-full text-[10px] font-bold text-white shrink-0", member.color)}>
@@ -340,23 +323,10 @@ export default function DashboardPage() {
               </span>
               {/* Total */}
               <span className="text-sm tabular-nums font-medium text-text">{formatDuration(member.total)}</span>
-              {/* Billable Split Bar */}
-              <div className="flex items-center gap-1.5">
-                <div className="h-1.5 flex-1 rounded-full bg-border/10 dark:bg-white/10 overflow-hidden flex">
-                  {member.total > 0 && (
-                    <>
-                      <div className="h-full bg-accent/80 rounded-l-full" style={{ width: `${(member.billable / member.total) * 100}%` }} />
-                      <div className="h-full bg-accent/25 rounded-r-full" style={{ width: `${(member.nonBillable / member.total) * 100}%` }} />
-                    </>
-                  )}
-                </div>
-              </div>
-              {/* Actions */}
-              <button type="button" className="flex h-7 w-7 items-center justify-center rounded-md text-text-tertiary hover:bg-surface-2 hover:text-text transition-colors">
-                <MoreHorizontal className="h-4 w-4" />
-              </button>
             </div>
           ))}
+        </div>
+        </div>
         </div>
       </div>
     </div>
@@ -382,18 +352,6 @@ function DashboardChart({
   dailyByProject: { date: string; projects: { project: { id: string; name: string; color: ProjectColor }; seconds: number }[]; total: number }[];
   uniqueProjects: { id: string; name: string; color: ProjectColor }[];
 }) {
-  const { BarChart } = require("@mui/x-charts/BarChart");
-
-  const formatDurationTooltip = useCallback((value: number | null) => {
-    if (!value) return "0h 0m";
-    const h = Math.floor(value / 3600);
-    const m = Math.floor((value % 3600) / 60);
-    const s = value % 60;
-    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-  }, []);
-
-  const formatYAxis = useCallback((value: number) => `${Math.round(value / 3600)}h`, []);
-
   const billabilityDataset = useMemo(
     () => dailyData.map((d) => ({
       date: format(parseISO(d.date), "MMM dd"),
@@ -416,22 +374,11 @@ function DashboardChart({
   const projectSeries = useMemo(
     () => uniqueProjects.map((p) => ({
       dataKey: p.id,
-      label: p.name,
-      stack: "total",
+      name: p.name,
       color: PROJECT_COLOR_HEX[p.color],
-      valueFormatter: formatDurationTooltip,
     })),
-    [uniqueProjects, formatDurationTooltip],
+    [uniqueProjects],
   );
-
-  const chartSx = {
-    width: "100%",
-    "& .MuiChartsAxis-line": { stroke: "transparent" },
-    "& .MuiChartsAxis-tick": { stroke: "transparent" },
-    "& .MuiChartsGrid-line": { stroke: "rgba(90, 67, 213, 0.08)", strokeDasharray: "4 4" },
-    "& .MuiChartsAxis-tickLabel": { fill: "rgb(var(--text-tertiary-rgb))", fontSize: 12 },
-    "& .MuiBarElement-root": { rx: 4, ry: 4 },
-  };
 
   return (
     <div className="rounded-card border border-border/[0.07] bg-surface p-5 shadow-card dark:border-white/[0.06]">
@@ -478,38 +425,16 @@ function DashboardChart({
       </div>
 
       {chartView === "billability" ? (
-        <BarChart
-          dataset={billabilityDataset}
-          xAxis={[{ scaleType: "band", dataKey: "date", categoryGapRatio: 0.35, barGapRatio: 0.1 }]}
-          yAxis={[{ valueFormatter: formatYAxis }]}
-          series={[
-            { dataKey: "billable", label: "Billable", stack: "total", color: "#5A43D5", valueFormatter: formatDurationTooltip },
-            { dataKey: "nonBillable", label: "Non-billable", stack: "total", color: "#C9B6FF", valueFormatter: formatDurationTooltip },
-          ]}
+        <DailyBarChart
+          data={billabilityDataset}
           height={280}
-          grid={{ horizontal: true }}
-          borderRadius={8}
-          margin={{ top: 24, right: 24, bottom: 32, left: 52 }}
-          slotProps={{
-            legend: { direction: "row", position: { vertical: "top", horizontal: "right" } },
-          }}
-          sx={chartSx}
+          series={[
+            { dataKey: "billable", name: "Billable", color: "#5A43D5" },
+            { dataKey: "nonBillable", name: "Non-billable", color: "#C9B6FF" },
+          ]}
         />
       ) : (
-        <BarChart
-          dataset={projectDataset}
-          xAxis={[{ scaleType: "band", dataKey: "date", categoryGapRatio: 0.35, barGapRatio: 0.1 }]}
-          yAxis={[{ valueFormatter: formatYAxis }]}
-          series={projectSeries}
-          height={280}
-          grid={{ horizontal: true }}
-          borderRadius={8}
-          margin={{ top: 24, right: 24, bottom: 32, left: 52 }}
-          slotProps={{
-            legend: { direction: "row", position: { vertical: "top", horizontal: "right" } },
-          }}
-          sx={chartSx}
-        />
+        <DailyBarChart data={projectDataset} series={projectSeries} height={280} />
       )}
     </div>
   );

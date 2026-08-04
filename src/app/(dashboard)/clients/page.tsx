@@ -86,7 +86,7 @@ export default function ClientsPage() {
         <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
         <div aria-hidden className="pointer-events-none absolute -bottom-24 left-1/3 h-64 w-64 rounded-full bg-white/5 blur-3xl" />
 
-        <div className="relative flex items-center justify-between gap-4">
+        <div className="relative flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Clients</h1>
             <p className="mt-0.5 text-sm text-white/60">Manage clients and their mapped members</p>
@@ -153,7 +153,8 @@ export default function ClientsPage() {
       </div>
 
       {/* Clients table card */}
-      <div className="rounded-card border border-border/[0.07] bg-surface shadow-card dark:border-white/[0.06]">
+      <div className="rounded-card border border-border/[0.07] bg-surface shadow-card dark:border-white/[0.06] overflow-x-auto">
+        <div className="min-w-[720px]">
         {/* Table header */}
         <div className={cn("grid min-h-[44px] items-center gap-3 rounded-t-card bg-[#F3F0FF] px-6 py-2 text-[11px] font-semibold uppercase leading-tight tracking-wider text-text-secondary dark:bg-accent/[0.08]", GRID)}>
           <span>Name</span>
@@ -197,6 +198,7 @@ export default function ClientsPage() {
               No clients match your filters.
             </div>
           )}
+        </div>
         </div>
       </div>
     </div>
