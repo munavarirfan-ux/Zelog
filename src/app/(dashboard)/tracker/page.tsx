@@ -31,9 +31,7 @@ export default function TrackerPage() {
     if (allSelected) {
       setSelectedEntryIds((prev) => prev.filter((id) => !groupEntryIds.includes(id)));
     } else {
-      setSelectedEntryIds((prev) =>
-  Array.from(new Set([...prev, ...groupEntryIds]))
-);
+      setSelectedEntryIds((prev) => Array.from(new Set([...prev, ...groupEntryIds])));
     }
   }
 
