@@ -55,13 +55,21 @@ export function MuiThemeProvider({ children }: { children: React.ReactNode }) {
             defaultProps: { disableElevation: true, disableRipple: true },
             styleOverrides: {
               root: { borderRadius: 10, textTransform: "none", fontWeight: 600 },
-              containedPrimary: {
-                background: "linear-gradient(135deg, #4133A5 0%, #5A43D5 50%, #7A4DFF 100%)",
-                "&:hover": {
-                  background: "linear-gradient(135deg, #2F2775 0%, #4133A5 50%, #5A43D5 100%)",
+            },
+            variants: [
+              {
+                props: {
+                  variant: "contained",
+                  color: "primary",
+                },
+                style: {
+                  background: "linear-gradient(135deg, #4133A5 0%, #5A43D5 50%, #7A4DFF 100%)",
+                  "&:hover": {
+                    background: "linear-gradient(135deg, #2E2775 0%, #4133A5 50%, #5A43D5 100%)",
+                  },
                 },
               },
-            },
+            ],
           },
           MuiIconButton: {
             defaultProps: { disableRipple: true },
