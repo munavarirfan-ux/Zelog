@@ -1,20 +1,21 @@
 "use client";
 
-import * as React from "react";
-import { ThemeProvider as NextThemesProvider, useTheme as useNextTheme } from "next-themes";
-
+/**
+ * ZeLog is a light-theme-only app. This provider no longer performs any
+ * theme switching or system detection; it simply renders its children.
+ *
+ * `useTheme` is kept for API compatibility with components that still call
+ * it — it always reports the light theme and its setters are no-ops.
+ */
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  return (
-    <NextThemesProvider attribute="data-theme" defaultTheme="system" enableSystem>
-      {children}
-    </NextThemesProvider>
-  );
+  return <>{children}</>;
 }
 
 export function useTheme() {
-  const { theme, resolvedTheme, setTheme } = useNextTheme();
-  const toggleTheme = React.useCallback(() => {
-    setTheme(resolvedTheme === "dark" ? "light" : "dark");
-  }, [resolvedTheme, setTheme]);
-  return { theme, resolvedTheme, setTheme, toggleTheme };
+  return {
+    theme: "light" as const,
+    resolvedTheme: "light" as const,
+    setTheme: (_theme: string) => {},
+    toggleTheme: () => {},
+  };
 }

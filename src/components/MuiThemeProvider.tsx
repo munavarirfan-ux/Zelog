@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { createTheme, ThemeProvider as MuiProvider } from "@mui/material/styles";
-import { useTheme } from "@/components/ThemeProvider";
 
 const LIGHT_PALETTE = {
   primary: { main: "#6E4FF7", light: "#8A6BFF", dark: "#5A43D5", contrastText: "#fff" },
@@ -16,34 +15,13 @@ const LIGHT_PALETTE = {
   divider: "rgba(34, 28, 90, 0.08)",
 };
 
-const DARK_PALETTE = {
-  primary: { main: "#8A6BFF", light: "#A98CFF", dark: "#6E4FF7", contrastText: "#fff" },
-  secondary: { main: "#A98CFF", light: "#C9B6FF", dark: "#8A6BFF" },
-  error: { main: "#F06E6E", light: "#F5A0A0", dark: "#C24B4B" },
-  success: { main: "#50C88C", light: "#80E0B0", dark: "#2D8C64" },
-  warning: { main: "#DCB450", light: "#E8CC80", dark: "#A8781E" },
-  info: { main: "#6EA0F0", light: "#A0C0F8", dark: "#3C64C8" },
-  background: { default: "#0A0912", paper: "#12101E" },
-  text: { primary: "#EDEAF8", secondary: "#A59EBE", disabled: "#504C69" },
-  divider: "rgba(201, 182, 255, 0.08)",
-};
-
 export function MuiThemeProvider({ children }: { children: React.ReactNode }) {
-  const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = React.useState(false);
-
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const isDark = mounted && resolvedTheme === "dark";
-
   const theme = React.useMemo(
     () =>
       createTheme({
         palette: {
-          mode: isDark ? "dark" : "light",
-          ...(isDark ? DARK_PALETTE : LIGHT_PALETTE),
+          mode: "light",
+          ...LIGHT_PALETTE,
         },
         shape: { borderRadius: 10 },
         typography: {
@@ -80,14 +58,14 @@ export function MuiThemeProvider({ children }: { children: React.ReactNode }) {
               root: {
                 "& .MuiOutlinedInput-root": {
                   borderRadius: 10,
-                  backgroundColor: isDark ? "rgba(138, 107, 255, 0.04)" : "rgba(246, 242, 255, 0.6)",
+                  backgroundColor: "rgba(246, 242, 255, 0.6)",
                   "&:hover .MuiOutlinedInput-notchedOutline": {
-                    borderColor: isDark ? "rgba(138, 107, 255, 0.3)" : "rgba(110, 79, 247, 0.25)",
+                    borderColor: "rgba(110, 79, 247, 0.25)",
                   },
                   "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                    borderColor: isDark ? "#8A6BFF" : "#6E4FF7",
+                    borderColor: "#6E4FF7",
                     borderWidth: 2,
-                    boxShadow: `0 0 0 4px ${isDark ? "rgba(138, 107, 255, 0.12)" : "rgba(110, 79, 247, 0.12)"}`,
+                    boxShadow: "0 0 0 4px rgba(110, 79, 247, 0.12)",
                   },
                 },
               },
@@ -103,9 +81,9 @@ export function MuiThemeProvider({ children }: { children: React.ReactNode }) {
             defaultProps: { disableRipple: true },
             styleOverrides: {
               root: {
-                color: isDark ? "rgba(138, 107, 255, 0.4)" : "rgba(110, 79, 247, 0.3)",
-                "&.Mui-checked": { color: isDark ? "#8A6BFF" : "#5A43D5" },
-                "&.MuiCheckbox-indeterminate": { color: isDark ? "#8A6BFF" : "#5A43D5" },
+                color: "rgba(110, 79, 247, 0.3)",
+                "&.Mui-checked": { color: "#5A43D5" },
+                "&.MuiCheckbox-indeterminate": { color: "#5A43D5" },
               },
             },
           },
@@ -114,7 +92,7 @@ export function MuiThemeProvider({ children }: { children: React.ReactNode }) {
               paper: {
                 borderRadius: 18,
                 backgroundImage: "none",
-                border: isDark ? "1px solid rgba(138, 107, 255, 0.1)" : "1px solid rgba(34, 28, 90, 0.06)",
+                border: "1px solid rgba(34, 28, 90, 0.06)",
               },
             },
           },
@@ -123,7 +101,7 @@ export function MuiThemeProvider({ children }: { children: React.ReactNode }) {
               paper: {
                 borderRadius: 14,
                 backgroundImage: "none",
-                border: isDark ? "1px solid rgba(138, 107, 255, 0.1)" : "1px solid rgba(34, 28, 90, 0.06)",
+                border: "1px solid rgba(34, 28, 90, 0.06)",
               },
             },
           },
@@ -138,7 +116,7 @@ export function MuiThemeProvider({ children }: { children: React.ReactNode }) {
                 borderRadius: 8,
                 fontSize: 12,
                 fontWeight: 500,
-                backgroundColor: isDark ? "#1A172E" : "#221C5A",
+                backgroundColor: "#221C5A",
               },
             },
           },
@@ -161,10 +139,10 @@ export function MuiThemeProvider({ children }: { children: React.ReactNode }) {
             styleOverrides: {
               root: {
                 "&.Mui-selected": {
-                  backgroundColor: isDark ? "rgba(138, 107, 255, 0.15)" : "rgba(110, 79, 247, 0.1)",
-                  color: isDark ? "#A98CFF" : "#5A43D5",
+                  backgroundColor: "rgba(110, 79, 247, 0.1)",
+                  color: "#5A43D5",
                   "&:hover": {
-                    backgroundColor: isDark ? "rgba(138, 107, 255, 0.2)" : "rgba(110, 79, 247, 0.15)",
+                    backgroundColor: "rgba(110, 79, 247, 0.15)",
                   },
                 },
               },
@@ -202,7 +180,7 @@ export function MuiThemeProvider({ children }: { children: React.ReactNode }) {
           },
         },
       }),
-    [isDark],
+    [],
   );
 
   return <MuiProvider theme={theme}>{children}</MuiProvider>;
