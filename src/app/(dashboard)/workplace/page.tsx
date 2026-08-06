@@ -97,7 +97,7 @@ export default function TimeOffPage() {
 
   function bulk(status: "approved" | "rejected") {
     if (!selected.size) return;
-    bulkSetStatus([...selected], status, CURRENT_USER_ID);
+    bulkSetStatus(Array.from(selected), status, CURRENT_USER_ID);
     toast.success(`${selected.size} request${selected.size === 1 ? "" : "s"} ${status}`);
     setSelected(new Set());
   }
