@@ -47,7 +47,7 @@ export const useHolidayStore = create<HolidayState>()(
         if (!parsed.length) return 0;
         const map = new Map(get().holidays.map((h) => [h.date, h]));
         parsed.forEach((h) => map.set(h.date, h));
-        const list = sortByDate([...map.values()]);
+        const list = sortByDate(Array.from(map.values()));
         syncHolidays(list);
         set({ holidays: list });
         return parsed.length;
