@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Bell, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Settings, User } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { NAV_ITEMS, APP_NAME, COMPANY_NAME } from "@/config/nav";
+import { getNavGroupsForRole, isHrefAllowedForRole, type Role } from "@/config/nav";
+import { useRoleStore } from "@/store/roleStore";
+import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { Button } from "@/components/ui/button";
 import MuiTooltip from "@mui/material/Tooltip";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -22,12 +24,16 @@ import { StickyMiniTimer } from "@/components/tracker/StickyMiniTimer";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const role = useRoleStore((s) => s.role);
+  const setRole = useRoleStore((s) => s.setRole);
 
   useEffect(() => {
     setMounted(true);
+    useRoleStore.persist.rehydrate();
     const saved = window.localStorage.getItem("zelog.sidebar.collapsed");
     if (saved === "1") setCollapsed(true);
   }, []);
@@ -40,6 +46,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setMobileOpen(false);
   }, [pathname]);
+
+  const navGroups = getNavGroupsForRole(role);
+
+  function handleRoleChange(next: Role) {
+    setRole(next);
+    // If the current page is no longer permitted for the new role, send them home.
+    if (!isHrefAllowedForRole(next, pathname)) {
+      router.push("/tracker");
+    }
+  }
 
   const sidebarWidth = collapsed ? 76 : 264;
 
@@ -72,9 +88,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   {collapsed ? (
                     <img src="/zelog-icon.png" alt="ZeLog" className="h-7 w-7 shrink-0 object-contain" />
                   ) : (
-                    <div className="h-7 w-[80px] shrink-0 overflow-hidden">
-                      <img src="/zelog-logo.png" alt="ZeLog" className="h-7 max-w-none -ml-[34px]" />
-                    </div>
+                    <span className="shrink-0 text-lg font-extrabold leading-none tracking-tight text-text" aria-label="Ze[flow]">
+                      Ze<span className="text-primary-400">[</span>flow<span className="text-primary-400">]</span>
+                    </span>
                   )}
                 </Link>
                 {!collapsed ? (
@@ -99,51 +115,70 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
 
             <nav className={cn("flex-1 overflow-auto py-4", collapsed ? "px-2" : "px-4")}>
-              <div className="space-y-1.5">
-                {NAV_ITEMS.map((item) => {
-                  const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-                  const Icon = item.icon;
-                  const link = (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={cn(
-                        "group flex items-center font-medium transition-colors duration-150 ease-out",
-                        collapsed ? "h-11 w-11 justify-center rounded-xl" : "h-11 gap-3 rounded-xl px-3",
-                        active
-                          ? "border border-[rgba(122,77,255,0.10)] dark:border-[rgba(138,107,255,0.15)]"
-                          : "border border-transparent hover:border-transparent",
-                        !active && "text-[#5F6285] hover:bg-[rgba(122,77,255,0.06)] hover:text-text dark:text-[#8B8DAF] dark:hover:text-text",
-                      )}
-                      style={active ? {
-                        background: "linear-gradient(90deg, rgba(122,77,255,0.12) 0%, rgba(122,77,255,0.06) 100%)",
-                      } : undefined}
-                    >
-                      <Icon
-                        className={cn(
-                          "h-5 w-5 shrink-0 transition-colors duration-[180ms]",
-                          active ? "text-[#5A43D5] dark:text-[#8A6BFF]" : "text-[#6D7195] group-hover:text-[#5A43D5] dark:text-[#7B7DA0] dark:group-hover:text-[#8A6BFF]",
-                        )}
-                        strokeWidth={1.75}
-                      />
-                      {!collapsed ? (
-                        <span className={cn(
-                          "truncate text-[13px] transition-colors duration-[180ms]",
-                          active ? "font-semibold text-[#2F2775] dark:text-[#E8DFFF]" : "font-medium",
-                        )}>
-                          {item.label}
-                        </span>
-                      ) : null}
-                    </Link>
-                  );
-                  if (!collapsed) return link;
-                  return (
-                    <MuiTooltip key={item.href} title={item.label} placement="right" arrow={false}>
-                      {link}
-                    </MuiTooltip>
-                  );
-                })}
-              </div>
+              {navGroups.map((group, gi) => (
+                <div
+                  key={group.label ?? `group-${gi}`}
+                  className={cn(
+                    gi > 0 &&
+                      (collapsed
+                        ? "mt-2 border-t border-border/[0.06] pt-2 dark:border-white/[0.06]"
+                        : group.label
+                          ? "mt-5"
+                          : "mt-4 border-t border-border/[0.06] pt-4 dark:border-white/[0.06]"),
+                  )}
+                >
+                  {!collapsed && group.label ? (
+                    <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9C9AB4] dark:text-[#6E7091]">
+                      {group.label}
+                    </p>
+                  ) : null}
+                  <div className="space-y-1.5">
+                    {group.items.map((item) => {
+                      const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+                      const Icon = item.icon;
+                      const link = (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          className={cn(
+                            "group flex items-center font-medium transition-colors duration-150 ease-out",
+                            collapsed ? "h-11 w-11 justify-center rounded-xl" : "h-11 gap-3 rounded-xl px-3",
+                            active
+                              ? "border border-[rgba(122,77,255,0.10)] dark:border-[rgba(138,107,255,0.15)]"
+                              : "border border-transparent hover:border-transparent",
+                            !active && "text-[#5F6285] hover:bg-[rgba(122,77,255,0.06)] hover:text-text dark:text-[#8B8DAF] dark:hover:text-text",
+                          )}
+                          style={active ? {
+                            background: "linear-gradient(90deg, rgba(122,77,255,0.12) 0%, rgba(122,77,255,0.06) 100%)",
+                          } : undefined}
+                        >
+                          <Icon
+                            className={cn(
+                              "h-5 w-5 shrink-0 transition-colors duration-[180ms]",
+                              active ? "text-[#5A43D5] dark:text-[#8A6BFF]" : "text-[#6D7195] group-hover:text-[#5A43D5] dark:text-[#7B7DA0] dark:group-hover:text-[#8A6BFF]",
+                            )}
+                            strokeWidth={1.75}
+                          />
+                          {!collapsed ? (
+                            <span className={cn(
+                              "truncate text-[13px] transition-colors duration-[180ms]",
+                              active ? "font-semibold text-[#2F2775] dark:text-[#E8DFFF]" : "font-medium",
+                            )}>
+                              {item.label}
+                            </span>
+                          ) : null}
+                        </Link>
+                      );
+                      if (!collapsed) return link;
+                      return (
+                        <MuiTooltip key={item.href} title={item.label} placement="right" arrow={false}>
+                          {link}
+                        </MuiTooltip>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </nav>
 
             <div className={cn("border-t border-border/[0.06] dark:border-white/[0.06]", collapsed ? "p-2" : "p-2.5")}>
@@ -181,6 +216,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
               <div className="flex flex-1 items-center justify-end gap-2">
                 <StickyMiniTimer />
+
+                <RoleSwitcher role={role} onRoleChange={handleRoleChange} />
 
                 <HoverCard openDelay={80}>
                   <HoverCardTrigger asChild>
