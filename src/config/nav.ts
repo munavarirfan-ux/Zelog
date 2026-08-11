@@ -2,6 +2,8 @@ import {
   BarChart3,
   Briefcase,
   Building2,
+  CalendarDays,
+  CircleUser,
   Contact,
   FolderKanban,
   LayoutDashboard,
@@ -40,8 +42,8 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Ze[teams]",
     items: [
       { href: "/workplace", label: "Time-off", icon: Briefcase },
-      { href: "/directory", label: "Directory", icon: Contact },
       { href: "/organization", label: "Organization", icon: Network },
+      { href: "/directory", label: "Directory", icon: Contact },
     ],
   },
   {
@@ -51,6 +53,14 @@ export const NAV_GROUPS: NavGroup[] = [
 
 /** Flat list of every navigable item, derived from the grouped structure. */
 export const NAV_ITEMS: NavItem[] = NAV_GROUPS.flatMap((group) => group.items);
+
+/** Bottom navigation for the mobile experience (5 primary destinations). */
+export const MOBILE_NAV: NavItem[] = [
+  { href: "/tracker", label: "Tracker", icon: Timer },
+  { href: "/workplace", label: "Time Off", icon: CalendarDays },
+  { href: "/organization", label: "Teams", icon: Users },
+  { href: "/settings", label: "Profile", icon: CircleUser },
+];
 
 export const APP_NAME = "zelog";
 export const COMPANY_NAME = "Zessta Software Solutions";

@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Bell, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Settings, User } from "lucide-react";
+import { Bell, LogOut, PanelLeftClose, PanelLeftOpen, Settings, User } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getNavGroupsForRole, isHrefAllowedForRole, type Role } from "@/config/nav";
+import { MOBILE_NAV, getNavGroupsForRole, isHrefAllowedForRole, type Role } from "@/config/nav";
 import { useRoleStore } from "@/store/roleStore";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const role = useRoleStore((s) => s.role);
   const setRole = useRoleStore((s) => s.setRole);
@@ -43,10 +42,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     window.localStorage.setItem("zelog.sidebar.collapsed", collapsed ? "1" : "0");
   }, [collapsed, mounted]);
 
-  useEffect(() => {
-    setMobileOpen(false);
-  }, [pathname]);
-
   const navGroups = getNavGroupsForRole(role);
 
   function handleRoleChange(next: Role) {
@@ -62,25 +57,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen w-full min-w-0 flex-col bg-app-bg text-text lg:h-[100dvh] lg:max-h-screen lg:flex-row lg:overflow-hidden">
       <aside
-        className="shrink-0 transition-[width] duration-200 ease-out lg:flex lg:h-full lg:flex-col lg:overflow-hidden"
+        className="hidden shrink-0 transition-[width] duration-200 ease-out lg:flex lg:h-full lg:flex-col lg:overflow-hidden"
         style={{ width: sidebarWidth }}
       >
-        {mobileOpen ? (
-          <button
-            aria-label="Close navigation"
-            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px] lg:hidden"
-            onClick={() => setMobileOpen(false)}
-          />
-        ) : null}
-
-        <div
-          className={cn(
-            "flex h-full flex-col transition-transform duration-[180ms] ease-out",
-            "max-lg:fixed max-lg:z-50 max-lg:top-2 max-lg:bottom-2 max-lg:left-2 max-lg:w-[260px]",
-            mobileOpen ? "max-lg:translate-x-0" : "max-lg:-translate-x-[120%]",
-            "lg:relative lg:inset-auto lg:w-full lg:translate-x-0",
-          )}
-        >
+        <div className="flex h-full w-full flex-col">
           <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-none border border-border/[0.06] bg-surface dark:border-white/[0.06]">
             <div className={cn("border-b border-border/[0.06] dark:border-white/[0.06]", collapsed ? "px-2 py-3.5" : "px-3.5 py-3.5")}>
               <div className={cn("flex items-center", collapsed ? "justify-center" : "justify-between")}>
@@ -201,23 +181,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto overflow-x-hidden px-3 py-3 sm:px-4 sm:py-4 lg:px-6">
           <header className="sticky top-0 z-[100] mb-4 shrink-0 rounded-[16px] border border-border/[0.06] bg-surface/95 shadow-xs backdrop-blur dark:border-white/[0.06]">
             <div className="flex items-center gap-3 px-3 py-2.5">
-              <button
-                type="button"
-                className="shrink-0 lg:pointer-events-none"
-                onClick={() => setMobileOpen(true)}
-                aria-label="Open navigation"
-              >
-                <img src="/zessta-logo.png" alt="Zessta" className="h-4 w-auto" />
-              </button>
+              {/* Mobile brand logo */}
+              <Link href="/tracker" className="flex min-w-0 flex-1 items-center lg:hidden" aria-label="Zessta">
+                <img src="/zessta-logo.png" alt="Zessta" className="h-5 w-auto shrink-0" />
+              </Link>
 
-              <div className="hidden min-w-0 flex-1 sm:block">
+              {/* Desktop brand */}
+              <img src="/zessta-logo.png" alt="Zessta" className="hidden h-4 w-auto shrink-0 lg:block" />
+              <div className="hidden min-w-0 flex-1 lg:block">
                 <span className="text-sm font-light text-text-tertiary">Zessta Software Solutions</span>
               </div>
 
-              <div className="flex flex-1 items-center justify-end gap-2">
-                <StickyMiniTimer />
+              <div className="flex items-center justify-end gap-2 lg:flex-1">
+                <span className="hidden lg:block">
+                  <StickyMiniTimer />
+                </span>
 
-                <RoleSwitcher role={role} onRoleChange={handleRoleChange} />
+                <span className="hidden lg:block">
+                  <RoleSwitcher role={role} onRoleChange={handleRoleChange} />
+                </span>
 
                 <HoverCard openDelay={80}>
                   <HoverCardTrigger asChild>
@@ -258,8 +240,46 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </header>
 
-          <div className="w-full min-w-0 flex-1">{children}</div>
+          <div className="w-full min-w-0 flex-1 pb-24 lg:pb-0">{children}</div>
         </main>
+      </div>
+
+      {/* Mobile bottom navigation — floating pill, styled like the top toolbar */}
+      <div
+        className="fixed inset-x-0 bottom-0 z-50 flex justify-center px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-2 lg:hidden"
+        aria-hidden={false}
+      >
+        <nav
+          className="pointer-events-auto w-full max-w-md rounded-[20px] border border-border/[0.06] bg-surface/95 shadow-[0_8px_28px_-8px_rgba(47,39,117,0.28)] backdrop-blur dark:border-white/[0.06]"
+          aria-label="Primary"
+        >
+          <div className="flex items-stretch px-1.5 py-1.5">
+            {MOBILE_NAV.map((item) => {
+              const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-label={item.label}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "flex min-h-[52px] flex-1 flex-col items-center justify-center gap-0.5 rounded-[14px] text-[11px] font-medium transition-colors",
+                    active
+                      ? "text-primary-600 dark:text-primary-400"
+                      : "text-text-tertiary hover:text-text-secondary",
+                  )}
+                  style={active ? {
+                    background: "linear-gradient(90deg, rgba(122,77,255,0.12) 0%, rgba(122,77,255,0.06) 100%)",
+                  } : undefined}
+                >
+                  <Icon className="h-6 w-6" strokeWidth={active ? 2.2 : 1.75} />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
       </div>
     </div>
   );

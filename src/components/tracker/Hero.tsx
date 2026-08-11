@@ -287,6 +287,7 @@ export const Hero = React.forwardRef<HTMLInputElement>(function Hero(_props, tas
             flexWrap: { xs: "wrap", lg: "nowrap" },
           }}
         >
+          {/* Task input — full width on mobile, flexes on desktop */}
           <MuiTextField
             id="hero-task"
             inputRef={taskInputRef}
@@ -300,10 +301,10 @@ export const Hero = React.forwardRef<HTMLInputElement>(function Hero(_props, tas
               if (e.key === "Enter" && mode === "manual") handleManualAdd();
             }}
             sx={{
-              flex: "1 1 0",
-              minWidth: 200,
+              flex: { xs: "1 1 100%", lg: "1 1 0" },
+              minWidth: { xs: 0, lg: 200 },
               "& .MuiOutlinedInput-root": {
-                height: 56,
+                height: 54,
                 borderRadius: "12px",
                 fontSize: "1.125rem",
                 color: "white",
@@ -316,85 +317,86 @@ export const Hero = React.forwardRef<HTMLInputElement>(function Hero(_props, tas
             }}
           />
 
-          <FormControl
-            size="small"
-            sx={{ width: 180, minWidth: 180, flexShrink: 0 }}
+          {/* Controls row: project + billable + start on one line */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 2,
+              flexWrap: "wrap",
+              flex: { xs: "1 1 100%", lg: "0 0 auto" },
+            }}
           >
-            <MuiSelect
-              value={projectId}
-              onChange={(e) => setProjectId(e.target.value)}
-              displayEmpty
-              renderValue={(value) => {
-                const p = projects.find((proj) => proj.id === value);
-                if (!p) return <span style={{ color: "rgba(255,255,255,0.5)" }}>Project</span>;
-                return (
-                  <span className="inline-flex items-center gap-2">
-                    <span className={cn("h-2 w-2 rounded-full", PROJECT_COLOR_DOT[p.color])} />
-                    {p.name}
-                  </span>
-                );
-              }}
-              sx={{
-                height: 48,
-                borderRadius: "12px",
-                color: "#fff",
-                backgroundColor: "rgba(255,255,255,0.08)",
-                "& .MuiSelect-select": {
-                  display: "flex",
-                  alignItems: "center",
-                  padding: "8px 36px 8px 14px",
-                  minHeight: "unset",
-                },
-                "& .MuiSelect-icon": { color: "rgba(255,255,255,0.7)" },
-                "& .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.12)" },
-                "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.24)" },
-                "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.4)" },
-              }}
-            >
-              {projects.map((p) => (
-                <MenuItem key={p.id} value={p.id}>
-                  <span className="inline-flex items-center gap-2">
-                    <span className={cn("h-2 w-2 rounded-full", PROJECT_COLOR_DOT[p.color])} />
-                    {p.name}
-                  </span>
-                </MenuItem>
-              ))}
-            </MuiSelect>
-          </FormControl>
+            {/* Project + billable stay grouped */}
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flex: "1 1 auto", minWidth: 200 }}>
+              <FormControl size="small" sx={{ flex: "1 1 auto", minWidth: 120, width: { lg: 180 } }}>
+                <MuiSelect
+                  value={projectId}
+                  onChange={(e) => setProjectId(e.target.value)}
+                  displayEmpty
+                  renderValue={(value) => {
+                    const p = projects.find((proj) => proj.id === value);
+                    if (!p) return <span style={{ color: "rgba(255,255,255,0.5)" }}>Project</span>;
+                    return (
+                      <span className="inline-flex items-center gap-2">
+                        <span className={cn("h-2 w-2 rounded-full", PROJECT_COLOR_DOT[p.color])} />
+                        {p.name}
+                      </span>
+                    );
+                  }}
+                  sx={{
+                    height: 48,
+                    borderRadius: "12px",
+                    color: "#fff",
+                    backgroundColor: "rgba(255,255,255,0.08)",
+                    "& .MuiSelect-select": {
+                      display: "flex",
+                      alignItems: "center",
+                      padding: "8px 36px 8px 14px",
+                      minHeight: "unset",
+                    },
+                    "& .MuiSelect-icon": { color: "rgba(255,255,255,0.7)" },
+                    "& .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.12)" },
+                    "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.24)" },
+                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "rgba(255,255,255,0.4)" },
+                  }}
+                >
+                  {projects.map((p) => (
+                    <MenuItem key={p.id} value={p.id}>
+                      <span className="inline-flex items-center gap-2">
+                        <span className={cn("h-2 w-2 rounded-full", PROJECT_COLOR_DOT[p.color])} />
+                        {p.name}
+                      </span>
+                    </MenuItem>
+                  ))}
+                </MuiSelect>
+              </FormControl>
 
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexShrink: 0, whiteSpace: "nowrap", mx: 0.5 }}>
-            <Switch
-              id="hero-billable"
-              checked={billable}
-              onCheckedChange={setBillable}
-              className="data-[state=checked]:bg-emerald-400"
-            />
-            <Label htmlFor="hero-billable" className="cursor-pointer text-sm font-medium text-white/60">
-              Billable
-            </Label>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexShrink: 0, whiteSpace: "nowrap", minHeight: 48, px: 0.5 }}>
+                <Switch
+                  id="hero-billable"
+                  checked={billable}
+                  onCheckedChange={setBillable}
+                  className="data-[state=checked]:bg-emerald-400"
+                />
+                <Label htmlFor="hero-billable" className="cursor-pointer text-sm font-medium text-white/60">
+                  Billable
+                </Label>
+              </Box>
+            </Box>
+
+            {mode === "live" ? (
+              <Button
+                variant="white"
+                size="lg"
+                onClick={handleStart}
+                disabled={!task.trim()}
+                className="shrink-0 gap-2 max-[360px]:w-full"
+              >
+                <Play className="h-4 w-4 fill-current" /> Start
+              </Button>
+            ) : null}
           </Box>
-
-          {mode === "live" ? (
-            <Button
-              variant="white"
-              size="lg"
-              onClick={handleStart}
-              disabled={!task.trim()}
-              className="shrink-0 gap-2"
-            >
-              <Play className="h-4 w-4 fill-current" /> Start
-            </Button>
-          ) : (
-            <Button
-              variant="white"
-              size="lg"
-              onClick={handleManualAdd}
-              disabled={!task.trim()}
-              className="shrink-0 gap-2"
-            >
-              <Plus className="h-4 w-4" /> Add entry
-            </Button>
-          )}
         </Box>
 
         {mode === "manual" && (
@@ -408,55 +410,73 @@ export const Hero = React.forwardRef<HTMLInputElement>(function Hero(_props, tas
               pt: 1,
             }}
           >
+            {/* Date — full width on mobile, fixed on desktop */}
             <MuiTextField
               type="date"
               value={manualDate}
               onChange={(e) => { setManualDate(e.target.value); setManualError(""); }}
               size="small"
               sx={{
-                width: 160,
+                flex: { xs: "1 1 100%", sm: "0 0 auto" },
+                width: { sm: 170 },
                 "& .MuiOutlinedInput-root": {
-                  height: 40, borderRadius: "8px", color: "white", backgroundColor: "rgba(255,255,255,0.1)",
+                  height: 48, borderRadius: "12px", color: "white", backgroundColor: "rgba(255,255,255,0.1)",
                   "& fieldset": { borderColor: "rgba(255,255,255,0.1)" },
                   "&:hover fieldset": { borderColor: "rgba(255,255,255,0.25)" },
                   "&.Mui-focused fieldset": { borderColor: "rgba(255,255,255,0.15)" },
                 },
-                "& input": { colorScheme: "dark", fontSize: "0.875rem" },
+                "& input": { colorScheme: "dark", fontSize: "0.9375rem" },
               }}
             />
-            <MuiTextField
-              type="time"
-              value={manualStart}
-              onChange={(e) => { setManualStart(e.target.value); setManualError(""); }}
-              size="small"
+
+            {/* Start / End / duration — share a row, stretch to fill on mobile */}
+            <Box
               sx={{
-                width: 120,
-                "& .MuiOutlinedInput-root": {
-                  height: 40, borderRadius: "8px", color: "white", backgroundColor: "rgba(255,255,255,0.1)",
-                  "& fieldset": { borderColor: "rgba(255,255,255,0.1)" },
-                  "&:hover fieldset": { borderColor: "rgba(255,255,255,0.25)" },
-                  "&.Mui-focused fieldset": { borderColor: "rgba(255,255,255,0.15)" },
-                },
-                "& input": { colorScheme: "dark", fontSize: "0.875rem" },
+                display: "flex",
+                alignItems: "center",
+                gap: 1.5,
+                flex: { xs: "1 1 100%", sm: "0 0 auto" },
               }}
-            />
-            <MuiTextField
-              type="time"
-              value={manualEnd}
-              onChange={(e) => { setManualEnd(e.target.value); setManualError(""); }}
-              size="small"
-              sx={{
-                width: 120,
-                "& .MuiOutlinedInput-root": {
-                  height: 40, borderRadius: "8px", color: "white", backgroundColor: "rgba(255,255,255,0.1)",
-                  "& fieldset": { borderColor: "rgba(255,255,255,0.1)" },
-                  "&:hover fieldset": { borderColor: "rgba(255,255,255,0.25)" },
-                  "&.Mui-focused fieldset": { borderColor: "rgba(255,255,255,0.15)" },
-                },
-                "& input": { colorScheme: "dark", fontSize: "0.875rem" },
-              }}
-            />
-            <span className="flex h-10 items-center rounded-lg bg-white/5 px-3 text-sm font-bold tabular-nums text-white/80">
+            >
+              <MuiTextField
+                type="time"
+                value={manualStart}
+                onChange={(e) => { setManualStart(e.target.value); setManualError(""); }}
+                size="small"
+                sx={{
+                  flex: { xs: "1 1 0", sm: "0 0 auto" },
+                  width: { sm: 120 },
+                  "& .MuiOutlinedInput-root": {
+                    height: 48, borderRadius: "12px", color: "white", backgroundColor: "rgba(255,255,255,0.1)",
+                    "& fieldset": { borderColor: "rgba(255,255,255,0.1)" },
+                    "&:hover fieldset": { borderColor: "rgba(255,255,255,0.25)" },
+                    "&.Mui-focused fieldset": { borderColor: "rgba(255,255,255,0.15)" },
+                  },
+                  "& input": { colorScheme: "dark", fontSize: "0.9375rem" },
+                }}
+              />
+              <span aria-hidden className="shrink-0 text-white/40">–</span>
+              <MuiTextField
+                type="time"
+                value={manualEnd}
+                onChange={(e) => { setManualEnd(e.target.value); setManualError(""); }}
+                size="small"
+                sx={{
+                  flex: { xs: "1 1 0", sm: "0 0 auto" },
+                  width: { sm: 120 },
+                  "& .MuiOutlinedInput-root": {
+                    height: 48, borderRadius: "12px", color: "white", backgroundColor: "rgba(255,255,255,0.1)",
+                    "& fieldset": { borderColor: "rgba(255,255,255,0.1)" },
+                    "&:hover fieldset": { borderColor: "rgba(255,255,255,0.25)" },
+                    "&.Mui-focused fieldset": { borderColor: "rgba(255,255,255,0.15)" },
+                  },
+                  "& input": { colorScheme: "dark", fontSize: "0.9375rem" },
+                }}
+              />
+            </Box>
+
+            {/* Duration pill — full width on mobile so it reads clearly */}
+            <span className="flex h-12 flex-1 items-center justify-center rounded-[12px] bg-white/5 px-4 text-sm font-bold tabular-nums text-white/80 max-sm:w-full sm:flex-none sm:justify-start">
               {formatDuration(manualDuration)}
             </span>
           </Box>
@@ -465,6 +485,21 @@ export const Hero = React.forwardRef<HTMLInputElement>(function Hero(_props, tas
         {/* Inline validation error */}
         {manualError && mode === "manual" && (
           <p className="text-xs font-medium text-red-300">{manualError}</p>
+        )}
+
+        {/* Add entry — anchored at the bottom of the manual form */}
+        {mode === "manual" && (
+          <div className="flex pt-1">
+            <Button
+              variant="white"
+              size="lg"
+              onClick={handleManualAdd}
+              disabled={!task.trim()}
+              className="gap-2 max-sm:w-full"
+            >
+              <Plus className="h-4 w-4" /> Add entry
+            </Button>
+          </div>
         )}
       </div>
     </section>

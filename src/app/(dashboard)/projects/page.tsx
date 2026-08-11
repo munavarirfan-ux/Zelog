@@ -228,7 +228,7 @@ export default function ProjectsPage() {
         </div>
 
         {/* Table rows */}
-        <div className="divide-y divide-border/[0.06] dark:divide-white/[0.05]">
+        <div className="divide-y divide-[#C4C1D6] dark:divide-white/[0.12]">
           {filteredProjects.length ? (
             filteredProjects.map((project) => (
               <ProjectRow key={project.id} project={project} trackedSeconds={getProjectTrackedSeconds(project.id, entries)} />
