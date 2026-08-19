@@ -124,3 +124,76 @@
     }
   }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   CELEBRATION widgets — birthdays & anniversaries
+   ═══════════════════════════════════════════════════════════ */
+@keyframes zf-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.85; }
+  50% { transform: translateY(-9px) rotate(8deg); opacity: 0.4; }
+}
+@keyframes zf-sparkle {
+  0%, 100% { transform: scale(0.55); opacity: 0.25; }
+  50% { transform: scale(1); opacity: 1; }
+}
+@keyframes zf-glow {
+  0%, 100% { opacity: 0.45; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.06); }
+}
+@keyframes zf-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes zf-border-spin {
+  to { transform: rotate(360deg); }
+}
+.zf-float { animation: zf-float 3.6s ease-in-out infinite; }
+.zf-sparkle { animation: zf-sparkle 2.1s ease-in-out infinite; }
+.zf-glow { animation: zf-glow 3.2s ease-in-out infinite; }
+.zf-shimmer-text {
+  background-size: 220% auto;
+  animation: zf-shimmer 3s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .zf-float, .zf-sparkle, .zf-glow, .zf-shimmer-text { animation: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CELEBRATION GROUP — animated rotating gradient outline
+   ═══════════════════════════════════════════════════════════ */
+@property --cel-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes cel-border-spin {
+  to { --cel-angle: 360deg; }
+}
+.cel-anim-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--cel-angle),
+    var(--cel-c1),
+    var(--cel-c2),
+    var(--cel-c3),
+    var(--cel-c2),
+    var(--cel-c1)
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  animation: cel-border-spin 5s linear infinite;
+  pointer-events: none;
+}
+.cel-anim-border > * {
+  position: relative;
+  z-index: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cel-anim-border::before { animation: none; }
+}

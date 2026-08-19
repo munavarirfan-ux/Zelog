@@ -6,6 +6,7 @@ import { persist } from "zustand/middleware";
 import { DEFAULT_ROLE, type Role } from "@/config/nav";
 
 interface RoleState {
+  /** The active (simulated) role. Demo/testing switch — not a security boundary. */
   role: Role;
   setRole: (role: Role) => void;
 }

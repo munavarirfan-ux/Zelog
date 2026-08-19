@@ -8,6 +8,8 @@ export interface Employee {
   jobTitle: string;
   department: string;
   location?: string;
+  /** Optional profile photo. When absent, a colored initials avatar is shown. */
+  avatarUrl?: string;
   status: EmployeeStatus;
   /** Primary manager — defines the visible tree hierarchy. */
   managerId?: string;
@@ -52,19 +54,19 @@ export function departmentColor(name: string, departments: Department[] = DEPART
 export const MOCK_EMPLOYEES: Employee[] = [
   { id: "ceo", name: "Alexandra Reeve", email: "alexandra.reeve@zessta.com", jobTitle: "Chief Executive Officer", department: "Executive", location: "San Francisco", status: "active" },
 
-  { id: "cto", name: "Marcus Chen", email: "marcus.chen@zessta.com", jobTitle: "VP Engineering", department: "Engineering", location: "San Francisco", status: "active", managerId: "ceo", hrManagerId: "hrhead" },
-  { id: "cpo", name: "Priya Nair", email: "priya.nair@zessta.com", jobTitle: "VP Product", department: "Product", location: "New York", status: "active", managerId: "ceo", hrManagerId: "hrhead" },
+  { id: "cto", name: "Marcus Chen", email: "marcus.chen@zessta.com", jobTitle: "VP Engineering", department: "Engineering", location: "San Francisco", avatarUrl: "https://i.pravatar.cc/150?img=13", status: "active", managerId: "ceo", hrManagerId: "hrhead" },
+  { id: "cpo", name: "Priya Nair", email: "priya.nair@zessta.com", jobTitle: "VP Product", department: "Product", location: "New York", avatarUrl: "https://i.pravatar.cc/150?img=45", status: "active", managerId: "ceo", hrManagerId: "hrhead" },
   { id: "cmo", name: "Daniel Okafor", email: "daniel.okafor@zessta.com", jobTitle: "VP Marketing", department: "Marketing", location: "London", status: "active", managerId: "ceo", hrManagerId: "hrhead" },
   { id: "hrhead", name: "Sara Lindqvist", email: "sara.lindqvist@zessta.com", jobTitle: "Head of People", department: "HR", location: "Berlin", status: "active", managerId: "ceo", headId: "ceo" },
 
   { id: "eng1", name: "Irfan Alisha", email: "irfan.alisha@zessta.com", jobTitle: "Engineering Manager", department: "Engineering", location: "Hyderabad", status: "active", managerId: "cto", hrManagerId: "hrhead", headId: "cto" },
-  { id: "eng2", name: "Wei Zhang", email: "wei.zhang@zessta.com", jobTitle: "Staff Engineer", department: "Engineering", location: "Singapore", status: "active", managerId: "cto" },
+  { id: "eng2", name: "Wei Zhang", email: "wei.zhang@zessta.com", jobTitle: "Staff Engineer", department: "Engineering", location: "Singapore", avatarUrl: "https://i.pravatar.cc/150?img=12", status: "active", managerId: "cto" },
   { id: "eng3", name: "Tomás Herrera", email: "tomas.herrera@zessta.com", jobTitle: "Senior Engineer", department: "Engineering", location: "Madrid", status: "active", managerId: "eng1", additionalManagerId: "eng2", hrManagerId: "hrhead" },
   { id: "eng4", name: "Nadia Haddad", email: "nadia.haddad@zessta.com", jobTitle: "Frontend Engineer", department: "Engineering", location: "Dubai", status: "active", managerId: "eng1", hrManagerId: "hrhead" },
   { id: "eng5", name: "Kenji Watanabe", email: "kenji.watanabe@zessta.com", jobTitle: "Backend Engineer", department: "Engineering", location: "Tokyo", status: "inactive", managerId: "eng1" },
 
-  { id: "prod1", name: "Lena Fischer", email: "lena.fischer@zessta.com", jobTitle: "Product Manager", department: "Product", location: "Munich", status: "active", managerId: "cpo" },
-  { id: "des1", name: "Oscar Bennett", email: "oscar.bennett@zessta.com", jobTitle: "Design Lead", department: "Design", location: "London", status: "active", managerId: "cpo", headId: "cpo" },
+  { id: "prod1", name: "Lena Fischer", email: "lena.fischer@zessta.com", jobTitle: "Product Manager", department: "Product", location: "Munich", avatarUrl: "https://i.pravatar.cc/150?img=5", status: "active", managerId: "cpo" },
+  { id: "des1", name: "Oscar Bennett", email: "oscar.bennett@zessta.com", jobTitle: "Design Lead", department: "Design", location: "London", avatarUrl: "https://i.pravatar.cc/150?img=33", status: "active", managerId: "cpo", headId: "cpo" },
   { id: "des2", name: "Mia Rossi", email: "mia.rossi@zessta.com", jobTitle: "Product Designer", department: "Design", location: "Milan", status: "active", managerId: "des1" },
   { id: "des3", name: "Ali Karimi", email: "ali.karimi@zessta.com", jobTitle: "UX Researcher", department: "Design", location: "Tehran", status: "active", managerId: "des1", additionalManagerId: "prod1" },
 
@@ -72,8 +74,34 @@ export const MOCK_EMPLOYEES: Employee[] = [
   { id: "sal1", name: "Diego Alvarez", email: "diego.alvarez@zessta.com", jobTitle: "Sales Lead", department: "Sales", location: "Mexico City", status: "active", managerId: "cmo" },
   { id: "mkt2", name: "Hannah Weber", email: "hannah.weber@zessta.com", jobTitle: "Content Strategist", department: "Marketing", location: "Vienna", status: "active", managerId: "mkt1" },
 
-  { id: "hr1", name: "Yuki Tanaka", email: "yuki.tanaka@zessta.com", jobTitle: "HR Business Partner", department: "HR", location: "Osaka", status: "active", managerId: "hrhead" },
+  { id: "hr1", name: "Yuki Tanaka", email: "yuki.tanaka@zessta.com", jobTitle: "HR Business Partner", department: "HR", location: "Osaka", avatarUrl: "https://i.pravatar.cc/150?img=32", status: "active", managerId: "hrhead" },
 ];
+
+/** Vibrant gradient pairs for initials avatars (deterministic per person). */
+const AVATAR_GRADIENTS: [string, string][] = [
+  ["#7A4DFF", "#B37DFF"],
+  ["#F472B6", "#FB7185"],
+  ["#38BDF8", "#6366F1"],
+  ["#34D399", "#10B981"],
+  ["#FBBF24", "#F59E0B"],
+  ["#FB7185", "#F97316"],
+  ["#22D3EE", "#3B82F6"],
+  ["#A78BFA", "#7C3AED"],
+  ["#F43F5E", "#EC4899"],
+  ["#14B8A6", "#22D3EE"],
+];
+
+function hashString(seed: string): number {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+/** A stable multi-color gradient for an initials avatar, keyed by a seed (id/name). */
+export function avatarGradient(seed: string): string {
+  const [a, b] = AVATAR_GRADIENTS[hashString(seed) % AVATAR_GRADIENTS.length];
+  return `linear-gradient(135deg, ${a}, ${b})`;
+}
 
 export function initials(name: string): string {
   return name

@@ -54,12 +54,12 @@ export default function TrackerPage() {
               key={`${week.weekStart}-${week.weekEnd}`}
               className="rounded-[18px] border border-[rgba(99,102,241,0.08)] bg-surface p-4 shadow-[0_6px_24px_rgba(40,30,90,0.06)] sm:p-5 dark:border-white/[0.06]"
             >
-              {/* Week header */}
-              <div className="flex items-center justify-between px-1 pb-3">
+              {/* Week header — range + total stay on one row; below 360px only the total wraps */}
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 px-1 pb-3">
                 <span className="text-xs font-medium text-text-tertiary">
                   {week.weekStart} – {week.weekEnd}
                 </span>
-                <span className="text-xs font-medium text-text-tertiary">
+                <span className="ml-auto whitespace-nowrap text-xs font-medium text-text-tertiary">
                   Week total{" "}
                   <span className="font-semibold text-text-secondary">{formatDuration(week.totalSeconds)}</span>
                 </span>

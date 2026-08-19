@@ -67,14 +67,16 @@ export function DayGroup({
       id={`day-${group.date}`}
       className="rounded-[14px] border border-[rgba(99,102,241,0.08)] bg-surface shadow-[0_1px_3px_rgba(40,30,90,0.05)] dark:border-white/[0.06]"
     >
-      {/* Header row */}
+      {/* Header row — stable 5-column grid: checkbox · expand · date+count · total · kebab */}
       <div
-        className="flex h-12 w-full items-center gap-2 rounded-t-[14px] border-b border-[rgba(99,102,241,0.08)] px-4 transition-colors duration-150 hover:bg-[linear-gradient(180deg,#EFEBFF_0%,#F4F2FF_100%)] dark:border-[rgba(138,107,255,0.1)]"
+        className="grid min-h-12 w-full items-center gap-2 rounded-t-[14px] border-b border-[rgba(99,102,241,0.08)] px-4 transition-colors duration-150 hover:bg-[linear-gradient(180deg,#EFEBFF_0%,#F4F2FF_100%)] dark:border-[rgba(138,107,255,0.1)]"
         style={{
+          gridTemplateColumns: "32px 32px minmax(0,1fr) auto 32px",
           background: "linear-gradient(180deg, #F4F1FF 0%, #F8F7FF 100%)",
           boxShadow: "inset 0 1px 0 rgba(255,255,255,0.6)",
         }}
       >
+        {/* 1 · Select checkbox */}
         <Checkbox
           size="small"
           checked={allSelected}
@@ -85,15 +87,18 @@ export function DayGroup({
             padding: 0,
             width: 18,
             height: 18,
+            justifySelf: "center",
             color: "rgb(var(--primary-main-rgb) / 0.15)",
             "&.Mui-checked, &.MuiCheckbox-indeterminate": { color: "rgb(var(--primary-main-rgb) / 0.45)" },
           }}
         />
 
+        {/* 2 · Expand/collapse button */}
         <CollapsibleTrigger asChild>
           <button
             type="button"
-            className="flex flex-1 items-center gap-3"
+            className="flex h-11 w-full items-center justify-center"
+            aria-label={open ? "Collapse day" : "Expand day"}
           >
             <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded border border-border/20 bg-surface dark:border-white/10">
               <ChevronDown
@@ -103,8 +108,17 @@ export function DayGroup({
                 )}
               />
             </span>
-            <span className="text-sm font-semibold text-primary-900">{dayLabel(group.date)}</span>
-            <span className="text-xs text-primary-500/70">
+          </button>
+        </CollapsibleTrigger>
+
+        {/* 3 · Date + session count (count stays attached to the label) */}
+        <CollapsibleTrigger asChild>
+          <button
+            type="button"
+            className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 py-1 text-left"
+          >
+            <span className="min-w-0 text-sm font-semibold text-primary-900">{dayLabel(group.date)}</span>
+            <span className="whitespace-nowrap text-xs text-primary-500/70">
               {group.entries.length} session{group.entries.length === 1 ? "" : "s"}
               {selectedCount > 0 && (
                 <span className="ml-1 font-medium text-primary-500">
@@ -115,17 +129,20 @@ export function DayGroup({
           </button>
         </CollapsibleTrigger>
 
-        <span className="ml-auto text-sm font-bold tabular-nums text-primary-600">
+        {/* 4 · Total duration — always right aligned */}
+        <span className="justify-self-end whitespace-nowrap text-sm font-bold tabular-nums text-primary-600">
           {formatDuration(group.totalSeconds)}
         </span>
 
+        {/* 5 · Kebab menu — far right */}
         <button
           type="button"
-          className="flex h-6 w-6 items-center justify-center rounded-md text-text-tertiary hover:bg-surface-2"
+          className="flex h-11 w-full items-center justify-center rounded-md text-text-tertiary hover:bg-surface-2"
           onClick={(e) => {
             e.stopPropagation();
             setMenuAnchor(e.currentTarget);
           }}
+          aria-label="Day actions"
         >
           <MoreHorizontal className="h-3.5 w-3.5" />
         </button>

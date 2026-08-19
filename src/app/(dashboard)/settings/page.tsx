@@ -6,6 +6,8 @@ import MuiTextField from "@mui/material/TextField";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { CelebrationTemplates } from "@/components/settings/CelebrationTemplates";
 
 const TIME_ZONES = [
   { value: "Asia/Kolkata", label: "Asia/Kolkata (IST, UTC+5:30)" },
@@ -36,6 +38,9 @@ const PRESET_COLORS = [
 const DEFAULT_COLOR = "#6366F1";
 
 export default function SettingsPage() {
+  const { activeRole } = useCurrentUser();
+  const isStaff = activeRole === "admin" || activeRole === "super-admin";
+
   return (
     <div className="space-y-5 pb-12">
       {/* Hero */}
@@ -51,6 +56,7 @@ export default function SettingsPage() {
       {/* All settings on one page */}
       <div className="space-y-5">
         <ProfileSection />
+        {isStaff ? <CelebrationTemplates /> : null}
         <TimeSection />
         <AppearanceSection />
       </div>

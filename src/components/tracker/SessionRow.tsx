@@ -51,7 +51,7 @@ export function SessionRow({ entry, selected = false, onToggleSelect }: SessionR
           "group grid h-14 items-center gap-3 px-4 transition-colors duration-150",
           "grid-cols-[32px_minmax(180px,1fr)_130px_110px_150px_72px_32px_32px]",
           "hover:bg-[rgba(99,102,241,0.035)] dark:hover:bg-primary-50/20",
-          "max-md:grid-cols-[32px_1fr_auto] max-md:h-auto max-md:gap-2 max-md:px-4 max-md:py-3",
+          "max-md:h-auto max-md:grid-cols-[32px_minmax(0,1fr)_32px] max-md:items-start max-md:gap-3 max-md:px-4 max-md:py-3",
           selected && "bg-[rgba(99,102,241,0.08)] dark:bg-primary-100/40",
         )}
       >
@@ -60,10 +60,12 @@ export function SessionRow({ entry, selected = false, onToggleSelect }: SessionR
           size="small"
           checked={selected}
           onChange={onToggleSelect}
+          className="max-md:mt-0.5"
           sx={{
             padding: 0,
             width: 18,
             height: 18,
+            justifySelf: "center",
             color: "rgb(var(--primary-main-rgb) / 0.15)",
             "&.Mui-checked": { color: "rgb(var(--primary-main-rgb) / 0.45)" },
           }}
@@ -204,7 +206,7 @@ export function SessionRow({ entry, selected = false, onToggleSelect }: SessionR
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100"
+                className="h-7 w-7 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100 max-md:h-10 max-md:w-10 max-md:opacity-100"
                 aria-label="More actions"
               >
                 <MoreHorizontal className="h-3.5 w-3.5" />
