@@ -61,11 +61,17 @@ export const ON_LEAVE_TODAY: OnLeaveEntry[] = [
   { employeeId: "prod1", leaveTypeId: "annual", dayPart: "Full day", returnLabel: "Back Mon, 10 Aug" },
   { employeeId: "hr1", leaveTypeId: "casual", dayPart: "Full day", returnLabel: "Back Fri, 8 Aug" },
   { employeeId: "sal1", leaveTypeId: "sick", dayPart: "Half day", returnLabel: "Back tomorrow" },
+  { employeeId: "mkt1", leaveTypeId: "annual", dayPart: "Full day", returnLabel: "Back Wed, 12 Aug" },
+  { employeeId: "des3", leaveTypeId: "casual", dayPart: "Half day", returnLabel: "Back tomorrow" },
+  { employeeId: "mkt2", leaveTypeId: "sick", dayPart: "Full day", returnLabel: "Back Thu, 7 Aug" },
 ];
 
 export const WFH_TODAY: WfhEntry[] = [
   { employeeId: "eng2", dayPart: "Full day", statusLabel: "Approved" },
   { employeeId: "des2", dayPart: "Full day", statusLabel: "Approved" },
+  { employeeId: "eng3", dayPart: "Full day", statusLabel: "Approved" },
+  { employeeId: "cto", dayPart: "Full day", statusLabel: "Approved" },
+  { employeeId: "des1", dayPart: "Half day", statusLabel: "Approved" },
   { employeeId: "cmo", dayPart: "Half day" },
 ];
 

@@ -208,4 +208,11 @@ export const MOCK_REQUESTS: TimeOffRequest[] = [
   mk({ id: "r13", employeeId: "eng2", requestCategory: "wfh", startDate: d(0), endDate: d(0), durationType: "full-day", reason: "Remote", status: "approved", approverIds: ["cto"], createdAt: d(-1) }),
   mk({ id: "r14", employeeId: "sal1", requestCategory: "leave", leaveTypeId: "sick", startDate: d(-4), endDate: d(-3), durationType: "full-day", reason: "Flu", status: "rejected", approverIds: ["cmo"], createdAt: d(-6),
     comments: [{ id: "c2", authorId: "cmo", text: "Please share a medical note.", at: d(-5), action: "rejected" }] }),
+
+  // Additional pending items so approvers see a fuller queue.
+  mk({ id: "r15", employeeId: "prod1", requestCategory: "leave", leaveTypeId: "annual", startDate: d(12), endDate: d(15), durationType: "full-day", reason: "Family visit", status: "pending", approverIds: ["cpo"], createdAt: d(0) }),
+  mk({ id: "r16", employeeId: "des2", requestCategory: "leave", leaveTypeId: "casual", startDate: d(5), endDate: d(5), durationType: "half-day", halfDaySession: "second-half", reason: "Appointment", status: "pending", approverIds: ["des1"], createdAt: d(0) }),
+  mk({ id: "r17", employeeId: "hr1", requestCategory: "wfh", startDate: d(3), endDate: d(4), durationType: "full-day", reason: "Focus week", status: "pending", approverIds: ["hrhead"], createdAt: d(0) }),
+  mk({ id: "r18", employeeId: "mkt2", requestCategory: "wfh", startDate: d(2), endDate: d(2), durationType: "full-day", reason: "Deliveries", status: "pending", approverIds: ["mkt1"], createdAt: d(0) }),
+  mk({ id: "r19", employeeId: "cto", requestCategory: "wfh", startDate: d(1), endDate: d(1), durationType: "full-day", reason: "Offsite prep", status: "pending", approverIds: ["ceo"], createdAt: d(0) }),
 ];

@@ -27,17 +27,39 @@ function personHref(canView: boolean, employeeId: string): string | undefined {
   return canView ? `/organization?employee=${employeeId}` : undefined;
 }
 
-export function OnLeaveTodayCard({ entries, canViewProfiles }: { entries: OnLeaveEntry[]; canViewProfiles: boolean }) {
+/** Green for approved statuses, neutral WFH blue otherwise. */
+const APPROVED_COLOR = "#0F9E6E";
+function wfhStatusColor(label: string): string {
+  return /approved/i.test(label) ? APPROVED_COLOR : WFH_COLOR;
+}
+
+/** List body: scrolls past ~5 people so the card stays a consistent height. */
+const listClass = "max-h-[300px] space-y-1 overflow-y-auto pr-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
+
+export function OnLeaveTodayCard({
+  entries,
+  canViewProfiles,
+  title = "On Leave Today",
+  emptyMessage = "Everyone is available today",
+  className,
+}: {
+  entries: OnLeaveEntry[];
+  canViewProfiles: boolean;
+  title?: string;
+  emptyMessage?: string;
+  className?: string;
+}) {
   return (
     <PanelCard
-      title="On Leave Today"
+      title={title}
       icon={Palmtree}
       tint={TINT.leave}
       isEmpty={entries.length === 0}
-      emptyMessage="Everyone is available today"
+      emptyMessage={emptyMessage}
       emptyIcon={Sunrise}
+      className={className}
     >
-      <div className="space-y-1">
+      <div className={listClass}>
         {entries.map((e) => {
           const emp = getEmployee(e.employeeId);
           if (!emp) return null;
@@ -57,17 +79,30 @@ export function OnLeaveTodayCard({ entries, canViewProfiles }: { entries: OnLeav
   );
 }
 
-export function WorkingFromHomeCard({ entries, canViewProfiles }: { entries: WfhEntry[]; canViewProfiles: boolean }) {
+export function WorkingFromHomeCard({
+  entries,
+  canViewProfiles,
+  title = "Working From Home",
+  emptyMessage = "No one is working remotely today",
+  className,
+}: {
+  entries: WfhEntry[];
+  canViewProfiles: boolean;
+  title?: string;
+  emptyMessage?: string;
+  className?: string;
+}) {
   return (
     <PanelCard
-      title="Working From Home"
+      title={title}
       icon={Laptop}
       tint={TINT.wfh}
       isEmpty={entries.length === 0}
-      emptyMessage="No one is working remotely today"
+      emptyMessage={emptyMessage}
       emptyIcon={PartyPopper}
+      className={className}
     >
-      <div className="space-y-1">
+      <div className={listClass}>
         {entries.map((e) => {
           const emp = getEmployee(e.employeeId);
           if (!emp) return null;
@@ -78,7 +113,7 @@ export function WorkingFromHomeCard({ entries, canViewProfiles }: { entries: Wfh
               avatarUrl={emp.avatarUrl}
               href={personHref(canViewProfiles, e.employeeId)}
               secondary={`${emp.department} · WFH · ${e.dayPart}`}
-              right={e.statusLabel ? <Badge label={e.statusLabel} color={WFH_COLOR} /> : undefined}
+              right={e.statusLabel ? <Badge label={e.statusLabel} color={wfhStatusColor(e.statusLabel)} /> : undefined}
             />
           );
         })}

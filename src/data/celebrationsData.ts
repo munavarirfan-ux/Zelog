@@ -31,6 +31,34 @@ export const ANNIVERSARIES_TODAY: CelebrationEmployee[] = [
   { id: "a5", name: "David George", role: "Account Executive", department: "Sales", photo: pravatar(8), years: 4 },
 ];
 
+/** A celebration coming up in the next few days (used by the "Upcoming" rows). */
+export interface UpcomingCelebration extends CelebrationEmployee {
+  /** Human label for when it lands — "Tomorrow", "25 Aug", "Starts Mon". */
+  whenLabel: string;
+}
+
+export const UPCOMING_BIRTHDAYS: UpcomingCelebration[] = [
+  { id: "ub1", name: "Kavya Yakkati", role: "HR Associate", department: "People", photo: pravatar(32), whenLabel: "Tomorrow" },
+  { id: "ub2", name: "Swati Jasrotia", role: "Marketing Lead", department: "Marketing", photo: pravatar(44), whenLabel: "Tomorrow" },
+  { id: "ub3", name: "Shambhavi Rao", role: "Data Analyst", department: "Analytics", photo: pravatar(45), whenLabel: "25 Aug" },
+  { id: "ub4", name: "Rohit Menon", role: "Backend Engineer", department: "Engineering", photo: pravatar(13), whenLabel: "27 Aug" },
+];
+
+export const UPCOMING_ANNIVERSARIES: UpcomingCelebration[] = [
+  { id: "ua1", name: "Neha Gupta", role: "Product Manager", department: "Product", photo: pravatar(33), years: 2, whenLabel: "Tomorrow" },
+  { id: "ua2", name: "Karan Singh", role: "DevOps Engineer", department: "Engineering", photo: pravatar(60), years: 4, whenLabel: "24 Aug" },
+  { id: "ua3", name: "Meera Iyer", role: "Design Lead", department: "Design", photo: pravatar(20), years: 3, whenLabel: "28 Aug" },
+];
+
+/** New hires — none onboarding today in the demo, a couple starting soon. */
+export const NEW_JOINEES_TODAY: CelebrationEmployee[] = [];
+
+export const UPCOMING_JOINEES: UpcomingCelebration[] = [
+  { id: "nj1", name: "Aditya Verma", role: "Frontend Engineer", department: "Engineering", photo: pravatar(11), whenLabel: "Starts Mon" },
+  { id: "nj2", name: "Lisa Chen", role: "UX Researcher", department: "Design", photo: pravatar(9), whenLabel: "Starts 25 Aug" },
+  { id: "nj3", name: "Omar Farouk", role: "Account Executive", department: "Sales", photo: pravatar(8), whenLabel: "Starts 27 Aug" },
+];
+
 export type CelebrationKind = "birthday" | "anniversary";
 
 export const CHAT_SPACES = [

@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Dialog from "@mui/material/Dialog";
 import MuiTooltip from "@mui/material/Tooltip";
 import { format, parseISO } from "date-fns";
-import { AlertCircle, Bell, Check, CheckCircle2, X } from "lucide-react";
+import { AlertCircle, Bell, CalendarDays, Check, CheckCircle2, Clock, Laptop, MessageSquareText, Palmtree, UserCheck, X, type LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 import { PanelCard, TINT } from "./HomeUI";
 import { PersonAvatar } from "@/components/ui/person-avatar";
+import { Button } from "@/components/ui/button";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useTimeOffStore } from "@/store/timeOffStore";
 import { getEmployee, leaveColor, leaveName } from "@/data/homeData";
@@ -34,11 +36,28 @@ function rangeLabel(start: string, end: string): string {
   return `${format(s, "d MMM")} – ${format(e, "d MMM")}`;
 }
 
+/** Type label + accent color for a request (leave type name or "Work From Home"). */
+function typeInfo(req: TimeOffRequest): { label: string; color: string } {
+  if (req.requestCategory === "wfh") return { label: "Work From Home", color: TAB_COLOR.wfh };
+  return { label: leaveName(req.leaveTypeId ?? ""), color: leaveColor(req.leaveTypeId ?? "") };
+}
+
+function durationText(req: TimeOffRequest): string {
+  return `${req.durationDays}${req.durationDays === 1 || req.durationType === "half-day" ? " day" : " days"}`;
+}
+
+function halfDayLabel(session?: string): string | null {
+  if (session === "first-half") return "First half";
+  if (session === "second-half") return "Second half";
+  return null;
+}
+
 export function AdminAttentionCard({ leavePending, wfhPending, className }: AdminAttentionCardProps) {
   const { currentUser } = useCurrentUser();
   const setStatus = useTimeOffStore((s) => s.setStatus);
 
   const [tab, setTab] = useState<Tab>("leave");
+  const [detail, setDetail] = useState<TimeOffRequest | null>(null);
 
   // Prefer showing the tab that has work; fall back to leave.
   useEffect(() => {
@@ -66,48 +85,51 @@ export function AdminAttentionCard({ leavePending, wfhPending, className }: Admi
         </div>
       ) : (
         <>
-          {/* Tabs */}
-          <div className="mb-3 flex items-center gap-1 rounded-[12px] border border-border/[0.06] bg-white/50 p-1">
-            <TabButton label="Leave" count={leavePending.length} color={TAB_COLOR.leave} active={tab === "leave"} onClick={() => setTab("leave")} />
-            <TabButton label="WFH" count={wfhPending.length} color={TAB_COLOR.wfh} active={tab === "wfh"} onClick={() => setTab("wfh")} />
+          {/* Tabs under the heading — segmented control (matches Celebrations) */}
+          <div className="mb-4 inline-flex items-center gap-1 self-start rounded-[14px] bg-surface-2 p-1">
+            <TabButton label="Leave" icon={Palmtree} count={leavePending.length} active={tab === "leave"} onClick={() => setTab("leave")} />
+            <TabButton label="WFH" icon={Laptop} count={wfhPending.length} active={tab === "wfh"} onClick={() => setTab("wfh")} />
           </div>
 
-          {/* People list */}
           {active.length === 0 ? (
             <div className="flex items-center justify-center rounded-[14px] bg-white/50 px-4 py-8 text-center text-sm text-text-tertiary">
               No pending {tab === "leave" ? "leave" : "WFH"} requests
             </div>
           ) : (
-            <ul className="max-h-[320px] space-y-2 overflow-y-auto pr-0.5">
+            <ul className="max-h-[320px] space-y-2 overflow-y-auto pr-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {active.map((req) => (
-                <RequestRow key={req.id} req={req} tab={tab} onDecide={decide} />
+                <RequestRow key={req.id} req={req} tab={tab} onDecide={decide} onOpen={() => setDetail(req)} />
               ))}
             </ul>
           )}
         </>
       )}
+
+      <RequestDetailDialog
+        req={detail}
+        onClose={() => setDetail(null)}
+        onDecide={(req, status) => {
+          decide(req, status);
+          setDetail(null);
+        }}
+      />
     </PanelCard>
   );
 }
 
-function TabButton({ label, count, color, active, onClick }: { label: string; count: number; color: string; active: boolean; onClick: () => void }) {
+function TabButton({ label, icon: Icon, count, active, onClick }: { label: string; icon: LucideIcon; count: number; active: boolean; onClick: () => void }) {
   return (
     <button
       type="button"
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "flex h-9 flex-1 items-center justify-center gap-1.5 rounded-[9px] text-sm font-semibold transition-colors",
-        active ? "bg-white shadow-sm text-text" : "text-text-secondary hover:text-text",
+        "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[10px] px-4 py-1.5 text-sm font-medium transition-all duration-200",
+        active ? "bg-surface text-text shadow-[0_1px_3px_rgba(40,30,90,0.12)]" : "text-text-tertiary hover:text-text-secondary",
       )}
     >
-      {label}
-      <span
-        className="flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[11px] font-bold tabular-nums"
-        style={active ? { backgroundColor: color, color: "#fff" } : { backgroundColor: `${color}26`, color }}
-      >
-        {count}
-      </span>
+      <Icon className="h-4 w-4" strokeWidth={2} />
+      <span className="tabular-nums">{count}</span> {label}
     </button>
   );
 }
@@ -116,10 +138,12 @@ function RequestRow({
   req,
   tab,
   onDecide,
+  onOpen,
 }: {
   req: TimeOffRequest;
   tab: Tab;
   onDecide: (req: TimeOffRequest, status: "approved" | "rejected") => void;
+  onOpen: () => void;
 }) {
   const [notified, setNotified] = useState(false);
   const emp = getEmployee(req.employeeId);
@@ -133,20 +157,33 @@ function RequestRow({
     setNotified(true);
     setTimeout(() => setNotified(false), REMINDER_COOLDOWN_MS);
   }
-  const color = tab === "leave" ? leaveColor(req.leaveTypeId ?? "") : TAB_COLOR.wfh;
-  const typeLabel = tab === "leave" ? leaveName(req.leaveTypeId ?? "") : "Work From Home";
-  const dur = `${req.durationDays}${req.durationDays === 1 ? " day" : req.durationType === "half-day" ? " day" : " days"}`;
+  const { label: typeLabel, color } = typeInfo(req);
+  const dur = durationText(req);
 
   return (
     <li className="flex items-center gap-3 rounded-[14px] border border-border/[0.05] bg-white/60 p-2.5">
-      <PersonAvatar name={emp.name} src={emp.avatarUrl} size={36} />
-      <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-semibold text-text">{emp.name}</span>
-        <span className="block truncate text-xs text-text-secondary">
-          <span style={{ color }} className="font-medium">{typeLabel}</span>
-          {" · "}{dur} · {rangeLabel(req.startDate, req.endDate)}
-        </span>
-      </span>
+      <MuiTooltip title="View details" placement="top" arrow>
+        <button
+          type="button"
+          onClick={onOpen}
+          aria-label={`View ${emp.name}'s request details`}
+          className="-m-1 flex min-w-0 flex-1 items-center gap-3 rounded-[12px] p-1 text-left transition-colors hover:bg-[rgba(122,77,255,0.05)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400/40"
+        >
+          <PersonAvatar name={emp.name} src={emp.avatarUrl} size={36} />
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-sm font-semibold text-text">{emp.name}</span>
+            <span className="mt-1 flex items-center gap-1.5">
+              <span
+                className="inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                style={{ color, backgroundColor: `${color}1F` }}
+              >
+                {typeLabel}
+              </span>
+              <span className="truncate text-xs text-text-tertiary">{dur} · {rangeLabel(req.startDate, req.endDate)}</span>
+            </span>
+          </span>
+        </button>
+      </MuiTooltip>
 
       <div className="flex shrink-0 items-center gap-1">
         <MuiTooltip title="Approve" placement="top" arrow>
@@ -184,5 +221,93 @@ function RequestRow({
         </MuiTooltip>
       </div>
     </li>
+  );
+}
+
+/* ── Request detail dialog ── */
+
+function DetailRow({ icon: Icon, label, children }: { icon: typeof CalendarDays; label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-start gap-3">
+      <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-surface-2 text-text-tertiary">
+        <Icon className="h-4 w-4" strokeWidth={2} />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-[11px] font-medium uppercase tracking-wide text-text-tertiary">{label}</p>
+        <div className="mt-0.5 text-sm text-text">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function RequestDetailDialog({
+  req,
+  onClose,
+  onDecide,
+}: {
+  req: TimeOffRequest | null;
+  onClose: () => void;
+  onDecide: (req: TimeOffRequest, status: "approved" | "rejected") => void;
+}) {
+  const emp = req ? getEmployee(req.employeeId) : null;
+  const { label: typeLabel, color } = req ? typeInfo(req) : { label: "", color: "#999" };
+  const approvers = req
+    ? Array.from(new Set(req.approverIds)).map((id) => getEmployee(id)?.name).filter(Boolean).join(", ")
+    : "";
+  const half = req ? halfDayLabel(req.halfDaySession) : null;
+
+  return (
+    <Dialog
+      open={req !== null}
+      onClose={onClose}
+      slotProps={{ paper: { sx: { borderRadius: "20px", maxWidth: 460, width: "100%", backgroundImage: "none" } } }}
+    >
+      {req && emp ? (
+        <div className="p-5 sm:p-6">
+          {/* Header */}
+          <div className="mb-5 flex items-start gap-3">
+            <PersonAvatar name={emp.name} src={emp.avatarUrl} size={44} />
+            <div className="min-w-0 flex-1">
+              <h2 className="truncate text-base font-semibold text-text">{emp.name}</h2>
+              <p className="truncate text-sm text-text-secondary">{emp.jobTitle} · {emp.department}</p>
+            </div>
+            <span
+              className="inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-[11px] font-semibold"
+              style={{ color, backgroundColor: `${color}1F` }}
+            >
+              {typeLabel}
+            </span>
+            <button type="button" onClick={onClose} aria-label="Close" className="-mr-1 -mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-text-tertiary transition-colors hover:bg-surface-2">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* Details */}
+          <div className="space-y-4">
+            <DetailRow icon={CalendarDays} label="Dates">
+              {rangeLabel(req.startDate, req.endDate)}
+              {half ? <span className="text-text-tertiary"> · {half}</span> : null}
+            </DetailRow>
+            <DetailRow icon={Clock} label="Duration">{durationText(req)}</DetailRow>
+            {approvers ? <DetailRow icon={UserCheck} label="Approver">{approvers}</DetailRow> : null}
+            <DetailRow icon={MessageSquareText} label="Reason">
+              {req.reason?.trim() ? req.reason : <span className="text-text-tertiary">No reason provided</span>}
+            </DetailRow>
+          </div>
+
+          <p className="mt-4 text-[11px] text-text-tertiary">Requested on {format(parseISO(req.createdAt), "d MMM yyyy")}</p>
+
+          {/* Actions */}
+          <div className="mt-5 flex justify-end gap-2">
+            <Button variant="outline" className="gap-1.5 text-[#E11D48] hover:bg-[#F43F5E12]" onClick={() => onDecide(req, "rejected")}>
+              <X className="h-4 w-4" /> Decline
+            </Button>
+            <Button className="gap-1.5" onClick={() => onDecide(req, "approved")}>
+              <Check className="h-4 w-4" /> Approve
+            </Button>
+          </div>
+        </div>
+      ) : null}
+    </Dialog>
   );
 }

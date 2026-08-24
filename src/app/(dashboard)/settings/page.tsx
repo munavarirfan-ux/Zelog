@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { CelebrationTemplates } from "@/components/settings/CelebrationTemplates";
+import { AttendanceSettings } from "@/components/settings/AttendanceSettings";
 
 const TIME_ZONES = [
   { value: "Asia/Kolkata", label: "Asia/Kolkata (IST, UTC+5:30)" },
@@ -56,6 +57,7 @@ export default function SettingsPage() {
       {/* All settings on one page */}
       <div className="space-y-5">
         <ProfileSection />
+        {isStaff ? <AttendanceSettings /> : null}
         {isStaff ? <CelebrationTemplates /> : null}
         <TimeSection />
         <AppearanceSection />

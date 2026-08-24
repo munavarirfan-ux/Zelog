@@ -102,7 +102,7 @@ export const useTimeOffStore = create<TimeOffState>()(
         }));
       },
     }),
-    { name: "zelog-timeoff-v1", skipHydration: true },
+    { name: "zelog-timeoff-v2", skipHydration: true },
   ),
 );
 
