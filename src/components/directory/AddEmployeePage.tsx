@@ -253,7 +253,7 @@ export function AddEmployeePage({ employeeId }: { employeeId?: string } = {}) {
   const addTo = (key: ListKey, blank: unknown) => setDraft((d) => ({ ...d, [key]: [...(d[key] as unknown[]), blank] }));
   const removeAt = (key: ListKey, i: number) => setDraft((d) => ({ ...d, [key]: (d[key] as unknown[]).filter((_, idx) => idx !== i) }));
   const updateAt = (key: ListKey, i: number, patch: Record<string, unknown>) =>
-    setDraft((d) => ({ ...d, [key]: (d[key] as Record<string, unknown>[]).map((x, idx) => (idx === i ? { ...x, ...patch } : x)) }));
+    setDraft((d) => ({ ...d, [key]: (d[key] as unknown as Record<string, unknown>[]).map((x, idx) => (idx === i ? { ...x, ...patch } : x)) }));
 
   const requiredValid =
     draft.firstName.trim() && draft.lastName.trim() && draft.officialEmail.trim() &&
