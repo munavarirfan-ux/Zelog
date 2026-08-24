@@ -423,11 +423,12 @@ export interface SubNavItem {
   icon: LucideIcon;
 }
 
-export function SubNav({ items, value, onChange }: { items: SubNavItem[]; value: string; onChange: (id: string) => void }) {
+export function SubNav({ items, value, onChange, showIcons = false }: { items: SubNavItem[]; value: string; onChange: (id: string) => void; showIcons?: boolean }) {
   return (
     <div className="inline-flex max-w-full items-center gap-1 overflow-x-auto rounded-[14px] bg-surface-2 p-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {items.map((it) => {
         const active = it.id === value;
+        const Icon = it.icon;
         return (
           <button
             key={it.id}
@@ -435,12 +436,13 @@ export function SubNav({ items, value, onChange }: { items: SubNavItem[]; value:
             onClick={() => onChange(it.id)}
             aria-current={active}
             className={cn(
-              "shrink-0 rounded-[10px] px-4 py-1.5 text-sm font-medium transition-all duration-200",
+              "inline-flex shrink-0 items-center gap-1.5 rounded-[10px] px-4 py-1.5 text-sm font-medium transition-all duration-200",
               active
                 ? "bg-surface text-text shadow-[0_1px_3px_rgba(40,30,90,0.12)]"
                 : "text-text-tertiary hover:text-text-secondary",
             )}
           >
+            {showIcons ? <Icon className="h-4 w-4" /> : null}
             {it.label}
           </button>
         );
