@@ -16,12 +16,14 @@ interface SelectContextValue {
   value: string;
   onValueChange: (v: string) => void;
   items: SelectItemData[];
+  disabled: boolean;
 }
 
 const SelectContext = React.createContext<SelectContextValue>({
   value: "",
   onValueChange: () => {},
   items: [],
+  disabled: false,
 });
 
 // Recursively walk the children tree and collect every <SelectItem value=…> so the
@@ -38,10 +40,11 @@ function collectItems(children: React.ReactNode, acc: SelectItemData[]) {
   });
 }
 
-function Select({ value, onValueChange, defaultValue, children }: {
+function Select({ value, onValueChange, defaultValue, disabled = false, children }: {
   value?: string;
   onValueChange?: (v: string) => void;
   defaultValue?: string;
+  disabled?: boolean;
   children: React.ReactNode;
 }) {
   const [internalValue, setInternalValue] = React.useState(defaultValue || "");
@@ -60,7 +63,7 @@ function Select({ value, onValueChange, defaultValue, children }: {
   }, [children]);
 
   return (
-    <SelectContext.Provider value={{ value: currentValue, onValueChange: handleChange, items }}>
+    <SelectContext.Provider value={{ value: currentValue, onValueChange: handleChange, items, disabled }}>
       {children}
     </SelectContext.Provider>
   );
@@ -82,13 +85,14 @@ interface SelectTriggerProps {
 
 const SelectTrigger = React.forwardRef<HTMLDivElement, SelectTriggerProps>(
   ({ className, children }, ref) => {
-    const { value, onValueChange, items } = React.useContext(SelectContext);
+    const { value, onValueChange, items, disabled } = React.useContext(SelectContext);
 
     return (
       <FormControl size="small" fullWidth ref={ref}>
         <MuiSelect
           value={value}
           onChange={(e) => onValueChange(e.target.value as string)}
+          disabled={disabled}
           displayEmpty
           IconComponent={() => <ChevronDown className="mr-3 h-4 w-4 shrink-0 text-text-tertiary" strokeWidth={2} />}
           className={cn("!h-10 !rounded-[10px] !text-sm !font-medium", className)}

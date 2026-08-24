@@ -329,6 +329,7 @@ export const TEAM_TODAY: TeamMember[] = MOCK_EMPLOYEES.filter((e) => e.status ==
     cycle === 2 ? "late" :
     cycle === 3 ? "leave" :
     cycle === 4 ? "absent" :
+    cycle === 5 ? "client" :
     "present";
   const worked = ["present", "wfh", "client", "late"].includes(status);
   const mode: AttendanceMode | undefined = status === "wfh" ? "wfh" : status === "client" ? "client" : worked ? "office" : undefined;
