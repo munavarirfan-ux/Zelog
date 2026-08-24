@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Dialog from "@mui/material/Dialog";
 import MuiTextField from "@mui/material/TextField";
 import {
-  addMonths, format, isSameDay, parseISO, startOfMonth,
+  addMonths, format, isSameDay, parseISO, startOfMonth, subDays, subMonths,
 } from "date-fns";
 import {
   BatteryFull, CalendarDays, Check, ChevronLeft, ChevronRight, Clock,
@@ -15,10 +15,11 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useAttendanceStore } from "@/store/attendanceStore";
-import { CheckInFlow } from "./CheckInFlow";
-import { ACard, KpiCard, MapSurface, MetaRow, StatusPill, Timeline, VerifyBadge } from "./shared";
+import { ApplyWfhButton } from "./ApplyWfhButton";
+import { WebClockButton } from "@/components/home/WebClockButton";
+import { ACard, KpiCard, MapSurface, MetaRow, StatusPill, Timeline, TimelineBar, VerifyBadge } from "./shared";
 import {
-  MODE_LIST, MODES, OFFICES, REQUEST_TYPES, STATUS, STATUS_LEGEND, buildMonthCalendar,
+  ARRIVAL_CONFIG, MODES, OFFICES, STATUS, STATUS_LEGEND, buildMonthCalendar,
   requestTypeLabel, type AttendanceMode, type CalendarDay, type DayStatus, type RequestType,
 } from "@/data/attendanceData";
 import { cn } from "@/lib/utils";
@@ -33,11 +34,6 @@ function fmtHM(ms: number): string {
   const m = Math.floor(ms / 60000);
   return `${String(Math.floor(m / 60)).padStart(2, "0")}h ${String(m % 60).padStart(2, "0")}m`;
 }
-function fmtHMS(ms: number): string {
-  const s = Math.floor(ms / 1000);
-  return `${String(Math.floor(s / 3600)).padStart(2, "0")}h ${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}m ${String(s % 60).padStart(2, "0")}s`;
-}
-
 function useElapsed(startIso: string | null, active: boolean): number {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -61,20 +57,13 @@ export function EmployeeAttendanceHero() {
   const first = currentUser.name.split(" ")[0];
 
   const mode = useAttendanceStore((s) => s.mode);
-  const setMode = useAttendanceStore((s) => s.setMode);
   const checkedIn = useAttendanceStore((s) => s.checkedIn);
   const checkedOut = useAttendanceStore((s) => s.checkedOut);
   const checkInAt = useAttendanceStore((s) => s.checkInAt);
   const checkInLabel = useAttendanceStore((s) => s.checkInLabel);
-  const checkOutLabel = useAttendanceStore((s) => s.checkOutLabel);
   const onBreak = useAttendanceStore((s) => s.onBreak);
   const verification = useAttendanceStore((s) => s.verification);
-  const doCheckIn = useAttendanceStore((s) => s.checkIn);
-  const doCheckOut = useAttendanceStore((s) => s.checkOut);
-  const toggleBreak = useAttendanceStore((s) => s.toggleBreak);
-  const resetDay = useAttendanceStore((s) => s.resetDay);
 
-  const [flowOpen, setFlowOpen] = useState(false);
   const elapsed = useElapsed(checkInAt, checkedIn && !onBreak);
   const activeMode = MODES[mode];
   const office = OFFICES[0];
@@ -95,10 +84,18 @@ export function EmployeeAttendanceHero() {
       <div className="relative flex flex-col gap-6 lg:flex-row lg:items-stretch lg:justify-between">
         {/* Left: greeting + status + tiles */}
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-white/60">{greeting()},</p>
-          <h1 className="mt-0.5 flex items-center gap-2 text-[26px] font-semibold leading-tight tracking-tight sm:text-[30px]">
-            {first} 👋
-          </h1>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-white/60">{greeting()},</p>
+              <h1 className="mt-0.5 flex items-center gap-2 text-[26px] font-semibold leading-tight tracking-tight sm:text-[30px]">
+                {first} 👋
+              </h1>
+            </div>
+            <div className="flex shrink-0 items-center gap-2.5">
+              <WebClockButton />
+              <ApplyWfhButton />
+            </div>
+          </div>
           <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm font-medium backdrop-blur">
             <span className={cn("h-2 w-2 rounded-full", checkedIn && !onBreak ? "animate-pulse" : "")} style={{ backgroundColor: checkedIn ? activeMode.color : "#F87171" }} />
             Today&apos;s Status · {statusText}
@@ -128,80 +125,7 @@ export function EmployeeAttendanceHero() {
             </div>
           ) : null}
         </div>
-
-        {/* Right: action panel */}
-        <div className="flex w-full flex-col justify-center gap-3 rounded-[20px] border border-white/15 bg-white/10 p-4 backdrop-blur lg:w-[300px]">
-          {!checkedIn && !checkedOut ? (
-            <>
-              <p className="text-xs font-medium text-white/70">Choose your mode</p>
-              <div className="grid grid-cols-3 gap-1.5 rounded-[14px] bg-white/10 p-1">
-                {MODE_LIST.map((m) => {
-                  const active = m.id === mode;
-                  return (
-                    <button
-                      key={m.id}
-                      type="button"
-                      onClick={() => setMode(m.id)}
-                      className={cn(
-                        "flex flex-col items-center gap-1 rounded-[10px] px-1 py-2 text-[11px] font-semibold transition-colors",
-                        active ? "bg-white text-primary-700 shadow" : "text-white/80 hover:bg-white/10",
-                      )}
-                    >
-                      <m.icon className="h-4 w-4" strokeWidth={2} />
-                      {m.short}
-                    </button>
-                  );
-                })}
-              </div>
-              <Button variant="white" className="h-12 w-full text-[15px]" onClick={() => setFlowOpen(true)}>
-                <LogIn className="mr-1.5 h-5 w-5" /> Check In
-              </Button>
-            </>
-          ) : checkedIn ? (
-            <>
-              <div className="text-center">
-                <p className="text-xs font-medium text-white/70">Working for</p>
-                <p className="mt-0.5 font-mono text-3xl font-bold tabular-nums">{fmtHMS(elapsed)}</p>
-                {onBreak ? <p className="mt-1 text-xs font-semibold text-amber-200">⏸ On break</p> : null}
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="white"
-                  className="h-11 flex-1 !bg-white/15 !text-white hover:!bg-white/25"
-                  onClick={() => toggleBreak(format(new Date(), "hh:mm a"))}
-                >
-                  <Coffee className="mr-1.5 h-4 w-4" /> {onBreak ? "Resume" : "Break"}
-                </Button>
-                <Button
-                  variant="white"
-                  className="h-11 flex-1"
-                  onClick={() => { doCheckOut(format(new Date(), "hh:mm a")); toast.success("Checked out"); }}
-                >
-                  <LogOut className="mr-1.5 h-4 w-4" /> Check Out
-                </Button>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="text-center">
-                <p className="text-xs font-medium text-white/70">Checked out at</p>
-                <p className="mt-0.5 text-2xl font-bold">{checkOutLabel}</p>
-                <p className="mt-1 text-sm text-white/70">Total {fmtHM(elapsed)}</p>
-              </div>
-              <Button variant="white" className="h-11 w-full !bg-white/15 !text-white hover:!bg-white/25" onClick={resetDay}>
-                Start a new session
-              </Button>
-            </>
-          )}
-        </div>
       </div>
-
-      <CheckInFlow
-        open={flowOpen}
-        mode={mode}
-        onClose={() => setFlowOpen(false)}
-        onComplete={(payload) => { doCheckIn(payload); setFlowOpen(false); toast.success(`Checked in · ${MODES[payload.mode].label}`); }}
-      />
     </section>
   );
 }
@@ -367,50 +291,136 @@ export function EmployeeCalendar() {
 
 /* ═══════════════ HISTORY ═══════════════ */
 
+/** Shared column template for the Attendance Log header + rows. */
+const LOG_COLS =
+  "grid grid-cols-[minmax(92px,1fr)_minmax(140px,1.4fr)_76px_60px_76px_108px] items-center gap-4";
+
 export function EmployeeHistory() {
   const today = useMemo(() => new Date(), []);
-  const days = useMemo(() => buildMonthCalendar(startOfMonth(today), today), [today]);
-  const worked = days
-    .filter((d) => d.checkIn && new Date(d.date) <= today)
-    .sort((a, b) => b.date.localeCompare(a.date));
+  const [range, setRange] = useState("30");
+
+  // Last 6 months (most-recent first) offered as quick tabs alongside "30 Days".
+  const months = useMemo(
+    () => Array.from({ length: 6 }, (_, i) => startOfMonth(subMonths(today, i + 1))),
+    [today],
+  );
+
+  // Build day records for the current month + the 6 prior months once, then scope
+  // by the selected range.
+  const allDays = useMemo(
+    () => [startOfMonth(today), ...months].flatMap((m) => buildMonthCalendar(m, today)),
+    [today, months],
+  );
+
+  const worked = useMemo(() => {
+    const done = allDays.filter((d) => d.checkIn && new Date(d.date) <= today);
+    const scoped =
+      range === "30"
+        ? done.filter((d) => new Date(d.date) >= subDays(today, 29))
+        : done.filter((d) => format(parseISO(d.date), "yyyy-MM") === range);
+    return scoped.sort((a, b) => b.date.localeCompare(a.date));
+  }, [allDays, range, today]);
+
+  const options = [
+    { key: "30", label: "30 Days" },
+    ...months.map((m) => ({ key: format(m, "yyyy-MM"), label: format(m, "MMM") })),
+  ];
+  const subtitle = range === "30" ? "Last 30 days" : format(parseISO(`${range}-01`), "MMMM yyyy");
 
   return (
-    <ACard title="Attendance History" subtitle={format(today, "MMMM yyyy")} icon={Clock} tint="#38BDF8">
-      <div className="space-y-2">
-        {worked.map((d) => {
-          const s = STATUS[d.status];
-          return (
-            <div key={d.date} className="flex flex-wrap items-center gap-3 rounded-[14px] border border-border/[0.05] bg-surface-2/40 p-3">
-              <div className="flex w-12 flex-col items-center rounded-[10px] bg-surface px-2 py-1 text-center shadow-sm">
-                <span className="text-[10px] font-semibold uppercase text-text-tertiary">{format(parseISO(d.date), "EEE")}</span>
-                <span className="text-lg font-bold leading-none text-text">{format(parseISO(d.date), "d")}</span>
-              </div>
-              <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-5 gap-y-1 text-sm">
-                <span className="inline-flex items-center gap-1 text-text-secondary"><LogIn className="h-3.5 w-3.5 text-text-tertiary" /> {d.checkIn}</span>
-                <span className="inline-flex items-center gap-1 text-text-secondary"><LogOut className="h-3.5 w-3.5 text-text-tertiary" /> {d.checkOut}</span>
-                <span className="inline-flex items-center gap-1 font-semibold text-text"><Clock className="h-3.5 w-3.5 text-text-tertiary" /> {d.hours}</span>
-                <span className="inline-flex items-center gap-1 text-text-secondary"><Coffee className="h-3.5 w-3.5 text-text-tertiary" /> {d.breakTime}</span>
-                {d.mode ? <span className="inline-flex items-center gap-1 text-text-secondary">{(() => { const I = MODES[d.mode].icon; return <I className="h-3.5 w-3.5 text-text-tertiary" />; })()} {MODES[d.mode].short}</span> : null}
-              </div>
-              <div className="flex items-center gap-2">
-                <VerifyBadge ok={!!d.gps} label="GPS" />
-                <StatusPill status={d.status} />
-              </div>
+    <ACard
+      title="Attendance History"
+      subtitle={subtitle}
+      icon={Clock}
+      tint="#38BDF8"
+      action={
+        <div className="flex flex-wrap items-center gap-1 rounded-[10px] border border-border/10 bg-surface-2/60 p-0.5 dark:border-white/10">
+          {options.map((opt) => (
+            <button
+              key={opt.key}
+              type="button"
+              onClick={() => setRange(opt.key)}
+              className={cn(
+                "rounded-[8px] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide transition-colors",
+                range === opt.key ? "bg-primary-600 text-white shadow-sm" : "text-text-secondary hover:bg-surface",
+              )}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      }
+    >
+      {worked.length === 0 ? (
+        <p className="py-8 text-center text-sm text-text-tertiary">No attendance records for this period.</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <div className="min-w-[660px]">
+            {/* Column header */}
+            <div className={cn(LOG_COLS, "px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-text-tertiary")}>
+              <span>Date</span>
+              <span>Working hours</span>
+              <span className="text-right">Effective</span>
+              <span className="text-right">Break</span>
+              <span className="text-right">Gross</span>
+              <span className="text-right">Arrival</span>
             </div>
-          );
-        })}
-      </div>
+            <div className="divide-y divide-border/[0.05]">
+              {worked.map((d) => {
+                const arr = d.arrival ? ARRIVAL_CONFIG[d.arrival] : null;
+                const st = STATUS[d.status];
+                return (
+                  <div key={d.date} className={cn(LOG_COLS, "px-3 py-3 transition-colors hover:bg-surface-2/40")}>
+                    {/* Date */}
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-text">{format(parseISO(d.date), "EEE, d MMM")}</p>
+                      <p className="text-[11px] text-text-tertiary">{d.checkIn} – {d.checkOut ?? "—"}</p>
+                    </div>
+                    {/* Working-hours timeline */}
+                    <TimelineBar segments={d.segments ?? []} height={10} />
+                    {/* Effective (with mode-colored dot) */}
+                    <span className="flex items-center justify-end gap-1.5 text-sm tabular-nums text-text">
+                      <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: d.mode ? MODES[d.mode].color : "#94A3B8" }} />
+                      {d.effectiveHours ?? "—"}
+                    </span>
+                    {/* Break */}
+                    <span className="text-right text-sm tabular-nums text-text-secondary">{d.breakTime ?? "—"}</span>
+                    {/* Gross */}
+                    <span className="text-right text-sm font-semibold tabular-nums text-text">{d.grossHours ?? "—"}</span>
+                    {/* Arrival + status */}
+                    <div className="flex items-center justify-end gap-2">
+                      {arr ? (
+                        <span
+                          className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium"
+                          style={{ color: arr.color, backgroundColor: `${arr.color}18` }}
+                        >
+                          <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: arr.color }} />
+                          {arr.label}
+                        </span>
+                      ) : null}
+                      <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: st.color }} title={st.label} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </ACard>
   );
 }
 
 /* ═══════════════ MY REQUESTS ═══════════════ */
 
+/** The only request types an employee may raise from the Attendance Request tab. */
+const EMPLOYEE_REQUEST_TYPES: RequestType[] = ["correction", "regularization", "missed-checkin", "missed-checkout"];
+
 export function EmployeeRequests() {
   const { currentUser } = useCurrentUser();
   const requests = useAttendanceStore((s) => s.requests);
   const submit = useAttendanceStore((s) => s.submitRequest);
-  const mine = requests.filter((r) => r.employeeId === currentUser.id);
+  const mine = requests.filter((r) => r.employeeId === currentUser.id && EMPLOYEE_REQUEST_TYPES.includes(r.type));
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<RequestType>("correction");
   const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
@@ -428,13 +438,13 @@ export function EmployeeRequests() {
   return (
     <ACard
       title="My Requests"
-      subtitle="Corrections, WFH, overtime & more"
+      subtitle="Corrections, regularization & missed punches"
       icon={Plus}
       tint="#8B7CF6"
       action={<Button size="sm" onClick={() => setOpen(true)} className="gap-1.5"><Plus className="h-4 w-4" /> New Request</Button>}
     >
       {mine.length === 0 ? (
-        <p className="py-8 text-center text-sm text-text-tertiary">No requests yet. Raise one for a correction, WFH day, or overtime.</p>
+        <p className="py-8 text-center text-sm text-text-tertiary">No requests yet. Raise one for an attendance correction, regularization, or a missed check-in / check-out.</p>
       ) : (
         <div className="space-y-2">
           {mine.map((r) => (
@@ -464,7 +474,7 @@ export function EmployeeRequests() {
               <label className="mb-1.5 block text-xs font-medium text-text-secondary">Request type</label>
               <Select value={type} onValueChange={(v) => setType(v as RequestType)}>
                 <SelectTrigger className="h-10"><SelectValue /></SelectTrigger>
-                <SelectContent>{REQUEST_TYPES.map((t) => <SelectItem key={t.id} value={t.id}>{t.label}</SelectItem>)}</SelectContent>
+                <SelectContent>{EMPLOYEE_REQUEST_TYPES.map((t) => <SelectItem key={t} value={t}>{requestTypeLabel(t)}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div>

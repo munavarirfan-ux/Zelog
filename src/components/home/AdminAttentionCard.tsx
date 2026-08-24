@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Dialog from "@mui/material/Dialog";
 import MuiTooltip from "@mui/material/Tooltip";
 import { format, parseISO } from "date-fns";
-import { AlertCircle, Bell, CalendarDays, Check, CheckCircle2, Clock, Laptop, MessageSquareText, Palmtree, UserCheck, X, type LucideIcon } from "lucide-react";
+import { AlertCircle, Bell, CalendarDays, Check, CheckCircle2, Clock, MessageSquareText, UserCheck, X } from "lucide-react";
 import { toast } from "sonner";
 import { PanelCard, TINT } from "./HomeUI";
 import { PersonAvatar } from "@/components/ui/person-avatar";
@@ -13,16 +13,11 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useTimeOffStore } from "@/store/timeOffStore";
 import { getEmployee, leaveColor, leaveName } from "@/data/homeData";
 import type { TimeOffRequest } from "@/data/timeOffData";
-import { cn } from "@/lib/utils";
 
 const REMINDER_COOLDOWN_MS = 12 * 60 * 1000;
 
-type Tab = "leave" | "wfh";
-const TAB_COLOR: Record<Tab, string> = { leave: "#F472B6", wfh: "#38BDF8" };
-
 interface AdminAttentionCardProps {
   leavePending: TimeOffRequest[];
-  wfhPending: TimeOffRequest[];
   href?: string;
   emailEnabled?: boolean;
   className?: string;
@@ -36,9 +31,8 @@ function rangeLabel(start: string, end: string): string {
   return `${format(s, "d MMM")} – ${format(e, "d MMM")}`;
 }
 
-/** Type label + accent color for a request (leave type name or "Work From Home"). */
+/** Type label + accent color for a leave request. */
 function typeInfo(req: TimeOffRequest): { label: string; color: string } {
-  if (req.requestCategory === "wfh") return { label: "Work From Home", color: TAB_COLOR.wfh };
   return { label: leaveName(req.leaveTypeId ?? ""), color: leaveColor(req.leaveTypeId ?? "") };
 }
 
@@ -52,21 +46,14 @@ function halfDayLabel(session?: string): string | null {
   return null;
 }
 
-export function AdminAttentionCard({ leavePending, wfhPending, className }: AdminAttentionCardProps) {
+export function AdminAttentionCard({ leavePending, className }: AdminAttentionCardProps) {
   const { currentUser } = useCurrentUser();
   const setStatus = useTimeOffStore((s) => s.setStatus);
 
-  const [tab, setTab] = useState<Tab>("leave");
   const [detail, setDetail] = useState<TimeOffRequest | null>(null);
 
-  // Prefer showing the tab that has work; fall back to leave.
-  useEffect(() => {
-    if (leavePending.length === 0 && wfhPending.length > 0) setTab("wfh");
-    else if (wfhPending.length === 0 && leavePending.length > 0) setTab("leave");
-  }, [leavePending.length, wfhPending.length]);
-
-  const active = tab === "leave" ? leavePending : wfhPending;
-  const allClear = leavePending.length === 0 && wfhPending.length === 0;
+  const active = leavePending;
+  const allClear = leavePending.length === 0;
 
   function decide(req: TimeOffRequest, status: "approved" | "rejected") {
     const name = getEmployee(req.employeeId)?.name ?? "the request";
@@ -84,25 +71,11 @@ export function AdminAttentionCard({ leavePending, wfhPending, className }: Admi
           <p className="text-sm font-medium text-text-secondary">You&apos;re all caught up</p>
         </div>
       ) : (
-        <>
-          {/* Tabs under the heading — segmented control (matches Celebrations) */}
-          <div className="mb-4 inline-flex items-center gap-1 self-start rounded-[14px] bg-surface-2 p-1">
-            <TabButton label="Leave" icon={Palmtree} count={leavePending.length} active={tab === "leave"} onClick={() => setTab("leave")} />
-            <TabButton label="WFH" icon={Laptop} count={wfhPending.length} active={tab === "wfh"} onClick={() => setTab("wfh")} />
-          </div>
-
-          {active.length === 0 ? (
-            <div className="flex items-center justify-center rounded-[14px] bg-white/50 px-4 py-8 text-center text-sm text-text-tertiary">
-              No pending {tab === "leave" ? "leave" : "WFH"} requests
-            </div>
-          ) : (
-            <ul className="max-h-[320px] space-y-2 overflow-y-auto pr-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {active.map((req) => (
-                <RequestRow key={req.id} req={req} tab={tab} onDecide={decide} onOpen={() => setDetail(req)} />
-              ))}
-            </ul>
-          )}
-        </>
+        <ul className="max-h-[320px] space-y-2 overflow-y-auto pr-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {active.map((req) => (
+            <RequestRow key={req.id} req={req} onDecide={decide} onOpen={() => setDetail(req)} />
+          ))}
+        </ul>
       )}
 
       <RequestDetailDialog
@@ -117,31 +90,12 @@ export function AdminAttentionCard({ leavePending, wfhPending, className }: Admi
   );
 }
 
-function TabButton({ label, icon: Icon, count, active, onClick }: { label: string; icon: LucideIcon; count: number; active: boolean; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={cn(
-        "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[10px] px-4 py-1.5 text-sm font-medium transition-all duration-200",
-        active ? "bg-surface text-text shadow-[0_1px_3px_rgba(40,30,90,0.12)]" : "text-text-tertiary hover:text-text-secondary",
-      )}
-    >
-      <Icon className="h-4 w-4" strokeWidth={2} />
-      <span className="tabular-nums">{count}</span> {label}
-    </button>
-  );
-}
-
 function RequestRow({
   req,
-  tab,
   onDecide,
   onOpen,
 }: {
   req: TimeOffRequest;
-  tab: Tab;
   onDecide: (req: TimeOffRequest, status: "approved" | "rejected") => void;
   onOpen: () => void;
 }) {

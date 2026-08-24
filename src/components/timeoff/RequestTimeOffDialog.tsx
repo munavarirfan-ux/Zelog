@@ -21,7 +21,6 @@ import {
   rangesOverlap,
   type DurationType,
   type HalfDaySession,
-  type RequestCategory,
   type TimeOffRequest,
 } from "@/data/timeOffData";
 import { useOrgStore } from "@/store/orgStore";
@@ -32,24 +31,21 @@ interface RequestTimeOffDialogProps {
   open: boolean;
   /** Subject employee id (self, or chosen when onBehalf). */
   employeeId: string;
-  /** Show an employee picker + request-type toggle (admin applying on behalf). */
+  /** Show an employee picker (admin applying on behalf). */
   onBehalf?: boolean;
   /** When set, the dialog edits this request instead of creating. */
   editing?: TimeOffRequest | null;
-  /** Preselected category when creating a new request. */
-  initialCategory?: RequestCategory;
   onClose: () => void;
   onSaved: (id: string, employeeId: string) => void;
 }
 
-export function RequestTimeOffDialog({ open, employeeId, onBehalf, editing, initialCategory, onClose, onSaved }: RequestTimeOffDialogProps) {
+export function RequestTimeOffDialog({ open, employeeId, onBehalf, editing, onClose, onSaved }: RequestTimeOffDialogProps) {
   const employees = useOrgStore((s) => s.employees);
   const requests = useTimeOffStore((s) => s.requests);
   const createRequest = useTimeOffStore((s) => s.createRequest);
   const updateRequest = useTimeOffStore((s) => s.updateRequest);
 
   const [subjectId, setSubjectId] = useState(employeeId);
-  const [category, setCategory] = useState<RequestCategory>("leave");
   const [leaveTypeId, setLeaveTypeId] = useState<string>("annual");
   const [start, setStart] = useState<Date | null>(null);
   const [end, setEnd] = useState<Date | null>(null);
@@ -63,7 +59,6 @@ export function RequestTimeOffDialog({ open, employeeId, onBehalf, editing, init
     if (!open) return;
     if (editing) {
       setSubjectId(editing.employeeId);
-      setCategory(editing.requestCategory);
       setLeaveTypeId(editing.leaveTypeId ?? "annual");
       setStart(parseISO(editing.startDate));
       setEnd(parseISO(editing.endDate));
@@ -74,7 +69,6 @@ export function RequestTimeOffDialog({ open, employeeId, onBehalf, editing, init
       setShowNotify((editing.notifyIds?.length ?? 0) > 0);
     } else {
       setSubjectId(employeeId);
-      setCategory(initialCategory ?? "leave");
       setLeaveTypeId("annual");
       setStart(null);
       setEnd(null);
@@ -84,7 +78,7 @@ export function RequestTimeOffDialog({ open, employeeId, onBehalf, editing, init
       setNotifyIds([]);
       setShowNotify(false);
     }
-  }, [open, editing, employeeId, initialCategory]);
+  }, [open, editing, employeeId]);
 
   const subject = employees.find((e) => e.id === subjectId);
   const approver = subject?.managerId ? employees.find((e) => e.id === subject.managerId) : undefined;
@@ -96,8 +90,8 @@ export function RequestTimeOffDialog({ open, employeeId, onBehalf, editing, init
   const days = startStr && effectiveEnd ? computeWorkingDays(startStr, effectiveEnd, durationType) : 0;
 
   const balances = useMemo(() => computeBalances(subjectId, requests), [subjectId, requests]);
-  const activeBalance = category === "leave" ? balances.find((b) => b.key === leaveTypeId) : balances.find((b) => b.key === "wfh");
-  const tracksBalance = category === "leave" && (leaveTypeById(leaveTypeId)?.tracksBalance ?? false);
+  const activeBalance = balances.find((b) => b.key === leaveTypeId);
+  const tracksBalance = leaveTypeById(leaveTypeId)?.tracksBalance ?? false;
 
   const overlaps = useMemo(() => {
     if (!startStr || !effectiveEnd) return false;
@@ -108,7 +102,7 @@ export function RequestTimeOffDialog({ open, employeeId, onBehalf, editing, init
 
   const errors: string[] = [];
   if (!subjectId) errors.push("Select an employee.");
-  if (category === "leave" && !leaveTypeId) errors.push("Select a leave type.");
+  if (!leaveTypeId) errors.push("Select a leave type.");
   if (!start) errors.push("Select a start date.");
   if (durationType === "full-day" && !end) errors.push("Select an end date.");
   if (start && end && end < start) errors.push("End date can't be before start date.");
@@ -123,16 +117,14 @@ export function RequestTimeOffDialog({ open, employeeId, onBehalf, editing, init
     ? "Edit request"
     : onBehalf
       ? "Add time off (on behalf)"
-      : category === "wfh"
-        ? "Request work from home"
-        : "Apply for leave";
+      : "Apply for leave";
 
   function handleSubmit() {
     if (!valid || !start) return;
     const payload: NewRequestInput = {
       employeeId: subjectId,
-      requestCategory: category,
-      leaveTypeId: category === "leave" ? leaveTypeId : undefined,
+      requestCategory: "leave",
+      leaveTypeId,
       startDate: startStr,
       endDate: effectiveEnd || startStr,
       durationType,
@@ -173,37 +165,26 @@ export function RequestTimeOffDialog({ open, employeeId, onBehalf, editing, init
 
           <div className="max-h-[70vh] space-y-4 overflow-y-auto p-5">
             {onBehalf && !editing && (
-              <>
-                <Autocomplete
-                  options={employees}
-                  getOptionLabel={(e) => e.name}
-                  value={subject ?? null}
-                  onChange={(_, v) => v && setSubjectId(v.id)}
-                  isOptionEqualToValue={(o, v) => o.id === v.id}
-                  renderInput={(params) => <TextField {...params} label="Employee" size="small" />}
-                />
-                <div>
-                  <p className="mb-1.5 text-xs font-medium text-text-secondary">Request type</p>
-                  <ToggleButtonGroup exclusive value={category} onChange={(_, v) => v && setCategory(v)} size="small" fullWidth>
-                    <ToggleButton value="leave" sx={{ textTransform: "none" }}>Leave</ToggleButton>
-                    <ToggleButton value="wfh" sx={{ textTransform: "none" }}>Work From Home</ToggleButton>
-                  </ToggleButtonGroup>
-                </div>
-              </>
+              <Autocomplete
+                options={employees}
+                getOptionLabel={(e) => e.name}
+                value={subject ?? null}
+                onChange={(_, v) => v && setSubjectId(v.id)}
+                isOptionEqualToValue={(o, v) => o.id === v.id}
+                renderInput={(params) => <TextField {...params} label="Employee" size="small" />}
+              />
             )}
 
-            {category === "leave" && (
-              <TextField select fullWidth size="small" label="Leave type" value={leaveTypeId} onChange={(e) => setLeaveTypeId(e.target.value)}>
-                {LEAVE_TYPES.map((t) => (
-                  <MenuItem key={t.id} value={t.id}>
-                    <span className="inline-flex items-center gap-2">
-                      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: t.color }} />
-                      {t.name}
-                    </span>
-                  </MenuItem>
-                ))}
-              </TextField>
-            )}
+            <TextField select fullWidth size="small" label="Leave type" value={leaveTypeId} onChange={(e) => setLeaveTypeId(e.target.value)}>
+              {LEAVE_TYPES.map((t) => (
+                <MenuItem key={t.id} value={t.id}>
+                  <span className="inline-flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: t.color }} />
+                    {t.name}
+                  </span>
+                </MenuItem>
+              ))}
+            </TextField>
 
             <div className="grid grid-cols-2 gap-3">
               <DatePicker label="Start date" value={start} onChange={setStart} slotProps={{ textField: { size: "small", fullWidth: true } }} />

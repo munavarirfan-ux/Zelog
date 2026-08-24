@@ -188,7 +188,12 @@ export interface CalendarDay {
   checkIn?: string;
   checkOut?: string;
   hours?: string;
+  /** Effective (productive) hours, and gross (clocked) hours incl. breaks. */
+  effectiveHours?: string;
+  grossHours?: string;
   breakTime?: string;
+  arrival?: ArrivalStatus;
+  segments?: AttendanceSegment[];
   mode?: AttendanceMode;
   gps?: boolean;
   photo?: boolean;
@@ -196,6 +201,17 @@ export interface CalendarDay {
 
 const CHECK_INS = ["08:58 AM", "09:02 AM", "09:11 AM", "09:34 AM", "08:45 AM", "09:06 AM"];
 const CHECK_OUTS = ["06:04 PM", "06:31 PM", "05:58 PM", "07:12 PM", "06:20 PM", "01:30 PM"];
+
+/** "08h 24m" / "45m" ↔ minutes, for deriving gross = effective + break. */
+function hmToMinutes(s?: string): number {
+  if (!s) return 0;
+  const h = /(\d+)\s*h/.exec(s);
+  const m = /(\d+)\s*m/.exec(s);
+  return (h ? parseInt(h[1], 10) * 60 : 0) + (m ? parseInt(m[1], 10) : 0);
+}
+function minutesToHM(min: number): string {
+  return `${String(Math.floor(min / 60)).padStart(2, "0")}h ${String(min % 60).padStart(2, "0")}m`;
+}
 
 /** Deterministic status for a given day-of-month (stable across renders). */
 function statusForDay(day: number, dow: number, isFuture: boolean, isToday: boolean): DayStatus {
@@ -225,16 +241,30 @@ export function buildMonthCalendar(monthDate: Date, today: Date): CalendarDay[] 
     if (isFuture) status = dow === 0 || dow === 6 ? "weekend" : "present"; // future days show as scheduled/empty
     const worked = ["present", "wfh", "client", "late", "half-day"].includes(status);
     const mode: AttendanceMode | undefined = status === "wfh" ? "wfh" : status === "client" ? "client" : worked ? "office" : undefined;
+    const active = worked && !isFuture;
+    const late = status === "late";
+    const effectiveHours = active ? (status === "half-day" ? "04h 10m" : "08h 24m") : undefined;
+    const breakTime = active ? "45m" : undefined;
+    const grossHours = active ? minutesToHM(hmToMinutes(effectiveHours) + hmToMinutes(breakTime)) : undefined;
+    const arrival: ArrivalStatus | undefined = active
+      ? late
+        ? day % 2 === 0 ? "late" : "very-late"
+        : day % 3 === 0 ? "early" : "on-time"
+      : undefined;
     return {
       date: iso,
       status: isFuture ? (dow === 0 || dow === 6 ? "weekend" : "present") : status,
-      checkIn: worked && !isFuture ? CHECK_INS[day % CHECK_INS.length] : undefined,
-      checkOut: worked && !isFuture ? (status === "half-day" ? "01:30 PM" : CHECK_OUTS[day % CHECK_OUTS.length]) : undefined,
-      hours: worked && !isFuture ? (status === "half-day" ? "04h 10m" : "08h 24m") : undefined,
-      breakTime: worked && !isFuture ? "45m" : undefined,
+      checkIn: active ? CHECK_INS[day % CHECK_INS.length] : undefined,
+      checkOut: active ? (status === "half-day" ? "01:30 PM" : CHECK_OUTS[day % CHECK_OUTS.length]) : undefined,
+      hours: effectiveHours,
+      effectiveHours,
+      breakTime,
+      grossHours,
+      arrival,
+      segments: active ? buildSegments(status, mode, true, late, false) : undefined,
       mode,
-      gps: worked && !isFuture,
-      photo: worked && !isFuture && mode !== "office",
+      gps: active,
+      photo: active && mode !== "office",
     };
   });
 }

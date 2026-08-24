@@ -1,6 +1,6 @@
 import { differenceInCalendarDays, format, parseISO } from "date-fns";
 import { MOCK_EMPLOYEES, type Employee } from "./orgData";
-import { LEAVE_TYPES, WFH_COLOR } from "./timeOffData";
+import { LEAVE_TYPES } from "./timeOffData";
 
 /**
  * Home "today" reference — kept aligned with the Time Off mock data anchor
@@ -21,7 +21,8 @@ export function leaveColor(leaveTypeId: string): string {
 export function leaveName(leaveTypeId: string): string {
   return LEAVE_TYPES.find((t) => t.id === leaveTypeId)?.name ?? "Leave";
 }
-export { WFH_COLOR };
+/** Accent color for the "working remotely today" attendance display. */
+export const WFH_COLOR = "#7DD3FC";
 
 export type DayPart = "Full day" | "Half day";
 

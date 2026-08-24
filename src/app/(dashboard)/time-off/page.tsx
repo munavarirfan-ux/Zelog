@@ -6,12 +6,11 @@ import Tab from "@mui/material/Tab";
 import Checkbox from "@mui/material/Checkbox";
 import { addDays, parseISO } from "date-fns";
 import { toast } from "sonner";
-import { CalendarClock, CalendarDays, Check, Clock, Download, Laptop, Plane, UserPlus, X } from "lucide-react";
+import { CalendarClock, CalendarDays, Check, Clock, Download, Plane, UserPlus, X } from "lucide-react";
 import {
   CURRENT_USER_ID,
   computeBalances,
   requestLabel,
-  type RequestCategory,
   type TimeOffRequest,
 } from "@/data/timeOffData";
 import { useOrgStore, useHydratedOrg } from "@/store/orgStore";
@@ -55,7 +54,7 @@ export default function TimeOffPage() {
   const currentKey = tabs.some((t) => t.key === activeKey) ? activeKey : "mine";
   const tabIndex = Math.max(0, tabs.findIndex((t) => t.key === currentKey));
 
-  const [reqDrawer, setReqDrawer] = useState<{ open: boolean; editing: TimeOffRequest | null; onBehalf: boolean; employeeId: string; category?: RequestCategory }>(
+  const [reqDrawer, setReqDrawer] = useState<{ open: boolean; editing: TimeOffRequest | null; onBehalf: boolean; employeeId: string }>(
     { open: false, editing: null, onBehalf: false, employeeId: CURRENT_USER_ID },
   );
   const [detailsId, setDetailsId] = useState<string | null>(null);
@@ -111,19 +110,12 @@ export default function TimeOffPage() {
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl font-semibold tracking-tight">Time Off</h1>
-              <p className="mt-0.5 text-sm text-white/60">Manage leave and work-from-home requests.</p>
+              <p className="mt-0.5 text-sm text-white/60">Manage your leave requests.</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
-                onClick={() => setReqDrawer({ open: true, editing: null, onBehalf: false, employeeId: CURRENT_USER_ID, category: "wfh" })}
-                className="inline-flex h-10 items-center gap-1.5 rounded-[12px] border border-white/25 bg-white/10 px-4 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20"
-              >
-                <Laptop className="h-4 w-4" /> Work From Home
-              </button>
-              <button
-                type="button"
-                onClick={() => setReqDrawer({ open: true, editing: null, onBehalf: false, employeeId: CURRENT_USER_ID, category: "leave" })}
+                onClick={() => setReqDrawer({ open: true, editing: null, onBehalf: false, employeeId: CURRENT_USER_ID })}
                 className="inline-flex h-10 items-center gap-1.5 rounded-[12px] bg-white/90 px-4 text-sm font-semibold text-primary-800 shadow-sm transition-colors hover:bg-white"
               >
                 <Plane className="h-4 w-4" /> Apply Leave
@@ -239,7 +231,6 @@ export default function TimeOffPage() {
         employeeId={reqDrawer.employeeId}
         onBehalf={reqDrawer.onBehalf}
         editing={reqDrawer.editing}
-        initialCategory={reqDrawer.category}
         onClose={() => setReqDrawer((d) => ({ ...d, open: false }))}
         onSaved={(id) => { setReqDrawer((d) => ({ ...d, open: false })); toast.success(reqDrawer.editing ? "Request updated" : "Request submitted"); setDetailsId(id); }}
       />

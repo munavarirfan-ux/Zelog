@@ -24,7 +24,6 @@ import {
   getEmployee,
   upcomingHolidays,
 } from "@/data/homeData";
-import type { RequestCategory } from "@/data/timeOffData";
 
 export default function HomePage() {
   const { currentUser, activeRole } = useCurrentUser();
@@ -40,13 +39,9 @@ export default function HomePage() {
   const requests = useTimeOffStore((s) => s.requests);
   const holidays = useHolidayStore((s) => s.holidays);
 
-  const { leavePending, wfhPending } = useMemo(() => {
+  const leavePending = useMemo(() => {
     const open = requests.filter((r) => r.status === "pending" || r.status === "changes-requested");
-    const scoped = isSuperAdmin ? open : open.filter((r) => r.approverIds.includes(currentUser.id));
-    return {
-      leavePending: scoped.filter((r) => r.requestCategory === "leave"),
-      wfhPending: scoped.filter((r) => r.requestCategory === "wfh"),
-    };
+    return isSuperAdmin ? open : open.filter((r) => r.approverIds.includes(currentUser.id));
   }, [requests, isSuperAdmin, currentUser.id]);
 
   const nextHolidays = useMemo(() => upcomingHolidays(holidays, 8), [holidays]);
@@ -63,7 +58,7 @@ export default function HomePage() {
     { label: "Working Remotely", count: WFH_COUNT, delta: 2.4, icon: Laptop, color: "#38BDF8" },
   ];
 
-  const [dialogCategory, setDialogCategory] = useState<RequestCategory | null>(null);
+  const [leaveOpen, setLeaveOpen] = useState(false);
 
   const router = useRouter();
   const QUICK_ADD_ROUTES: Record<QuickAddKind, { href: string; label: string }> = {
@@ -83,8 +78,7 @@ export default function HomePage() {
       <HomeHero
         firstName={firstName}
         hour={hour}
-        onApplyLeave={() => setDialogCategory("leave")}
-        onApplyWfh={() => setDialogCategory("wfh")}
+        onApplyLeave={() => setLeaveOpen(true)}
         kpis={kpis}
         actions={isSuperAdmin ? <HeroQuickAdd onSelect={handleQuickAdd} /> : undefined}
       />
@@ -93,7 +87,7 @@ export default function HomePage() {
         <>
           {/* Row: attention + people today */}
           <div className="grid gap-4 lg:grid-cols-3">
-            <AdminAttentionCard leavePending={leavePending} wfhPending={wfhPending} />
+            <AdminAttentionCard leavePending={leavePending} />
             <WorkingFromHomeCard entries={WFH_TODAY} canViewProfiles={canViewProfiles} />
             <OnLeaveTodayCard entries={ON_LEAVE_TODAY} canViewProfiles={canViewProfiles} />
           </div>
@@ -132,13 +126,12 @@ export default function HomePage() {
       )}
 
       <RequestTimeOffDialog
-        open={dialogCategory !== null}
+        open={leaveOpen}
         employeeId={currentUser.id}
-        initialCategory={dialogCategory ?? "leave"}
-        onClose={() => setDialogCategory(null)}
+        onClose={() => setLeaveOpen(false)}
         onSaved={() => {
-          toast.success(dialogCategory === "wfh" ? "Work from home request submitted" : "Leave request submitted");
-          setDialogCategory(null);
+          toast.success("Leave request submitted");
+          setLeaveOpen(false);
         }}
       />
     </div>

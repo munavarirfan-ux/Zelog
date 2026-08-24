@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
-import { Building2, CalendarPlus, ChevronDown, FolderPlus, Laptop, Plus, TrendingDown, TrendingUp, UserPlus, type LucideIcon } from "lucide-react";
+import { Building2, CalendarPlus, ChevronDown, FolderPlus, Plus, TrendingDown, TrendingUp, UserPlus, type LucideIcon } from "lucide-react";
 import { CountUp } from "./HomeUI";
 import {
   DropdownMenu,
@@ -30,13 +30,12 @@ interface HomeHeroProps {
   firstName: string;
   hour: number;
   onApplyLeave: () => void;
-  onApplyWfh: () => void;
   kpis: KpiItem[];
-  /** Override the default Apply Leave / Apply WFH buttons (e.g. Quick Add for super admins). */
+  /** Override the default Apply Leave button (e.g. Quick Add for super admins). */
   actions?: React.ReactNode;
 }
 
-export function HomeHero({ firstName, hour, onApplyLeave, onApplyWfh, kpis, actions }: HomeHeroProps) {
+export function HomeHero({ firstName, hour, onApplyLeave, kpis, actions }: HomeHeroProps) {
   return (
     <section className="relative overflow-hidden rounded-[28px] bg-hero px-6 py-7 text-white shadow-[0_30px_80px_-32px_rgba(49,46,129,0.65)] sm:px-8 sm:py-8">
       {/* Mesh gradient glow */}
@@ -61,10 +60,7 @@ export function HomeHero({ firstName, hour, onApplyLeave, onApplyWfh, kpis, acti
           </div>
           <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:justify-end">
             {actions ?? (
-              <>
-                <HeroAction icon={CalendarPlus} label="Apply Leave" onClick={onApplyLeave} primary />
-                <HeroAction icon={Laptop} label="Apply WFH" onClick={onApplyWfh} />
-              </>
+              <HeroAction icon={CalendarPlus} label="Apply Leave" onClick={onApplyLeave} primary />
             )}
           </div>
         </div>

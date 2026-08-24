@@ -2,27 +2,23 @@
 
 import { useEffect, useState } from "react";
 import {
-  CalendarDays, Clock, LayoutDashboard, ListChecks, MapPin, Radio,
+  CalendarDays, Clock, LayoutDashboard, ListChecks, Radio,
 } from "lucide-react";
-import { toast } from "sonner";
-import { RequestTimeOffDialog } from "@/components/timeoff/RequestTimeOffDialog";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useHydratedAttendance } from "@/store/attendanceStore";
 import { countByStatus } from "@/data/attendanceData";
 import { SubNav, type SubNavItem } from "./shared";
 import {
-  EmployeeAttendanceHero, EmployeeCalendar, EmployeeDashboard, EmployeeHistory, EmployeeLocation, EmployeeRequests,
+  EmployeeAttendanceHero, EmployeeCalendar, EmployeeHistory, EmployeeRequests,
 } from "./EmployeeViews";
 import {
   AdminApprovals, AdminDashboard, AdminTracking, AttendanceHero,
 } from "./AdminViews";
 
 const EMPLOYEE_TABS: SubNavItem[] = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "history", label: "My Attendance", icon: Clock },
+  { id: "history", label: "Attendance Log", icon: Clock },
   { id: "calendar", label: "Calendar", icon: CalendarDays },
-  { id: "requests", label: "Requests", icon: ListChecks },
-  { id: "location", label: "Location", icon: MapPin },
+  { id: "requests", label: "Attendance Request", icon: ListChecks },
 ];
 
 const ADMIN_TABS: SubNavItem[] = [
@@ -33,11 +29,10 @@ const ADMIN_TABS: SubNavItem[] = [
 
 export function AttendanceHub() {
   useHydratedAttendance();
-  const { currentUser, activeRole } = useCurrentUser();
+  const { activeRole } = useCurrentUser();
   const isStaff = activeRole === "admin" || activeRole === "super-admin";
   const tabs = isStaff ? ADMIN_TABS : EMPLOYEE_TABS;
-  const [tab, setTab] = useState(isStaff ? "tracking" : "dashboard");
-  const [wfhOpen, setWfhOpen] = useState(false);
+  const [tab, setTab] = useState(isStaff ? "tracking" : "history");
 
   // The role store hydrates on the client, so the very first render may assume a
   // different role than the persisted one. If the active tab isn't valid for the
@@ -55,7 +50,6 @@ export function AttendanceHub() {
           wfh={countByStatus("wfh")}
           leave={countByStatus("leave")}
           late={countByStatus("late")}
-          onApplyWfh={() => setWfhOpen(true)}
         />
         <SubNav items={tabs} value={tab} onChange={setTab} />
         <div>
@@ -63,17 +57,6 @@ export function AttendanceHub() {
           {tab === "approvals" && <AdminApprovals />}
           {tab === "tracking" && <AdminTracking />}
         </div>
-
-        <RequestTimeOffDialog
-          open={wfhOpen}
-          employeeId={currentUser.id}
-          initialCategory="wfh"
-          onClose={() => setWfhOpen(false)}
-          onSaved={() => {
-            toast.success("Work from home request submitted");
-            setWfhOpen(false);
-          }}
-        />
       </div>
     );
   }
@@ -85,11 +68,9 @@ export function AttendanceHub() {
       <SubNav items={tabs} value={tab} onChange={setTab} />
 
       <div>
-        {tab === "dashboard" && <EmployeeDashboard />}
         {tab === "history" && <EmployeeHistory />}
         {tab === "calendar" && <EmployeeCalendar />}
         {tab === "requests" && <EmployeeRequests />}
-        {tab === "location" && <EmployeeLocation />}
       </div>
     </div>
   );

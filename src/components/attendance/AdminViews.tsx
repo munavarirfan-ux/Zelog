@@ -7,13 +7,14 @@ import MuiTooltip from "@mui/material/Tooltip";
 import {
   ArrowRight, ArrowUpDown, Briefcase, CalendarDays,
   Check, CheckCircle2, ChevronDown, ChevronRight, ChevronUp, Clock, ClockAlert, Download,
-  FileClock, Filter, Globe, Home, Hourglass, Laptop, LogOut, MapPin,
+  FileClock, Filter, Globe, Home, Hourglass, LogOut, MapPin,
   Palmtree, Radio, RotateCcw, Search, Send,
   Timer, TrendingUp, Users, X, type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { WebClockButton } from "@/components/home/WebClockButton";
+import { ApplyWfhButton } from "./ApplyWfhButton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PersonAvatar } from "@/components/ui/person-avatar";
 import { useAttendanceStore } from "@/store/attendanceStore";
@@ -274,8 +275,8 @@ function Ring({ pct, color, label, sub, size = 128, thickness = 12 }: {
 
 
 /* ── Hero (matches Home / Tracker gradient) — persistent workspace header ── */
-export function AttendanceHero({ present, wfh, leave, late, onApplyWfh }: {
-  present: number; wfh: number; leave: number; late: number; onApplyWfh?: () => void;
+export function AttendanceHero({ present, wfh, leave, late }: {
+  present: number; wfh: number; leave: number; late: number;
 }) {
   const stats = [
     { label: "Present", value: present, color: "#34D399" },
@@ -298,16 +299,7 @@ export function AttendanceHero({ present, wfh, leave, late, onApplyWfh }: {
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <WebClockButton />
-          {onApplyWfh ? (
-            <button
-              type="button"
-              onClick={onApplyWfh}
-              className="inline-flex min-h-[46px] shrink-0 items-center justify-center gap-2 rounded-[14px] bg-white px-5 text-sm font-semibold text-primary-700 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.4)] transition-all duration-200 hover:bg-white/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 active:scale-[0.98]"
-            >
-              <Laptop className="h-[18px] w-[18px]" strokeWidth={2} />
-              Apply WFH
-            </button>
-          ) : null}
+          <ApplyWfhButton />
         </div>
       </div>
 
