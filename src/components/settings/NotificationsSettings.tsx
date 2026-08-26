@@ -97,7 +97,7 @@ export function NotificationsSettings() {
                             checked={!!matrix[row.id]?.[c.key]}
                             onChange={() => toggle(row.id, c.key)}
                             sx={MUI_SWITCH_SX}
-                            inputProps={{ "aria-label": `${row.label} via ${c.label}` }}
+                            slotProps={{ input: { "aria-label": `${row.label} via ${c.label}` } }}
                           />
                         )}
                       </span>

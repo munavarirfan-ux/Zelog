@@ -298,7 +298,7 @@ export function InboxHub() {
     return (
       <div className="flex flex-col items-center justify-center gap-2 rounded-[22px] border border-border/[0.07] bg-surface py-20 text-center">
         <InboxIcon className="h-8 w-8 text-text-tertiary" />
-        <p className="text-sm font-medium text-text">The Inbox isn't available for this role</p>
+        <p className="text-sm font-medium text-text">The Inbox isn&apos;t available for this role</p>
       </div>
     );
   }
@@ -398,7 +398,7 @@ export function InboxHub() {
               <Check className="h-6 w-6" strokeWidth={2.5} />
             </span>
             <p className="text-sm font-medium text-text">Nothing needs your action</p>
-            <p className="text-xs text-text-tertiary">You're all caught up in this category.</p>
+            <p className="text-xs text-text-tertiary">You&apos;re all caught up in this category.</p>
           </div>
         ) : (
           <ul className="divide-y divide-border/[0.06]">

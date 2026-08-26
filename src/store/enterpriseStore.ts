@@ -7,7 +7,7 @@ import { LEGAL_ENTITIES, BUSINESS_UNITS } from "@/data/directoryData";
 import { MOCK_EMPLOYEES } from "@/data/orgData";
 
 /** Distinct office locations Zessta staff work from today — used to seed the editable list. */
-const SEED_LOCATIONS = [...new Set(MOCK_EMPLOYEES.map((e) => e.location).filter((l): l is string => Boolean(l)))];
+const SEED_LOCATIONS = Array.from(new Set(MOCK_EMPLOYEES.map((e) => e.location).filter((l): l is string => Boolean(l))));
 
 /* ── option sets used by the enterprise selects ── */
 export const INDUSTRIES = [

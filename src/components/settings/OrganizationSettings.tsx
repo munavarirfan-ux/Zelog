@@ -48,7 +48,7 @@ export function OrganizationSettings() {
       if (e.status !== "active" || !e.location) return;
       map.set(e.location, (map.get(e.location) ?? 0) + 1);
     });
-    return [...map.entries()].sort((a, b) => b[1] - a[1]);
+    return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
   }, [employees]);
 
   function handleAdd() {
@@ -58,7 +58,7 @@ export function OrganizationSettings() {
       toast.error(`“${trimmed}” already exists`);
       return;
     }
-    addDepartment(trimmed);
+    addDepartment(trimmed, []);
     toast.success(`Added department “${trimmed}”`);
     setNewDept("");
   }

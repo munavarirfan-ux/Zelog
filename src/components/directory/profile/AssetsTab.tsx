@@ -276,7 +276,7 @@ function RequestChangeForm({ employeeId, assets }: { employeeId: string; assets:
           </select>
         </div>
         <div className="sm:col-span-2">
-          <label className={labelCls}>What's the issue?</label>
+          <label className={labelCls}>What&apos;s the issue?</label>
           <textarea className={cn(inputCls, "min-h-[72px] resize-y")} value={reason} onChange={(e) => { setReason(e.target.value); setDone(false); }} placeholder="e.g. Battery drains in an hour, screen has dead pixels, charger stopped working…" />
         </div>
       </div>

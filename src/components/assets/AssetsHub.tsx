@@ -111,7 +111,7 @@ export function AssetsHub() {
           <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
               <h1 className="text-[26px] font-semibold leading-tight tracking-tight sm:text-[30px]">Assets</h1>
-              <p className="mt-2 max-w-md text-sm text-white/65">Track company equipment and who it's assigned to across the organization.</p>
+              <p className="mt-2 max-w-md text-sm text-white/65">Track company equipment and who it&apos;s assigned to across the organization.</p>
             </div>
             {canManage ? (
               <button
