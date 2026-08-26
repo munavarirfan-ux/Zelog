@@ -24,7 +24,6 @@ const THEMES: { value: string; label: string; icon: LucideIcon }[] = [
 export function AppearanceSettings() {
   const [theme, setTheme] = useState("light");
   const [accent, setAccent] = useState("#7A4DFF");
-  const [density, setDensity] = useState("comfortable");
 
   return (
     <div className="space-y-5">
@@ -70,32 +69,6 @@ export function AppearanceSettings() {
                 style={{ backgroundColor: c.hex, ...(active ? { ["--tw-ring-color" as string]: c.hex } : {}) }}
               >
                 {active && <Check className="absolute inset-0 m-auto h-4 w-4 text-white drop-shadow" strokeWidth={3} />}
-              </button>
-            );
-          })}
-        </div>
-      </Panel>
-
-      <Panel title="Density" sub="Controls spacing in tables and lists.">
-        <div className="grid grid-cols-2 gap-3 sm:max-w-md">
-          {[
-            { value: "comfortable", label: "Comfortable", desc: "More breathing room" },
-            { value: "compact", label: "Compact", desc: "Fit more on screen" },
-          ].map((d) => {
-            const active = density === d.value;
-            return (
-              <button
-                key={d.value}
-                type="button"
-                onClick={() => setDensity(d.value)}
-                aria-pressed={active}
-                className={cn(
-                  "rounded-[12px] border px-4 py-3 text-left transition-all duration-200",
-                  active ? "border-primary-300 bg-primary-soft" : "border-border/[0.08] bg-surface hover:border-border/[0.14] hover:bg-surface-2",
-                )}
-              >
-                <p className={cn("text-sm font-medium", active ? "text-primary-700" : "text-text")}>{d.label}</p>
-                <p className="mt-0.5 text-xs text-text-tertiary">{d.desc}</p>
               </button>
             );
           })}

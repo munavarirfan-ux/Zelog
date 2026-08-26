@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   Bell, CalendarDays, ChevronDown, IdCard, Landmark, ListChecks,
-  Palette, Palmtree, Search, ShieldCheck, User, X,
+  Palette, Palmtree, ShieldCheck, User,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -90,7 +90,6 @@ export function SettingsHub() {
   const allItems = useMemo(() => groups.flatMap((g) => g.items), [groups]);
 
   const [active, setActive] = useState("");
-  const [query, setQuery] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
 
   // Land on (and stay on) a category the current role can actually see.
@@ -101,23 +100,8 @@ export function SettingsHub() {
 
   const current = allItems.find((i) => i.id === active) ?? allItems[0];
 
-  // Search across labels + keywords; narrows the groups shown in the rail.
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return groups;
-    return groups
-      .map((g) => ({
-        ...g,
-        items: g.items.filter(
-          (i) => i.label.toLowerCase().includes(q) || i.keywords?.some((k) => k.includes(q)),
-        ),
-      }))
-      .filter((g) => g.items.length > 0);
-  }, [groups, query]);
-
   function choose(id: string) {
     setActive(id);
-    setQuery("");
     setMobileOpen(false);
   }
 
@@ -129,35 +113,9 @@ export function SettingsHub() {
         <p className="text-xs text-text-tertiary">Workspace preferences</p>
       </div>
 
-      {/* Search */}
-      <div className="relative mb-3">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-tertiary" />
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search settings…"
-          aria-label="Search settings"
-          className="h-9 w-full rounded-[10px] border border-border/[0.09] bg-surface-2/60 pl-9 pr-8 text-sm text-text placeholder:text-text-tertiary outline-none transition-colors focus:border-primary-300 focus:bg-surface dark:border-white/[0.08]"
-        />
-        {query && (
-          <button
-            type="button"
-            onClick={() => setQuery("")}
-            aria-label="Clear search"
-            className="absolute right-2 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full text-text-tertiary hover:bg-surface-2 hover:text-text"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
-        )}
-      </div>
-
       {/* Grouped items */}
       <div className="space-y-4">
-        {filtered.length === 0 && (
-          <p className="px-2 py-6 text-center text-xs text-text-tertiary">No settings match “{query}”.</p>
-        )}
-        {filtered.map((group) => (
+        {groups.map((group) => (
           <div key={group.label}>
             <p className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wide text-text-tertiary">{group.label}</p>
             <div className="space-y-0.5">
