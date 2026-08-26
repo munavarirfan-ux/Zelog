@@ -28,6 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FilterDropdown } from "@/components/ui/filter-dropdown";
 import { DailyBarChart } from "@/components/charts/DailyBarChart";
+import { EmployeeMonthCard } from "@/components/charts/EmployeeMonthCard";
 import { cn } from "@/lib/utils";
 import type { TimeEntry, ProjectColor } from "@/types/tracker";
 
@@ -529,6 +530,9 @@ function SummaryTab({ entries }: { entries: TimeEntry[] }) {
 
   return (
     <div className="space-y-5">
+      {/* Per-employee monthly attendance — leave, WFH, and logged hours */}
+      <EmployeeMonthCard defaultEmployeeId="eng1" />
+
       {/* Daily Hours Chart */}
       <DailyHoursChart
         chartView={chartView}

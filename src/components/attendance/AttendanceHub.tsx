@@ -10,6 +10,7 @@ import { countByStatus } from "@/data/attendanceData";
 import { SubNav, type SubNavItem } from "./shared";
 import {
   EmployeeAttendanceHero, EmployeeCalendar, EmployeeHistory, EmployeeRequests,
+  EmployeeVerificationCard,
 } from "./EmployeeViews";
 import {
   AdminApprovals, AdminDashboard, AdminTracking, AttendanceHero,
@@ -48,6 +49,7 @@ export function AttendanceHub() {
         <AttendanceHero
           present={countByStatus("present")}
           wfh={countByStatus("wfh")}
+          client={countByStatus("client")}
           leave={countByStatus("leave")}
           late={countByStatus("late")}
         />
@@ -68,7 +70,12 @@ export function AttendanceHub() {
       <SubNav items={tabs} value={tab} onChange={setTab} />
 
       <div>
-        {tab === "history" && <EmployeeHistory />}
+        {tab === "history" && (
+          <div className="space-y-5">
+            <EmployeeVerificationCard />
+            <EmployeeHistory />
+          </div>
+        )}
         {tab === "calendar" && <EmployeeCalendar />}
         {tab === "requests" && <EmployeeRequests />}
       </div>

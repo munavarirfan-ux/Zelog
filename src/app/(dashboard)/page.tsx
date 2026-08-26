@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useHydratedTimeOff, useTimeOffStore } from "@/store/timeOffStore";
 import { useHydratedHolidays, useHolidayStore } from "@/store/holidayStore";
+import { holidaysForLocation } from "@/data/timeOffData";
 import { HomeHero, HeroQuickAdd, type KpiItem, type QuickAddKind } from "@/components/home/HomeHero";
 import { OnLeaveTodayCard, WorkingFromHomeCard } from "@/components/home/PeopleTodayCard";
 import { TodayCelebrations } from "@/components/celebrations/TodayCelebrations";
@@ -37,14 +38,18 @@ export default function HomePage() {
   useHydratedTimeOff();
   useHydratedHolidays();
   const requests = useTimeOffStore((s) => s.requests);
-  const holidays = useHolidayStore((s) => s.holidays);
+  const calendars = useHolidayStore((s) => s.calendars);
+  const myLocation = getEmployee(currentUser.id)?.location;
 
   const leavePending = useMemo(() => {
     const open = requests.filter((r) => r.status === "pending" || r.status === "changes-requested");
     return isSuperAdmin ? open : open.filter((r) => r.approverIds.includes(currentUser.id));
   }, [requests, isSuperAdmin, currentUser.id]);
 
-  const nextHolidays = useMemo(() => upcomingHolidays(holidays, 8), [holidays]);
+  const nextHolidays = useMemo(
+    () => upcomingHolidays(holidaysForLocation(calendars, myLocation), 8),
+    [calendars, myLocation],
+  );
 
   // Employee view scopes the people cards to the current user's own team.
   const myDept = getEmployee(currentUser.id)?.department;
@@ -54,8 +59,8 @@ export default function HomePage() {
   const kpis: KpiItem[] = [
     { label: "Total Employees", count: WORKFORCE_TOTAL, delta: 3.72, icon: Users, color: "#7A4DFF" },
     { label: "Present Today", count: PRESENT_COUNT, delta: 5.02, icon: Building2, color: "#34D399" },
-    { label: "On Leave", count: ON_LEAVE_COUNT, delta: -1.72, icon: Palmtree, color: "#F472B6" },
     { label: "Working Remotely", count: WFH_COUNT, delta: 2.4, icon: Laptop, color: "#38BDF8" },
+    { label: "On Leave", count: ON_LEAVE_COUNT, delta: -1.72, icon: Palmtree, color: "#F472B6" },
   ];
 
   const [leaveOpen, setLeaveOpen] = useState(false);
@@ -79,7 +84,8 @@ export default function HomePage() {
         firstName={firstName}
         hour={hour}
         onApplyLeave={() => setLeaveOpen(true)}
-        kpis={kpis}
+        kpis={isStaff ? kpis : []}
+        webClock={!isStaff}
         actions={isSuperAdmin ? <HeroQuickAdd onSelect={handleQuickAdd} /> : undefined}
       />
 

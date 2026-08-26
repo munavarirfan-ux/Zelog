@@ -150,6 +150,8 @@ export interface VerificationMeta {
   accuracy: number; // meters
   officeDistance: number; // meters
   address: string;
+  /** IANA timezone captured from the device, e.g. "Asia/Kolkata (GMT+5:30)". */
+  timezone: string;
   ip: string;
   browser: string;
   os: string;
@@ -169,6 +171,7 @@ export function sampleVerification(mode: AttendanceMode, opts?: Partial<Verifica
     accuracy: 8,
     officeDistance: mode === "office" ? 42 : 6200,
     address: mode === "office" ? office.address : mode === "wfh" ? "Banjara Hills, Hyderabad" : CLIENTS[0].site,
+    timezone: "Asia/Kolkata (GMT+5:30)",
     ip: "103.21.58.14",
     browser: "Chrome 128",
     os: "macOS 15",
@@ -395,11 +398,11 @@ export const WORKFORCE_TOTAL = TEAM_TODAY.length;
 /* ── Analytics (admin) ── */
 
 export const OFFICE_WFH_TREND = [
-  { label: "Mon", office: 12, wfh: 4 },
-  { label: "Tue", office: 14, wfh: 3 },
-  { label: "Wed", office: 10, wfh: 6 },
-  { label: "Thu", office: 12, wfh: 5 },
-  { label: "Fri", office: 8, wfh: 8 },
+  { label: "Mon", office: 12, wfh: 4, client: 2 },
+  { label: "Tue", office: 14, wfh: 3, client: 1 },
+  { label: "Wed", office: 10, wfh: 6, client: 3 },
+  { label: "Thu", office: 12, wfh: 5, client: 2 },
+  { label: "Fri", office: 8, wfh: 8, client: 1 },
 ];
 
 export const MONTHLY_ATTENDANCE_PCT = [92, 94, 90, 96, 93, 97, 95, 91];

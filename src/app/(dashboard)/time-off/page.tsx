@@ -1,23 +1,26 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Tabs from "@mui/material/Tabs";
-import Tab from "@mui/material/Tab";
 import Checkbox from "@mui/material/Checkbox";
-import { addDays, parseISO } from "date-fns";
+import MuiTooltip from "@mui/material/Tooltip";
+import { addDays, format, parseISO } from "date-fns";
 import { toast } from "sonner";
-import { CalendarClock, CalendarDays, Check, Clock, Download, Plane, UserPlus, X } from "lucide-react";
+import { CalendarClock, CalendarDays, Check, Clock, Download, Palmtree, Plane, Users, UserPlus, X, type LucideIcon } from "lucide-react";
+import { SubNav } from "@/components/attendance/shared";
+import { PersonAvatar } from "@/components/ui/person-avatar";
 import {
   CURRENT_USER_ID,
   computeBalances,
+  requestColor,
   requestLabel,
   type TimeOffRequest,
 } from "@/data/timeOffData";
 import { useOrgStore, useHydratedOrg } from "@/store/orgStore";
 import { useRoleStore, useHydratedRole } from "@/store/roleStore";
 import { useTimeOffStore, useHydratedTimeOff } from "@/store/timeOffStore";
-import { useHydratedHolidays } from "@/store/holidayStore";
-import { MyTimeOffChart } from "@/components/timeoff/MyTimeOffChart";
+import { useHolidayStore, useHydratedHolidays } from "@/store/holidayStore";
+import { calendarForLocation } from "@/data/timeOffData";
+import { LeaveBalanceRings } from "@/components/timeoff/LeaveBalanceRings";
 import { RequestHistoryTable } from "@/components/timeoff/RequestHistoryTable";
 import { RequestTimeOffDialog } from "@/components/timeoff/RequestTimeOffDialog";
 import { RequestDetailsDrawer } from "@/components/timeoff/RequestDetailsDrawer";
@@ -42,17 +45,23 @@ export default function TimeOffPage() {
   const addComment = useTimeOffStore((s) => s.addComment);
 
   useHydratedHolidays();
-  const canManageHolidays = role === "super-admin";
+  const calendars = useHolidayStore((s) => s.calendars);
+  const myLocation = employees.find((e) => e.id === CURRENT_USER_ID)?.location;
+  const myCalendarId = useMemo(
+    () => calendarForLocation(calendars, myLocation)?.id,
+    [calendars, myLocation],
+  );
 
   const [activeKey, setActiveKey] = useState<"mine" | "team" | "holidays">("mine");
   const tabs = useMemo(() => {
-    const t: { key: "mine" | "team" | "holidays"; label: string }[] = [{ key: "mine", label: "My Time Off" }];
-    if (canManageTeam) t.push({ key: "team", label: "My Team Time Off" });
-    t.push({ key: "holidays", label: "Holidays" });
+    const t: { key: "mine" | "team" | "holidays"; label: string; icon: LucideIcon }[] = [
+      { key: "mine", label: "My Time Off", icon: CalendarDays },
+    ];
+    if (canManageTeam) t.push({ key: "team", label: "My Team Time Off", icon: Users });
+    t.push({ key: "holidays", label: "Holidays", icon: Palmtree });
     return t;
   }, [canManageTeam]);
   const currentKey = tabs.some((t) => t.key === activeKey) ? activeKey : "mine";
-  const tabIndex = Math.max(0, tabs.findIndex((t) => t.key === currentKey));
 
   const [reqDrawer, setReqDrawer] = useState<{ open: boolean; editing: TimeOffRequest | null; onBehalf: boolean; employeeId: string }>(
     { open: false, editing: null, onBehalf: false, employeeId: CURRENT_USER_ID },
@@ -101,6 +110,13 @@ export default function TimeOffPage() {
     setSelected(new Set());
   }
 
+  function decide(r: TimeOffRequest, status: "approved" | "rejected") {
+    const name = employees.find((e) => e.id === r.employeeId)?.name ?? "the request";
+    setStatus(r.id, status, CURRENT_USER_ID, status === "approved" ? "Approved" : "Declined");
+    toast.success(`${status === "approved" ? "Approved" : "Declined"} ${name}'s request`);
+    setSelected((prev) => { const n = new Set(prev); n.delete(r.id); return n; });
+  }
+
   return (
     <div className="space-y-5 pb-8">
       {/* Hero */}
@@ -123,23 +139,6 @@ export default function TimeOffPage() {
             </div>
           </div>
 
-          {currentKey === "mine" && (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-              {balances.map((b) => (
-                <div key={b.key} className="rounded-2xl bg-white/[0.14] px-4 py-3 backdrop-blur-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: b.color }} />
-                    <span className="truncate text-xs font-medium text-white/70">{b.label}</span>
-                  </div>
-                  <div className="mt-1.5 flex items-baseline gap-1">
-                    <span className="text-2xl font-bold tabular-nums text-white">{b.available}</span>
-                    <span className="text-xs text-white/50">/ {b.total} avail.</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
           {currentKey === "team" && (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <HeroStat icon={<Clock className="h-4 w-4" />} label="Pending approvals" value={pendingForAction.length} />
@@ -152,11 +151,12 @@ export default function TimeOffPage() {
 
       {/* Tabs */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Tabs value={tabIndex} onChange={(_, v) => setActiveKey(tabs[v].key)} sx={{ minHeight: 40, "& .MuiTab-root": { minHeight: 40, py: 1 } }}>
-          {tabs.map((t) => (
-            <Tab key={t.key} label={t.label} />
-          ))}
-        </Tabs>
+        <SubNav
+          items={tabs.map((t) => ({ id: t.key, label: t.label, icon: t.icon }))}
+          value={currentKey}
+          onChange={(id) => setActiveKey(id as "mine" | "team" | "holidays")}
+          showIcons
+        />
         {currentKey === "team" && (
           <div className="flex items-center gap-2">
             <button type="button" onClick={() => setReqDrawer({ open: true, editing: null, onBehalf: true, employeeId: employees[0]?.id ?? CURRENT_USER_ID })} className="inline-flex h-9 items-center gap-1.5 rounded-[10px] border border-border/10 bg-surface px-3 text-[13px] font-medium text-text-secondary shadow-xs hover:bg-surface-2 dark:border-white/10"><UserPlus className="h-3.5 w-3.5" /> Add on behalf</button>
@@ -170,9 +170,9 @@ export default function TimeOffPage() {
       ) : currentKey === "mine" ? (
         /* ─── MY TIME OFF ─── */
         <div className="space-y-5">
-          <div className="rounded-[16px] border border-border/[0.07] bg-surface p-4 shadow-card dark:border-white/[0.06]">
-            <h3 className="mb-3 text-sm font-semibold text-text">Leave balance</h3>
-            <MyTimeOffChart balances={balances} height={260} />
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold text-text">Leave balance</h3>
+            <LeaveBalanceRings balances={balances} />
           </div>
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-text">Request history</h3>
@@ -200,17 +200,32 @@ export default function TimeOffPage() {
                   </div>
                 )}
               </div>
-              <div className="divide-y divide-border/[0.06] dark:divide-white/[0.05]">
+              <div className="space-y-2">
                 {pendingForAction.map((r) => {
                   const emp = employees.find((e) => e.id === r.employeeId);
+                  const color = requestColor(r);
+                  const range = `${format(parseISO(r.startDate), "MMM d")} → ${format(parseISO(r.endDate), "MMM d")}`;
                   return (
-                    <div key={r.id} className="flex items-center gap-3 py-2">
+                    <div key={r.id} className="flex items-center gap-3 rounded-[12px] border border-border/[0.05] bg-white/60 p-2.5 dark:border-white/[0.05] dark:bg-white/[0.02]">
                       <Checkbox size="small" checked={selected.has(r.id)} onChange={() => toggleSelect(r.id)} sx={{ p: 0.5 }} />
-                      <button type="button" onClick={() => setDetailsId(r.id)} className="flex flex-1 items-center gap-3 text-left">
-                        <span className="text-sm font-medium text-text">{emp?.name}</span>
-                        <span className="text-xs text-text-tertiary">{requestLabel(r)} · {r.startDate} → {r.endDate} · {r.durationDays}d</span>
-                        <span className="ml-auto"><StatusChip status={r.status} /></span>
+                      <button type="button" onClick={() => setDetailsId(r.id)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
+                        <PersonAvatar name={emp?.name ?? "—"} src={emp?.avatarUrl} size={36} />
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="truncate text-sm font-semibold text-text">{emp?.name ?? "—"}</span>
+                            <span className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium" style={{ color, backgroundColor: `${color}1F` }}>{requestLabel(r)}</span>
+                          </div>
+                          <div className="mt-0.5 truncate text-xs text-text-tertiary">{range} · {r.durationDays}d</div>
+                        </div>
                       </button>
+                      <div className="flex shrink-0 items-center gap-1.5">
+                        <MuiTooltip title="Approve" arrow>
+                          <button type="button" onClick={() => decide(r, "approved")} className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#34D39922] text-[#0F9E6E] hover:bg-[#34D39933]"><Check className="h-4 w-4" /></button>
+                        </MuiTooltip>
+                        <MuiTooltip title="Decline" arrow>
+                          <button type="button" onClick={() => decide(r, "rejected")} className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#F43F5E1A] text-[#E11D48] hover:bg-[#F43F5E2A]"><X className="h-4 w-4" /></button>
+                        </MuiTooltip>
+                      </div>
                     </div>
                   );
                 })}
@@ -221,8 +236,8 @@ export default function TimeOffPage() {
           <TeamCalendar employees={employees} requests={requests} includeInactive={false} onEventClick={(r) => setDetailsId(r.id)} />
         </div>
       ) : (
-        /* ─── HOLIDAYS ─── */
-        <HolidaysPanel canManage={canManageHolidays} />
+        /* ─── HOLIDAYS (view-only here; managed in Settings → Time Off) ─── */
+        <HolidaysPanel calendars={calendars} initialCalendarId={myCalendarId} />
       )}
 
       {/* Dialogs */}

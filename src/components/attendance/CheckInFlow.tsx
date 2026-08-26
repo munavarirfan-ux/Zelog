@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Dialog from "@mui/material/Dialog";
 import CircularProgress from "@mui/material/CircularProgress";
-import { CheckCircle2, Camera, MapPin, Smartphone, X } from "lucide-react";
+import { CheckCircle2, Camera, Clock, MapPin, Smartphone, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
@@ -14,6 +14,20 @@ import {
 import type { CheckInPayload } from "@/store/attendanceStore";
 
 type Step = "client" | "gps" | "selfie" | "address" | "device" | "done";
+
+/** Real IANA timezone from the device, formatted with its GMT offset. */
+function deviceTimezone(): string {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const offMin = -new Date().getTimezoneOffset();
+    const sign = offMin >= 0 ? "+" : "-";
+    const h = Math.floor(Math.abs(offMin) / 60);
+    const m = Math.abs(offMin) % 60;
+    return `${tz} (GMT${sign}${h}${m ? `:${String(m).padStart(2, "0")}` : ""})`;
+  } catch {
+    return "Unknown";
+  }
+}
 
 function buildSteps(mode: AttendanceMode): Step[] {
   if (mode === "office") return ["gps", "done"];
@@ -45,11 +59,37 @@ export function CheckInFlow({
   const [clientId, setClientId] = useState(CLIENTS[0].id);
   const step = steps[idx];
 
+  // Device context captured live at check-in: timezone (always available) and
+  // GPS coordinates (best-effort — falls back to the sampled location if the
+  // browser denies permission or has no location service).
+  const [captured, setCaptured] = useState<{
+    timezone: string;
+    coords?: { lat: number; lng: number; accuracy: number };
+  }>({ timezone: "Asia/Kolkata (GMT+5:30)" });
+
   // Reset when (re)opened.
   useEffect(() => {
     if (open) {
       setIdx(0);
       setClientId(CLIENTS[0].id);
+      setCaptured({ timezone: deviceTimezone() });
+      if (typeof navigator !== "undefined" && navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) =>
+            setCaptured((c) => ({
+              ...c,
+              coords: {
+                lat: Number(pos.coords.latitude.toFixed(5)),
+                lng: Number(pos.coords.longitude.toFixed(5)),
+                accuracy: Math.round(pos.coords.accuracy),
+              },
+            })),
+          () => {
+            /* Permission denied / unavailable — keep the sampled coordinates. */
+          },
+          { enableHighAccuracy: true, timeout: 4000, maximumAge: 60000 },
+        );
+      }
     }
   }, [open, mode]);
 
@@ -67,7 +107,14 @@ export function CheckInFlow({
       mode === "office" ? "Hitec City, Hyderabad" :
       mode === "wfh" ? "Banjara Hills, Hyderabad" :
       CLIENTS.find((c) => c.id === clientId)?.site ?? "Client site";
-    const verification: VerificationMeta = sampleVerification(mode, { address });
+    const verification: VerificationMeta = sampleVerification(mode, {
+      address,
+      timezone: captured.timezone,
+      // When a real fix came back, record the actual coordinates + accuracy.
+      ...(captured.coords
+        ? { lat: captured.coords.lat, lng: captured.coords.lng, accuracy: captured.coords.accuracy, gps: true }
+        : {}),
+    });
     onComplete({ mode, timeLabel, verification, clientId: mode === "client" ? clientId : undefined });
   }
 
@@ -133,6 +180,10 @@ export function CheckInFlow({
               {cfg.requiresSelfie ? (
                 <span className="inline-flex items-center gap-1 rounded-full bg-[#34D3991F] px-2.5 py-1 text-[11px] font-semibold text-[#0F9E6E]"><CheckCircle2 className="h-3.5 w-3.5" /> Photo Verified</span>
               ) : null}
+            </div>
+            <div className="mt-3 w-full space-y-1 rounded-[12px] bg-surface-2 px-3 py-2.5 text-left text-[11px] text-text-tertiary">
+              <p className="flex items-center gap-1.5"><MapPin className="h-3 w-3" /> {captured.coords ? `${captured.coords.lat}, ${captured.coords.lng} · ±${captured.coords.accuracy}m` : "Location captured"}</p>
+              <p className="flex items-center gap-1.5"><Clock className="h-3 w-3" /> {captured.timezone}</p>
             </div>
             <Button className="mt-5 w-full" onClick={finish}>Done</Button>
           </div>

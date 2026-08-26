@@ -197,3 +197,22 @@
 @media (prefers-reduced-motion: reduce) {
   .cel-anim-border::before { animation: none; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   GLOBAL REDUCED-MOTION SAFETY NET
+   Honors the OS "Reduce motion" setting for everything that isn't
+   already handled above — Tailwind animate-* utilities, pulse rings,
+   framer-motion CSS transitions, slide/fade enters, and long
+   transitions. Information is never conveyed by motion alone, so
+   collapsing these to ~instant is safe.
+   ═══════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

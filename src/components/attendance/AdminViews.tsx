@@ -22,7 +22,7 @@ import {
   BarList, GroupedBars, MapSurface, MetaRow, StatusPill, Timeline, TimelineBar, VerifyBadge,
 } from "./shared";
 import {
-  ARRIVAL_CONFIG, DEPARTMENT_ATTENDANCE, MODES, MONTHLY_ATTENDANCE,
+  ARRIVAL_CONFIG, DEPARTMENT_ATTENDANCE, LEAVE_TREND, MODES, MONTHLY_ATTENDANCE,
   OFFICE_WFH_TREND, PRESENT_TODAY, STATUS, TEAM_TODAY, WORKFORCE_TOTAL,
   countByMode, countByStatus, requestTypeLabel,
   type RequestStatus, type RequestType, type TeamMember, type TimelineEvent,
@@ -169,11 +169,19 @@ export function AdminDashboard({ onNavigate }: { onNavigate?: (tab: string) => v
       {/* Attendance Analytics */}
       <section>
         <SectionHeading title="Attendance Analytics" sub="Trends across recent periods" />
-        <div className="grid gap-4 lg:grid-cols-3">
+        <div className="grid gap-4 lg:grid-cols-2">
           <Panel title="Attendance Trend" icon={TrendingUp} color={WFH}>
             <GroupedBars data={OFFICE_WFH_TREND} keys={[
               { key: "office", color: OFFICE, label: "Office" },
               { key: "wfh", color: WFH, label: "WFH" },
+              { key: "client", color: "#6366F1", label: "Client Visit" },
+            ]} />
+          </Panel>
+          <Panel title="Leave Trend" sub="Days taken per month by leave type" icon={Palmtree} color={LEAVE}>
+            <GroupedBars data={LEAVE_TREND} keys={[
+              { key: "annual", color: "#8B5CF6", label: "Annual" },
+              { key: "casual", color: "#38BDF8", label: "Casual" },
+              { key: "sick", color: "#FB923C", label: "Sick" },
             ]} />
           </Panel>
           <Panel title="Department Attendance" icon={Users} color="#6EE7B7">
@@ -275,12 +283,13 @@ function Ring({ pct, color, label, sub, size = 128, thickness = 12 }: {
 
 
 /* ── Hero (matches Home / Tracker gradient) — persistent workspace header ── */
-export function AttendanceHero({ present, wfh, leave, late }: {
-  present: number; wfh: number; leave: number; late: number;
+export function AttendanceHero({ present, wfh, client, leave, late }: {
+  present: number; wfh: number; client: number; leave: number; late: number;
 }) {
   const stats = [
     { label: "Present", value: present, color: "#34D399" },
     { label: "Work From Home", value: wfh, color: "#7DD3FC" },
+    { label: "Client Visit", value: client, color: "#A5B4FC" },
     { label: "On Leave", value: leave, color: "#C4B5FD" },
     { label: "Late", value: late, color: "#FDBA74" },
   ];
@@ -303,7 +312,7 @@ export function AttendanceHero({ present, wfh, leave, late }: {
         </div>
       </div>
 
-      <div className="relative mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="relative mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {stats.map((s) => (
           <div key={s.label} className="rounded-[16px] border border-white/10 bg-white/[0.08] px-4 py-3.5 backdrop-blur-sm">
             <div className="flex items-center gap-2">

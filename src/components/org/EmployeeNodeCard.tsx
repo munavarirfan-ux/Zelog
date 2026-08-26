@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, ChevronUp, MapPin, Users } from "lucide-react";
+import { ChevronDown, ChevronUp, MapPin } from "lucide-react";
 import { departmentColor, initials, type EmployeeNode } from "@/data/orgData";
 import { useOrgStore } from "@/store/orgStore";
 import { cn } from "@/lib/utils";
@@ -99,13 +99,28 @@ export function EmployeeNodeCard({
             e.stopPropagation();
             onToggleCollapse();
           }}
-          className="mt-3 flex w-full items-center justify-between rounded-lg border border-border/[0.07] bg-surface-2/60 px-2.5 py-1.5 text-[11px] font-medium text-text-secondary transition-colors hover:bg-surface-2 dark:border-white/[0.06]"
+          title={
+            collapsed
+              ? `Show ${directReports} direct report${directReports === 1 ? "" : "s"}${hiddenCount > directReports ? ` (${hiddenCount} people in total below)` : ""}`
+              : `${directReports} direct report${directReports === 1 ? "" : "s"} — click to collapse`
+          }
+          aria-label={
+            collapsed
+              ? `Expand ${directReports} direct report${directReports === 1 ? "" : "s"}`
+              : `Collapse ${directReports} direct report${directReports === 1 ? "" : "s"}`
+          }
+          className="absolute -bottom-5 left-1/2 z-10 -translate-x-1/2"
         >
-          <span className="inline-flex items-center gap-1.5">
-            <Users className="h-3.5 w-3.5" strokeWidth={2} />
-            {collapsed ? `${hiddenCount} hidden` : `${directReports} direct report${directReports === 1 ? "" : "s"}`}
+          {/* Prominent circular count that sits on the connector line and toggles the branch. */}
+          <span
+            className="flex h-10 w-10 items-center justify-center rounded-full border-[3px] border-surface text-[17px] font-extrabold leading-none tabular-nums text-white shadow-[0_4px_12px_rgba(40,30,90,0.30)] transition-transform hover:scale-110"
+            style={{ backgroundColor: color }}
+          >
+            {directReports}
           </span>
-          {collapsed ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronUp className="h-3.5 w-3.5" />}
+          <span className="absolute -bottom-0.5 -right-0.5 flex h-[18px] w-[18px] items-center justify-center rounded-full border-2 border-surface bg-surface-2 text-text-secondary dark:bg-[#2a2540]">
+            {collapsed ? <ChevronDown className="h-3 w-3" strokeWidth={2.75} /> : <ChevronUp className="h-3 w-3" strokeWidth={2.75} />}
+          </span>
         </button>
       )}
     </div>

@@ -31,7 +31,7 @@ function DialogShell({
   maxWidth?: number;
 }) {
   return (
-    <Dialog open={open} onClose={onClose} slotProps={{ paper: { className: "!rounded-[20px] !bg-surface !max-w-none w-full", style: { maxWidth } } }}>
+    <Dialog open={open} onClose={onClose} slotProps={{ paper: { className: "!rounded-[20px] !bg-surface w-full", style: { maxWidth } } }}>
       <div className="flex items-start justify-between gap-4 border-b border-border/[0.08] px-5 py-4">
         <div className="min-w-0">
           <h2 className="text-[16px] font-semibold text-text">{title}</h2>
@@ -246,7 +246,18 @@ export function AdjustLeaveDialog({ person, open, onClose }: { person: Directory
 
 /* ── Assign Asset ── */
 
-export function AssignAssetDialog({ person, open, onClose }: { person: DirectoryPerson; open: boolean; onClose: () => void }) {
+export function AssignAssetDialog({
+  person,
+  open,
+  onClose,
+  selfService = false,
+}: {
+  person: DirectoryPerson;
+  open: boolean;
+  onClose: () => void;
+  /** When the employee is registering a company-issued asset on their own record. */
+  selfService?: boolean;
+}) {
   const { currentUser } = useCurrentUser();
   const assignAsset = useDirectoryStore((s) => s.assignAsset);
   const [name, setName] = useState("");
@@ -259,8 +270,13 @@ export function AssignAssetDialog({ person, open, onClose }: { person: Directory
   const [warrantyExpiry, setWarrantyExpiry] = useState("");
   const [notes, setNotes] = useState("");
 
+  // Employees self-reporting an asset often won't know the company's internal
+  // inventory code, so Asset ID is optional for them (defaults to "Pending").
+  const canSubmit = name.trim() && (selfService || assetId.trim());
+
   const submit = () => {
-    assignAsset({ employeeId: person.id, name, category, assetId, manufacturer, model, serialNumber, condition, warrantyExpiry: warrantyExpiry || undefined, notes, assignedById: currentUser.id });
+    if (!canSubmit) return;
+    assignAsset({ employeeId: person.id, name, category, assetId: assetId.trim() || "Pending", manufacturer, model, serialNumber, condition, warrantyExpiry: warrantyExpiry || undefined, notes, assignedById: currentUser.id, selfReported: selfService });
     onClose();
   };
 
@@ -268,19 +284,19 @@ export function AssignAssetDialog({ person, open, onClose }: { person: Directory
     <DialogShell
       open={open}
       onClose={onClose}
-      title="Assign Asset"
-      subtitle={`Tracked against ${person.name} with full history`}
+      title={selfService ? "Add Your Asset" : "Assign Asset"}
+      subtitle={selfService ? "Register a device or item the company has issued to you" : `Tracked against ${person.name} with full history`}
       maxWidth={520}
       footer={
         <>
           <BtnGhost onClick={onClose}>Cancel</BtnGhost>
-          <BtnPrimary onClick={submit} disabled={!name.trim() || !assetId.trim()}>Assign Asset</BtnPrimary>
+          <BtnPrimary onClick={submit} disabled={!canSubmit}>{selfService ? "Add Asset" : "Assign Asset"}</BtnPrimary>
         </>
       }
     >
       <div className="grid grid-cols-2 gap-3.5">
         <div className="col-span-2">
-          <label className={labelCls}>Asset Name</label>
+          <label className={labelCls}>Asset Name <span className="text-rose-500">*</span></label>
           <input className={inputCls} value={name} onChange={(e) => setName(e.target.value)} placeholder='e.g. MacBook Pro 14"' />
         </div>
         <div>
@@ -290,8 +306,8 @@ export function AssignAssetDialog({ person, open, onClose }: { person: Directory
           </select>
         </div>
         <div>
-          <label className={labelCls}>Asset ID</label>
-          <input className={inputCls} value={assetId} onChange={(e) => setAssetId(e.target.value)} placeholder="ZES-LAP-0212" />
+          <label className={labelCls}>Asset ID {selfService ? <span className="text-text-tertiary">(optional)</span> : <span className="text-rose-500">*</span>}</label>
+          <input className={inputCls} value={assetId} onChange={(e) => setAssetId(e.target.value)} placeholder={selfService ? "If known" : "ZES-LAP-0212"} />
         </div>
         <div>
           <label className={labelCls}>Manufacturer</label>

@@ -8,7 +8,7 @@ import {
 } from "date-fns";
 import {
   BatteryFull, CalendarDays, Check, ChevronLeft, ChevronRight, Clock,
-  Coffee, Globe, Hourglass, LogIn, LogOut, MapPin, Monitor, Navigation, Plus, Timer, Wifi, X, Zap,
+  Coffee, Globe, Hourglass, LocateFixed, LogIn, LogOut, MapPin, Monitor, Navigation, Plus, Timer, Wifi, X, Zap,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -174,6 +174,8 @@ export function EmployeeDashboard() {
                 <img src={verification.selfieUrl} alt="Check-in selfie" className="mb-2 h-20 w-20 rounded-[14px] object-cover" />
               ) : null}
               <MetaRow icon={MapPin} label="Address" value={verification.address} />
+              <MetaRow icon={LocateFixed} label="Coordinates" value={`${verification.lat.toFixed(5)}, ${verification.lng.toFixed(5)} · ±${verification.accuracy}m`} />
+              <MetaRow icon={Clock} label="Timezone" value={verification.timezone} />
               <MetaRow icon={Navigation} label="Distance" value={`${verification.officeDistance} m`} />
               <MetaRow icon={Globe} label="IP" value={verification.ip} />
               <MetaRow icon={Monitor} label="Device" value={verification.device} />
@@ -186,6 +188,40 @@ export function EmployeeDashboard() {
         </ACard>
       </div>
     </div>
+  );
+}
+
+/**
+ * Standalone "captured at check-in" card — location, live coordinates, timezone,
+ * device & network. Surfaced on the employee Attendance Log tab so the details
+ * captured during Web Clock-In are actually visible to the person who clocked in.
+ */
+export function EmployeeVerificationCard() {
+  const verification = useAttendanceStore((s) => s.verification);
+  if (!verification) return null;
+
+  return (
+    <ACard title="Today's Verification" subtitle="Captured at check-in" icon={MapPin} tint="#34D399">
+      <div className="grid gap-x-8 gap-y-2.5 sm:grid-cols-2">
+        <div className="space-y-2.5">
+          <div className="mb-1 flex gap-2">
+            <VerifyBadge ok={verification.gps} label="GPS" />
+            <VerifyBadge ok={verification.photo} label="Photo" />
+            {verification.mockLocation ? <VerifyBadge ok={false} label="Mock GPS" /> : null}
+          </div>
+          <MetaRow icon={MapPin} label="Location" value={verification.address} />
+          <MetaRow icon={LocateFixed} label="Coordinates" value={`${verification.lat.toFixed(5)}, ${verification.lng.toFixed(5)} · ±${verification.accuracy}m`} />
+          <MetaRow icon={Clock} label="Timezone" value={verification.timezone} />
+          <MetaRow icon={Navigation} label="Distance from office" value={`${verification.officeDistance} m`} />
+        </div>
+        <div className="space-y-2.5">
+          <MetaRow icon={Globe} label="IP address" value={verification.ip} />
+          <MetaRow icon={Monitor} label="Device" value={verification.device} />
+          <MetaRow icon={Wifi} label="Browser" value={verification.browser} />
+          <MetaRow icon={BatteryFull} label="Battery" value={`${verification.battery}%`} />
+        </div>
+      </div>
+    </ACard>
   );
 }
 

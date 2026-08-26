@@ -18,6 +18,7 @@ import { formatDuration } from "@/lib/time";
 import { PROJECT_COLOR_DOT, PROJECT_COLOR_HEX } from "@/lib/projectColors";
 import { Button } from "@/components/ui/button";
 import { DailyBarChart } from "@/components/charts/DailyBarChart";
+import { EmployeeMonthCard } from "@/components/charts/EmployeeMonthCard";
 import { TeamActivityCard, type TeamMember } from "@/components/dashboard/TeamActivityCard";
 import { cn } from "@/lib/utils";
 import type { ProjectColor } from "@/types/tracker";
@@ -223,6 +224,9 @@ export default function DashboardPage() {
         </div>
       </section>
 
+
+      {/* Per-employee monthly attendance — appears in Individual view */}
+      {viewMode === "individual" && <EmployeeMonthCard defaultEmployeeId="eng1" />}
 
       {/* Time Tracked Chart */}
       <DashboardChart

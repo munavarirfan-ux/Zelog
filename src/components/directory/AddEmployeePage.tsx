@@ -12,9 +12,9 @@ import { useDirectoryStore } from "@/store/directoryStore";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import {
   buildExtra, teamsForDepartment,
-  EMPLOYMENT_TYPES, WORK_MODES, WORKER_TYPES, TIME_TYPES, PAY_FREQUENCIES, CTC_CURRENCIES,
+  EMPLOYMENT_TYPES, WORK_MODES, PAY_FREQUENCIES, CTC_CURRENCIES,
   WORK_COUNTRIES, NATIONALITIES, GENDERS, MARITAL_STATUSES, BLOOD_GROUPS,
-  LEGAL_ENTITIES, BUSINESS_UNITS, LEVELS, COST_CENTERS, SHIFTS, PROBATION_POLICIES, NOTICE_PERIODS, RELATIONSHIPS,
+  LEGAL_ENTITIES, BUSINESS_UNITS, LEVELS, SHIFTS, PROBATION_POLICIES, NOTICE_PERIODS, RELATIONSHIPS,
   type EmploymentStatus, type EmploymentType, type WorkMode,
   type Address, type Dependent, type EmergencyContact, type SocialProfile, type EducationEntry, type WorkExperienceEntry,
 } from "@/data/directoryData";
@@ -55,11 +55,9 @@ interface Draft {
   department: string;
   subDepartment: string;
   location: string;
-  primaryTeam: string;
-  additionalTeams: string;
   level: string;
-  costCenter: string;
   managerId: string;
+  additionalManagerId: string;
   isManager: boolean;
   workMode: WorkMode;
   // Employment terms
@@ -107,8 +105,8 @@ const emptyDraft: Draft = {
   timeType: "Full Time", employmentType: "full-time", workerType: "Permanent",
   legalEntity: LEGAL_ENTITIES[0], businessUnit: "",
   department: "Engineering", subDepartment: "", location: "Hyderabad",
-  primaryTeam: "", additionalTeams: "", level: "", costCenter: "",
-  managerId: "", isManager: false, workMode: "hybrid",
+  level: "",
+  managerId: "", additionalManagerId: "", isManager: false, workMode: "hybrid",
   probationPolicy: PROBATION_POLICIES[0], noticePeriod: NOTICE_PERIODS[0],
   probationStartDate: "", probationEndDate: "",
   shift: SHIFTS[0], idCardNumber: "",
@@ -166,11 +164,9 @@ function draftFromPerson(person: DirectoryPerson, isManagerDefault: boolean): Dr
     department: person.department,
     subDepartment: x.team ?? "",
     location: person.location ?? "",
-    primaryTeam: x.primaryTeam ?? "",
-    additionalTeams: (x.additionalTeams ?? []).join(", "),
     level: x.level ?? "",
-    costCenter: x.costCenter ?? "",
     managerId: person.managerId ?? "",
+    additionalManagerId: x.additionalManagerId ?? "",
     isManager: x.isManager ?? isManagerDefault,
     workMode: x.workMode,
     probationPolicy: x.probationPolicy ?? PROBATION_POLICIES[0],
@@ -316,10 +312,8 @@ export function AddEmployeePage({ employeeId }: { employeeId?: string } = {}) {
       secondaryJobTitle: draft.secondaryJobTitle || undefined,
       legalEntity: draft.legalEntity || undefined,
       businessUnit: draft.businessUnit || undefined,
-      primaryTeam: draft.primaryTeam || undefined,
-      additionalTeams: draft.additionalTeams ? draft.additionalTeams.split(",").map((s) => s.trim()).filter(Boolean) : undefined,
       level: draft.level || undefined,
-      costCenter: draft.costCenter || undefined,
+      additionalManagerId: draft.additionalManagerId || undefined,
       isManager: draft.isManager || undefined,
       probationPolicy: draft.probationPolicy || undefined,
       probationStartDate: draft.probationStartDate || undefined,
@@ -495,22 +489,9 @@ export function AddEmployeePage({ employeeId }: { employeeId?: string } = {}) {
                 <Field label="Job Title" required>
                   <input className={inputCls} value={draft.jobTitle} onChange={(e) => set({ jobTitle: e.target.value })} />
                 </Field>
-                <Field label="Secondary Job Title">
-                  <input className={inputCls} value={draft.secondaryJobTitle} onChange={(e) => set({ secondaryJobTitle: e.target.value })} />
-                </Field>
-                <Field label="Time Type">
-                  <select className={inputCls} value={draft.timeType} onChange={(e) => set({ timeType: e.target.value })}>
-                    {TIME_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-                  </select>
-                </Field>
                 <Field label="Work Type">
                   <select className={inputCls} value={draft.employmentType} onChange={(e) => set({ employmentType: e.target.value as EmploymentType })}>
                     {EMPLOYMENT_TYPES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
-                  </select>
-                </Field>
-                <Field label="Worker Type">
-                  <select className={inputCls} value={draft.workerType} onChange={(e) => set({ workerType: e.target.value })}>
-                    {WORKER_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </Field>
               </Grid>
@@ -530,7 +511,7 @@ export function AddEmployeePage({ employeeId }: { employeeId?: string } = {}) {
                   </select>
                 </Field>
                 <Field label="Department" required>
-                  <select className={inputCls} value={draft.department} onChange={(e) => set({ department: e.target.value, subDepartment: "", primaryTeam: "" })}>
+                  <select className={inputCls} value={draft.department} onChange={(e) => set({ department: e.target.value, subDepartment: "" })}>
                     {DEPARTMENTS.map((d) => <option key={d.name} value={d.name}>{d.name}</option>)}
                   </select>
                 </Field>
@@ -547,29 +528,10 @@ export function AddEmployeePage({ employeeId }: { employeeId?: string } = {}) {
                     <input className={inputCls} value={draft.subDepartment} onChange={(e) => set({ subDepartment: e.target.value })} />
                   )}
                 </Field>
-                <Field label="Primary Team">
-                  {subDepts.length > 0 ? (
-                    <select className={inputCls} value={draft.primaryTeam} onChange={(e) => set({ primaryTeam: e.target.value })}>
-                      <option value="">— Select —</option>
-                      {subDepts.map((t) => <option key={t} value={t}>{t}</option>)}
-                    </select>
-                  ) : (
-                    <input className={inputCls} value={draft.primaryTeam} onChange={(e) => set({ primaryTeam: e.target.value })} />
-                  )}
-                </Field>
-                <Field label="Additional Teams">
-                  <input className={inputCls} value={draft.additionalTeams} onChange={(e) => set({ additionalTeams: e.target.value })} placeholder="Comma-separated" />
-                </Field>
                 <Field label="Level">
                   <select className={inputCls} value={draft.level} onChange={(e) => set({ level: e.target.value })}>
                     <option value="">— Select —</option>
                     {LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
-                  </select>
-                </Field>
-                <Field label="Cost Center">
-                  <select className={inputCls} value={draft.costCenter} onChange={(e) => set({ costCenter: e.target.value })}>
-                    <option value="">— Select —</option>
-                    {COST_CENTERS.map((c) => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </Field>
                 <Field label="Work Mode">
@@ -577,26 +539,18 @@ export function AddEmployeePage({ employeeId }: { employeeId?: string } = {}) {
                     {WORK_MODES.map((w) => <option key={w.id} value={w.id}>{w.label}</option>)}
                   </select>
                 </Field>
-                <Field label="Reporting Manager" full>
+                <Field label="Reporting Manager">
                   <select className={inputCls} value={draft.managerId} onChange={(e) => set({ managerId: e.target.value })}>
                     <option value="">— None —</option>
                     {managers.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
                   </select>
                 </Field>
-                <div className="sm:col-span-2">
-                  <label className="flex cursor-pointer items-start gap-3 rounded-[12px] border border-border/[0.1] bg-surface-2/40 px-3.5 py-3 transition-colors hover:bg-surface-2/70">
-                    <input
-                      type="checkbox"
-                      checked={draft.isManager}
-                      onChange={(e) => set({ isManager: e.target.checked })}
-                      className="mt-0.5 h-4 w-4 rounded accent-primary-600"
-                    />
-                    <span className="min-w-0">
-                      <span className="block text-sm font-medium text-text">This employee is a people manager</span>
-                      <span className="block text-xs text-text-tertiary">They can be assigned as a reporting manager for other employees.</span>
-                    </span>
-                  </label>
-                </div>
+                <Field label="Additional Reporting Manager">
+                  <select className={inputCls} value={draft.additionalManagerId} onChange={(e) => set({ additionalManagerId: e.target.value })}>
+                    <option value="">— None —</option>
+                    {managers.filter((m) => m.id !== draft.managerId).map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+                  </select>
+                </Field>
               </Grid>
             </Section>
 

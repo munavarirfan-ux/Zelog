@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { Building2, CalendarPlus, ChevronDown, FolderPlus, Plus, TrendingDown, TrendingUp, UserPlus, type LucideIcon } from "lucide-react";
 import { CountUp } from "./HomeUI";
+import { WebClockButton } from "./WebClockButton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,9 +34,11 @@ interface HomeHeroProps {
   kpis: KpiItem[];
   /** Override the default Apply Leave button (e.g. Quick Add for super admins). */
   actions?: React.ReactNode;
+  /** Show the Web Clock-In control beside Apply Leave (employee home). */
+  webClock?: boolean;
 }
 
-export function HomeHero({ firstName, hour, onApplyLeave, kpis, actions }: HomeHeroProps) {
+export function HomeHero({ firstName, hour, onApplyLeave, kpis, actions, webClock }: HomeHeroProps) {
   return (
     <section className="relative overflow-hidden rounded-[28px] bg-hero px-6 py-7 text-white shadow-[0_30px_80px_-32px_rgba(49,46,129,0.65)] sm:px-8 sm:py-8">
       {/* Mesh gradient glow */}
@@ -60,17 +63,22 @@ export function HomeHero({ firstName, hour, onApplyLeave, kpis, actions }: HomeH
           </div>
           <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:justify-end">
             {actions ?? (
-              <HeroAction icon={CalendarPlus} label="Apply Leave" onClick={onApplyLeave} primary />
+              <>
+                {webClock ? <WebClockButton /> : null}
+                <HeroAction icon={CalendarPlus} label="Apply Leave" onClick={onApplyLeave} primary />
+              </>
             )}
           </div>
         </div>
 
         {/* KPI tiles */}
-        <div className="mt-6 grid grid-cols-2 gap-3 border-t border-white/10 pt-6 sm:grid-cols-4">
-          {kpis.map((k) => (
-            <HeroKpi key={k.label} {...k} />
-          ))}
-        </div>
+        {kpis.length > 0 ? (
+          <div className="mt-6 grid grid-cols-2 gap-3 border-t border-white/10 pt-6 sm:grid-cols-4">
+            {kpis.map((k) => (
+              <HeroKpi key={k.label} {...k} />
+            ))}
+          </div>
+        ) : null}
       </div>
     </section>
   );

@@ -3,6 +3,7 @@ import {
   Building2,
   Contact,
   FolderKanban,
+  HardDrive,
   Home,
   Inbox,
   LayoutDashboard,
@@ -68,8 +69,9 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: "/attendance", label: "Attendance", icon: ListChecks, roles: ALL, permission: "attendance.view" },
       { href: "/time-off", label: "Time Off", icon: Palmtree, roles: ALL, permission: "timeoff.view" },
-      { href: "/inbox", label: "Inbox", icon: Inbox, roles: STAFF, permission: "inbox.view" },
+      { href: "/inbox", label: "Inbox", icon: Inbox, roles: ALL, permission: "inbox.view" },
       { href: "/directory", label: "Directory", icon: Contact, roles: ALL, permission: "employees.view" },
+      { href: "/assets", label: "Assets", icon: HardDrive, roles: STAFF, permission: "employees.view" },
       { href: "/organization", label: "Organization", icon: Network, roles: ALL, permission: "employees.view" },
     ],
   },

@@ -33,10 +33,11 @@ export type ProfileTabId = (typeof TABS)[number];
 type TabId = ProfileTabId;
 
 /**
- * Tabs a regular employee (no `employees.edit`) may see on someone's record.
- * Everything else — attendance, leave, projects, documents, assets, activity,
- * and the overview snapshot — stays gated to admins/HR so we don't expose
- * sensitive fields across the org.
+ * Tabs a regular employee (no `employees.edit`) may see on *someone else's*
+ * record. Everything else — attendance, leave, projects, documents, assets,
+ * activity, and the overview snapshot — stays gated to admins/HR so we don't
+ * expose sensitive fields across the org. On their OWN record an employee sees
+ * every tab (view-only); see `visibleTabs` below.
  */
 const EMPLOYEE_VISIBLE_TABS: readonly TabId[] = ["About", "Job"];
 
@@ -53,8 +54,10 @@ export function EmployeeProfile({
   const hydrated = useHydratedDirectoryPage();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { hasPermission } = useCurrentUser();
+  const { hasPermission, currentUser } = useCurrentUser();
   const canEdit = hasPermission("employees.edit");
+  // Employees may see & self-manage assets on their OWN record even without edit rights.
+  const isSelf = currentUser.id === employeeId;
 
   const person = useDirectoryPerson(employeeId);
   const employees = useOrgStore((s) => s.employees);
@@ -64,11 +67,13 @@ export function EmployeeProfile({
   // Close the popup when embedded; otherwise fall back to route navigation.
   const goBack = onClose ?? (() => router.push("/directory"));
 
-  // Non-editors (regular employees) only get the About & Job tabs.
-  const visibleTabs = useMemo<TabId[]>(
-    () => (canEdit ? [...TABS] : TABS.filter((t) => EMPLOYEE_VISIBLE_TABS.includes(t))),
-    [canEdit],
-  );
+  // Admins/HR see everything. An employee also sees every tab on their OWN
+  // record (view-only — edit actions stay gated behind `canEdit`). On someone
+  // else's record a regular employee is limited to About & Job.
+  const visibleTabs = useMemo<TabId[]>(() => {
+    if (canEdit || isSelf) return [...TABS];
+    return TABS.filter((t) => EMPLOYEE_VISIBLE_TABS.includes(t));
+  }, [canEdit, isSelf]);
 
   const initialTab: TabId = (() => {
     const requested =
@@ -77,6 +82,11 @@ export function EmployeeProfile({
     return visibleTabs[0];
   })();
   const [tab, setTab] = useState<TabId>(initialTab);
+  // Guard against a stale tab: when the same popup is reused for a different
+  // employee, `tab` persists. If it's no longer permitted (e.g. "Documents"
+  // after switching to someone else's record), fall back to the first allowed
+  // tab so we never render gated content the tab bar has hidden.
+  const activeTab = visibleTabs.includes(tab) ? tab : visibleTabs[0];
   const [kebab, setKebab] = useState<HTMLElement | null>(null);
   const [dialog, setDialog] = useState<EmployeeAction | null>(null);
 
@@ -182,7 +192,7 @@ export function EmployeeProfile({
       <div className="sticky top-0 z-20 -mx-1 mt-4 rounded-[16px] border border-border/[0.08] bg-surface/95 px-3 py-2 shadow-[0_1px_2px_rgba(40,30,90,0.04)] backdrop-blur">
         <div className="flex items-center gap-0.5 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {visibleTabs.map((t) => {
-            const active = tab === t;
+            const active = activeTab === t;
             return (
               <button
                 key={t}
@@ -201,22 +211,22 @@ export function EmployeeProfile({
 
       {/* Tab content */}
       <div className="mt-5">
-        {tab === "Overview" && <OverviewTab person={person} nameById={nameById} onNavigate={setTab} />}
-        {tab === "About" && <AboutTab person={person} />}
-        {tab === "Job" && <JobTab person={person} canEdit={canEdit} nameById={nameById} />}
-        {tab === "Attendance" && <AttendanceTab person={person} canEdit={canEdit} />}
-        {tab === "Leave" && <LeaveTab person={person} canEdit={canEdit} onAdjust={() => setDialog("manage-leave")} />}
-        {tab === "Projects" && <ProjectsTab person={person} canEdit={canEdit} onAssign={() => setDialog("assign-project")} />}
-        {tab === "Documents" && <DocumentsTab person={person} canEdit={canEdit} />}
-        {tab === "Assets" && <AssetsTab person={person} canEdit={canEdit} nameById={nameById} onAssign={() => setDialog("assign-asset")} />}
-        {tab === "Activity" && <ActivityTab person={person} nameById={nameById} />}
+        {activeTab === "Overview" && <OverviewTab person={person} nameById={nameById} onNavigate={setTab} />}
+        {activeTab === "About" && <AboutTab person={person} />}
+        {activeTab === "Job" && <JobTab person={person} canEdit={canEdit} nameById={nameById} />}
+        {activeTab === "Attendance" && <AttendanceTab person={person} canEdit={canEdit} />}
+        {activeTab === "Leave" && <LeaveTab person={person} canEdit={canEdit} onAdjust={() => setDialog("manage-leave")} />}
+        {activeTab === "Projects" && <ProjectsTab person={person} canEdit={canEdit} onAssign={() => setDialog("assign-project")} />}
+        {activeTab === "Documents" && <DocumentsTab person={person} canEdit={canEdit} />}
+        {activeTab === "Assets" && <AssetsTab person={person} canEdit={canEdit} selfService={isSelf && !canEdit} nameById={nameById} onAssign={() => setDialog("assign-asset")} />}
+        {activeTab === "Activity" && <ActivityTab person={person} nameById={nameById} />}
       </div>
 
       {/* Kebab + dialogs */}
       <EmployeeActionsMenu anchor={kebab} person={person} canEdit={canEdit} onClose={() => setKebab(null)} onAction={runAction} />
       {dialog === "assign-project" ? <AssignProjectDialog person={person} open onClose={() => setDialog(null)} /> : null}
       {dialog === "manage-leave" ? <AdjustLeaveDialog person={person} open onClose={() => setDialog(null)} /> : null}
-      {dialog === "assign-asset" ? <AssignAssetDialog person={person} open onClose={() => setDialog(null)} /> : null}
+      {dialog === "assign-asset" ? <AssignAssetDialog person={person} open selfService={isSelf && !canEdit} onClose={() => setDialog(null)} /> : null}
     </div>
   );
 }

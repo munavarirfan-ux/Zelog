@@ -30,11 +30,6 @@ function Panel({ title, sub, icon: Icon, color = "#7A4DFF", children }: {
 export function AttendanceSettings() {
   return (
     <div className="space-y-5">
-      <div>
-        <h2 className="text-base font-semibold text-text">Attendance</h2>
-        <p className="mt-0.5 text-xs text-text-tertiary">Geofencing, work-from-home verification, overtime, and holiday rules.</p>
-      </div>
-
       <div className="grid gap-5 lg:grid-cols-2">
         <Panel title="Office Rules" sub="Geofence & timing" icon={Building2} color="#34D399">
           <div className="space-y-1">

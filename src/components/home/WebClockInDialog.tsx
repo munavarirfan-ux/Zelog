@@ -16,6 +16,30 @@ type Step = "location" | "selfie" | "done";
 interface Coords {
   lat: number;
   lng: number;
+  accuracy: number; // meters
+}
+
+/** Real IANA timezone from the device, formatted with its GMT offset. */
+function deviceTimezone(): string {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const offMin = -new Date().getTimezoneOffset();
+    const sign = offMin >= 0 ? "+" : "-";
+    const h = Math.floor(Math.abs(offMin) / 60);
+    const m = Math.abs(offMin) % 60;
+    return `${tz} (GMT${sign}${h}${m ? `:${String(m).padStart(2, "0")}` : ""})`;
+  } catch {
+    return "Asia/Kolkata (GMT+5:30)";
+  }
+}
+
+/** Everything captured live during the clock-in flow, handed back on completion. */
+export interface WebClockInResult {
+  timeLabel: string;
+  address: string;
+  timezone: string;
+  coords: Coords | null;
+  selfieUrl?: string;
 }
 
 export function WebClockInDialog({
@@ -25,7 +49,7 @@ export function WebClockInDialog({
 }: {
   open: boolean;
   onClose: () => void;
-  onComplete: (info: { timeLabel: string; address: string }) => void;
+  onComplete: (info: WebClockInResult) => void;
 }) {
   const [step, setStep] = useState<Step>("location");
 
@@ -33,6 +57,7 @@ export function WebClockInDialog({
   const [locating, setLocating] = useState(true);
   const [coords, setCoords] = useState<Coords | null>(null);
   const [address, setAddress] = useState(FALLBACK_ADDRESS);
+  const [timezone, setTimezone] = useState("Asia/Kolkata (GMT+5:30)");
 
   // Selfie
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -72,6 +97,7 @@ export function WebClockInDialog({
     setPhoto(null);
     setCoords(null);
     setAddress(FALLBACK_ADDRESS);
+    setTimezone(deviceTimezone());
     setLocating(true);
 
     let cancelled = false;
@@ -83,7 +109,12 @@ export function WebClockInDialog({
 
     if (typeof navigator !== "undefined" && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (pos) => settle({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        (pos) =>
+          settle({
+            lat: Number(pos.coords.latitude.toFixed(5)),
+            lng: Number(pos.coords.longitude.toFixed(5)),
+            accuracy: Math.round(pos.coords.accuracy),
+          }),
         () => settle(null), // permission denied / unavailable → fall back to the office address
         { enableHighAccuracy: true, timeout: 8000 },
       );
@@ -137,7 +168,7 @@ export function WebClockInDialog({
     const timeLabel = format(new Date(), "hh:mm a");
     setCheckedInAt(timeLabel);
     stopCamera();
-    onComplete({ timeLabel, address });
+    onComplete({ timeLabel, address, timezone, coords, selfieUrl: photo ?? undefined });
     setStep("done");
   }
 
@@ -218,9 +249,12 @@ export function WebClockInDialog({
                 <p className="text-sm text-text-secondary">{address}</p>
                 {coords ? (
                   <p className="mt-0.5 text-[11px] font-medium tabular-nums text-text-tertiary">
-                    {coords.lat.toFixed(4)}, {coords.lng.toFixed(4)}
+                    {coords.lat.toFixed(5)}, {coords.lng.toFixed(5)} · ±{coords.accuracy}m
                   </p>
                 ) : null}
+                <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-surface-2 px-2.5 py-1 text-[11px] font-medium text-text-tertiary">
+                  <Clock className="h-3 w-3" /> {timezone}
+                </p>
                 <Button className="mt-5 w-full" onClick={() => setStep("selfie")}>
                   Continue
                 </Button>

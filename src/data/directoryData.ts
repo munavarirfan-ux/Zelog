@@ -127,6 +127,8 @@ export interface EmployeeProfileExtra {
   costCenter?: string;
   /** Flags this person as a people manager — makes them selectable as a reporting manager for others. */
   isManager?: boolean;
+  /** Optional secondary reporting manager, in addition to the primary managerId. */
+  additionalManagerId?: string;
   secondaryJobTitle?: string;
   timeType?: string; // Full Time / Part Time (display label)
   workerType?: string; // Permanent / Contract / … (a.k.a. employment terms)
@@ -232,7 +234,52 @@ export interface Asset {
   warrantyExpiry?: string;
   status: AssetStatus;
   notes?: string;
+  /** True when the employee registered this asset themselves (self-service) rather than an admin assigning it. */
+  selfReported?: boolean;
   history: AssetEvent[];
+}
+
+/* ── Asset requests (self-service) ── */
+
+export type AssetRequestKind = "new" | "change";
+export type AssetRequestStatus = "pending" | "approved" | "rejected" | "fulfilled";
+
+export const ASSET_REQUEST_STATUS: Record<AssetRequestStatus, { label: string; color: string }> = {
+  pending: { label: "Pending", color: "#F59E0B" },
+  approved: { label: "Approved", color: "#0F9E6E" },
+  rejected: { label: "Rejected", color: "#E11D48" },
+  fulfilled: { label: "Fulfilled", color: "#10B981" },
+};
+
+/**
+ * Catalog an employee may request from. Deliberately narrow — only the everyday
+ * hardware an employee self-services. Each maps to an existing AssetCategory.
+ */
+export const REQUESTABLE_ASSETS: { label: string; category: AssetCategory }[] = [
+  { label: "Laptop", category: "Laptop" },
+  { label: "Monitor", category: "Monitor" },
+  { label: "Phone", category: "Phone" },
+  { label: "Laptop Charger", category: "Accessory" },
+];
+
+/** Categories an employee may request a replacement/change for. */
+export const REQUESTABLE_CATEGORIES: AssetCategory[] = ["Laptop", "Monitor", "Phone", "Accessory"];
+
+export interface AssetRequest {
+  id: string;
+  employeeId: string;
+  kind: AssetRequestKind;
+  /** Human label, e.g. "Laptop Charger" (may differ from the mapped category). */
+  label: string;
+  category: AssetCategory;
+  /** For change requests — the asset the employee wants replaced/serviced. */
+  currentAssetId?: string;
+  reason: string;
+  status: AssetRequestStatus;
+  createdAt: string;
+  decidedById?: string;
+  decidedAt?: string;
+  note?: string;
 }
 
 /* ── Documents ── */
@@ -316,7 +363,6 @@ export const ACTIVITY_FILTERS: { id: "all" | ActivityCategory; label: string }[]
   { id: "leave", label: "Leave" },
   { id: "projects", label: "Projects" },
   { id: "documents", label: "Documents" },
-  { id: "assets", label: "Assets" },
 ];
 
 export interface ActivityEvent {
@@ -639,8 +685,7 @@ export function seedActivity(employees: Employee[]): ActivityEvent[] {
     const created = `${extra.joiningDate}T09:00:00.000Z`;
     out.push({ id: `act_${emp.id}_1`, employeeId: emp.id, category: "general", title: "Employee created", detail: `${emp.name} added to the directory`, byId: "hrhead", at: created });
     out.push({ id: `act_${emp.id}_2`, employeeId: emp.id, category: "general", title: "Employee activated", detail: "Onboarding completed", byId: "hrhead", at: `${extra.joiningDate}T10:30:00.000Z` });
-    out.push({ id: `act_${emp.id}_3`, employeeId: emp.id, category: "assets", title: "Asset assigned", detail: LAPTOPS[h % LAPTOPS.length].name, byId: "hrhead", at: `${extra.joiningDate}T11:00:00.000Z` });
-    if (h % 2 === 0) out.push({ id: `act_${emp.id}_4`, employeeId: emp.id, category: "projects", title: "Project assigned", detail: `${(PROJECT_POOL[emp.department] ?? ALL_PROJECTS)[0]?.name ?? "Internal"} · Allocation ${[50, 100, 40][h % 3]}%`, byId: "hrhead", at: isoAt(-(3 + (h % 20))) });
+    out.push({ id: `act_${emp.id}_4`, employeeId: emp.id, category: "projects", title: "Project assigned", detail: `${(PROJECT_POOL[emp.department] ?? ALL_PROJECTS)[0]?.name ?? "Internal"} · Allocation ${[50, 100, 40][h % 3]}%`, byId: "hrhead", at: `${extra.joiningDate}T11:00:00.000Z` });
     if (h % 3 === 0) out.push({ id: `act_${emp.id}_5`, employeeId: emp.id, category: "attendance", title: "Attendance corrected", detail: "Check-out time adjusted", byId: "hrhead", at: isoAt(-(1 + (h % 10))) });
   });
   return out;
@@ -654,6 +699,20 @@ export function seedExtras(employees: Employee[]): Record<string, EmployeeProfil
   });
   return map;
 }
+
+/**
+ * A handful of in-flight asset requests so the Assets → Requests queue has
+ * something to triage on first load. A mix of pending (actionable) plus one
+ * approved and one rejected for history.
+ */
+export const SEED_ASSET_REQUESTS: AssetRequest[] = [
+  { id: "areq_seed_1", employeeId: "eng2", kind: "new", label: "Monitor", category: "Monitor", reason: "Second display for reviewing code and debugging side-by-side.", status: "pending", createdAt: isoAt(-2) },
+  { id: "areq_seed_2", employeeId: "des2", kind: "new", label: "Laptop", category: "Laptop", reason: "Current machine can't run the latest design tooling smoothly.", status: "pending", createdAt: isoAt(-1) },
+  { id: "areq_seed_3", employeeId: "eng3", kind: "change", label: "Laptop", category: "Laptop", reason: "Battery drains within an hour — needs servicing or replacement.", status: "pending", createdAt: isoAt(-4) },
+  { id: "areq_seed_4", employeeId: "hr1", kind: "new", label: "Laptop Charger", category: "Accessory", reason: "Spare charger for the Osaka office desk.", status: "pending", createdAt: isoAt(-1) },
+  { id: "areq_seed_5", employeeId: "mkt1", kind: "new", label: "Phone", category: "Phone", reason: "Dedicated work phone for campaign coordination and on-call.", status: "approved", createdAt: isoAt(-9), decidedById: "hrhead", decidedAt: isoAt(-7), note: "Approved — procurement in progress." },
+  { id: "areq_seed_6", employeeId: "prod1", kind: "new", label: "Monitor", category: "Monitor", reason: "Ultrawide for roadmap planning boards.", status: "rejected", createdAt: isoAt(-12), decidedById: "hrhead", decidedAt: isoAt(-10), note: "Budget deferred to next quarter." },
+];
 
 /* ── Convenience: initial seeds bound to the mock roster ── */
 export const SEED_EXTRAS = seedExtras(MOCK_EMPLOYEES);

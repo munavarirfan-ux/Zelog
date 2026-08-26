@@ -260,6 +260,14 @@ html.dark {
    ═══════════════════════════════════════════════════════════ */
 
 :focus-visible {
-  outline: 2px solid rgb(var(--primary-400-rgb) / 0.5);
+  outline: 2px solid rgb(var(--primary-500-rgb));
   outline-offset: 2px;
+}
+
+/* On the purple hero / gradient surfaces, a purple ring has no contrast —
+   opt those regions into a white ring via .on-dark focus contexts. */
+.bg-hero :focus-visible,
+.bg-primary-gradient :focus-visible,
+[data-focus-ring="light"] :focus-visible {
+  outline-color: #ffffff;
 }

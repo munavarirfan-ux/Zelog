@@ -3,8 +3,9 @@
 import { useState } from "react";
 import Dialog from "@mui/material/Dialog";
 import MuiTooltip from "@mui/material/Tooltip";
+import Menu from "@mui/material/Menu";
 import { format, parseISO } from "date-fns";
-import { AlertCircle, Bell, CalendarDays, Check, CheckCircle2, Clock, MessageSquareText, UserCheck, X } from "lucide-react";
+import { AlertCircle, Bell, CalendarDays, Check, CheckCircle2, Clock, Forward, MessageSquareText, UserCheck, X } from "lucide-react";
 import { toast } from "sonner";
 import { PanelCard, TINT } from "./HomeUI";
 import { PersonAvatar } from "@/components/ui/person-avatar";
@@ -12,7 +13,13 @@ import { Button } from "@/components/ui/button";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useTimeOffStore } from "@/store/timeOffStore";
 import { getEmployee, leaveColor, leaveName } from "@/data/homeData";
+import { MOCK_EMPLOYEES } from "@/data/orgData";
 import type { TimeOffRequest } from "@/data/timeOffData";
+
+/** Everyone who manages at least one person — the people an approval can be forwarded to. */
+const MANAGER_IDS = new Set(
+  MOCK_EMPLOYEES.map((e) => e.managerId).filter((id): id is string => Boolean(id)),
+);
 
 const REMINDER_COOLDOWN_MS = 12 * 60 * 1000;
 
@@ -47,8 +54,12 @@ function halfDayLabel(session?: string): string | null {
 }
 
 export function AdminAttentionCard({ leavePending, className }: AdminAttentionCardProps) {
-  const { currentUser } = useCurrentUser();
+  const { currentUser, activeRole } = useCurrentUser();
+  // Forwarding is a manager/admin action — super-admins own every queue, so it
+  // doesn't apply to them.
+  const canForward = activeRole !== "super-admin";
   const setStatus = useTimeOffStore((s) => s.setStatus);
+  const forwardApproval = useTimeOffStore((s) => s.forwardApproval);
 
   const [detail, setDetail] = useState<TimeOffRequest | null>(null);
 
@@ -59,6 +70,13 @@ export function AdminAttentionCard({ leavePending, className }: AdminAttentionCa
     const name = getEmployee(req.employeeId)?.name ?? "the request";
     setStatus(req.id, status, currentUser.id, status === "approved" ? "Approved from Home" : "Declined from Home");
     toast.success(`${status === "approved" ? "Approved" : "Declined"} ${name}'s request`);
+  }
+
+  function forward(req: TimeOffRequest, toId: string) {
+    const toName = getEmployee(toId)?.name ?? "another manager";
+    const fromName = currentUser.name;
+    forwardApproval(req.id, currentUser.id, toId, `Forwarded to ${toName} by ${fromName}`);
+    toast.success(`Forwarded ${getEmployee(req.employeeId)?.name ?? "the"}'s request to ${toName}`);
   }
 
   return (
@@ -73,7 +91,15 @@ export function AdminAttentionCard({ leavePending, className }: AdminAttentionCa
       ) : (
         <ul className="max-h-[320px] space-y-2 overflow-y-auto pr-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {active.map((req) => (
-            <RequestRow key={req.id} req={req} onDecide={decide} onOpen={() => setDetail(req)} />
+            <RequestRow
+              key={req.id}
+              req={req}
+              currentUserId={currentUser.id}
+              canForward={canForward}
+              onDecide={decide}
+              onForward={forward}
+              onOpen={() => setDetail(req)}
+            />
           ))}
         </ul>
       )}
@@ -92,16 +118,30 @@ export function AdminAttentionCard({ leavePending, className }: AdminAttentionCa
 
 function RequestRow({
   req,
+  currentUserId,
+  canForward,
   onDecide,
+  onForward,
   onOpen,
 }: {
   req: TimeOffRequest;
+  currentUserId: string;
+  canForward: boolean;
   onDecide: (req: TimeOffRequest, status: "approved" | "rejected") => void;
+  onForward: (req: TimeOffRequest, toId: string) => void;
   onOpen: () => void;
 }) {
   const [notified, setNotified] = useState(false);
+  const [forwardAnchor, setForwardAnchor] = useState<HTMLElement | null>(null);
   const emp = getEmployee(req.employeeId);
   if (!emp) return null;
+
+  // Managers this request can be forwarded to — never the requester, the current
+  // approver, or someone already on the approver list.
+  const excluded = new Set([req.employeeId, currentUserId, ...req.approverIds]);
+  const candidates = MOCK_EMPLOYEES.filter(
+    (e) => e.status === "active" && MANAGER_IDS.has(e.id) && !excluded.has(e.id),
+  );
 
   function notifyManager() {
     if (notified) return;
@@ -160,19 +200,67 @@ function RequestRow({
             <X className="h-4 w-4" strokeWidth={2.5} />
           </button>
         </MuiTooltip>
-        <MuiTooltip title={notified ? "Reminder sent" : "Send reminder to reporting manager"} placement="top" arrow>
-          <span>
-            <button
-              type="button"
-              onClick={notifyManager}
-              disabled={notified}
-              aria-label={`Send reminder about ${emp.name}'s request`}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-[9px] text-text-tertiary transition-colors hover:bg-white hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400/40 disabled:cursor-not-allowed disabled:opacity-40"
+        {canForward && (
+          <>
+            <MuiTooltip title="Forward to another manager" placement="top" arrow>
+              <span>
+                <button
+                  type="button"
+                  onClick={(e) => setForwardAnchor(e.currentTarget)}
+                  disabled={candidates.length === 0}
+                  aria-label={`Forward ${emp.name}'s request to another manager`}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-[9px] text-text-tertiary transition-colors hover:bg-white hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400/40 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <Forward className="h-4 w-4" strokeWidth={2} />
+                </button>
+              </span>
+            </MuiTooltip>
+            <Menu
+              anchorEl={forwardAnchor}
+              open={Boolean(forwardAnchor)}
+              onClose={() => setForwardAnchor(null)}
+              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+              transformOrigin={{ vertical: "top", horizontal: "right" }}
+              slotProps={{ paper: { sx: { borderRadius: "14px", mt: 0.5, minWidth: 240, backgroundImage: "none", boxShadow: "0 12px 32px rgba(17,17,26,0.12)" } } }}
             >
-              <Bell className="h-4 w-4" strokeWidth={2} />
-            </button>
-          </span>
-        </MuiTooltip>
+              <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-text-tertiary">
+                Forward approval to
+              </p>
+              {candidates.map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => {
+                    onForward(req, m.id);
+                    setForwardAnchor(null);
+                  }}
+                  className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-[rgba(122,77,255,0.06)]"
+                >
+                  <PersonAvatar name={m.name} src={m.avatarUrl} size={28} />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium text-text">{m.name}</span>
+                    <span className="block truncate text-xs text-text-tertiary">{m.jobTitle}</span>
+                  </span>
+                </button>
+              ))}
+            </Menu>
+          </>
+        )}
+        {!canForward && (
+          <MuiTooltip title={notified ? "Reminder sent" : "Send reminder to reporting manager"} placement="top" arrow>
+            <span>
+              <button
+                type="button"
+                onClick={notifyManager}
+                disabled={notified}
+                aria-label={`Send reminder about ${emp.name}'s request`}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-[9px] text-text-tertiary transition-colors hover:bg-white hover:text-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400/40 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <Bell className="h-4 w-4" strokeWidth={2} />
+              </button>
+            </span>
+          </MuiTooltip>
+        )}
       </div>
     </li>
   );

@@ -7,6 +7,7 @@ import { CalendarClock, History, Plus } from "lucide-react";
 import { computeBalances, leaveTypeById, MOCK_REQUESTS, requestLabel, type RequestStatus } from "@/data/timeOffData";
 import { DIR_TODAY } from "@/data/directoryData";
 import { useDirectoryStore } from "@/store/directoryStore";
+import { LeaveBalanceRings } from "@/components/timeoff/LeaveBalanceRings";
 import { cn } from "@/lib/utils";
 import type { DirectoryPerson } from "../shared";
 import { Section, Empty } from "./parts";
@@ -24,22 +25,37 @@ const STATUS_STYLE: Record<RequestStatus, { label: string; color: string }> = {
 
 export function LeaveTab({ person, canEdit, onAdjust }: { person: DirectoryPerson; canEdit: boolean; onAdjust: () => void }) {
   const [sub, setSub] = useState<Sub>("Upcoming");
+  const [typeFilter, setTypeFilter] = useState<string | null>(null);
+  const requestsRef = React.useRef<HTMLDivElement>(null);
   const allAdjustments = useDirectoryStore((s) => s.leaveAdjustments);
   const adjustments = useMemo(() => allAdjustments.filter((a) => a.employeeId === person.id), [allAdjustments, person.id]);
 
   const balances = useMemo(() => {
     const base = computeBalances(person.id, MOCK_REQUESTS);
-    return base.map((b) => {
-      const delta = adjustments.filter((a) => a.leaveTypeId === b.key).reduce((s, a) => s + a.delta, 0);
-      return { ...b, available: Math.max(0, b.available + delta) };
-    });
+    return base
+      .map((b) => {
+        const delta = adjustments.filter((a) => a.leaveTypeId === b.key).reduce((s, a) => s + a.delta, 0);
+        return { ...b, available: Math.max(0, b.available + delta) };
+      })
+      // Show a ring per leave type that carries an annual quota.
+      .filter((b) => b.total > 0 || b.used > 0);
   }, [person.id, adjustments]);
 
-  const mine = useMemo(() => MOCK_REQUESTS.filter((r) => r.employeeId === person.id), [person.id]);
+  function viewDetails(key: string) {
+    setTypeFilter(key);
+    setSub("History");
+    requestsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  const mine = useMemo(() => {
+    const all = MOCK_REQUESTS.filter((r) => r.employeeId === person.id);
+    return typeFilter ? all.filter((r) => r.leaveTypeId === typeFilter) : all;
+  }, [person.id, typeFilter]);
   const today = parseISO(DIR_TODAY);
   const upcoming = mine.filter((r) => r.status === "approved" && parseISO(r.startDate) >= today);
   const pending = mine.filter((r) => r.status === "pending" || r.status === "changes-requested");
   const history = mine.filter((r) => parseISO(r.endDate) < today || r.status === "rejected" || r.status === "cancelled");
+  const filterLabel = typeFilter ? leaveTypeById(typeFilter)?.name ?? typeFilter : null;
 
   return (
     <div className="space-y-4">
@@ -53,22 +69,7 @@ export function LeaveTab({ person, canEdit, onAdjust }: { person: DirectoryPerso
           </button>
         ) : undefined}
       >
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {balances.map((b) => (
-            <div key={b.key} className="rounded-[14px] border border-border/[0.07] p-4">
-              <div className="mb-2 flex items-center gap-2">
-                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: b.color }} />
-                <p className="text-sm font-medium text-text">{b.label}</p>
-              </div>
-              <p className="text-2xl font-bold tabular-nums" style={{ color: b.color }}>{b.available}</p>
-              <p className="text-[11px] text-text-tertiary">available of {b.total}</p>
-              <div className="mt-2 flex gap-3 text-[11px] text-text-tertiary">
-                <span>Used {b.used}</span>
-                <span>Pending {b.pending}</span>
-              </div>
-            </div>
-          ))}
-        </div>
+        <LeaveBalanceRings balances={balances} onViewDetails={viewDetails} />
         {canEdit ? (
           <p className="mt-3 rounded-[10px] bg-surface-2/60 px-3 py-2 text-[11px] text-text-tertiary">
             Manual adjustments are always recorded with reason, actor and before/after balance in the Adjustments tab and activity log.
@@ -77,7 +78,20 @@ export function LeaveTab({ person, canEdit, onAdjust }: { person: DirectoryPerso
       </Section>
 
       {/* Requests */}
-      <Section title="Leave Requests" icon={History} tint="#38BDF8">
+      <div ref={requestsRef}>
+      <Section
+        title="Leave Requests"
+        icon={History}
+        tint="#38BDF8"
+        action={filterLabel ? (
+          <button
+            onClick={() => setTypeFilter(null)}
+            className="inline-flex items-center gap-1.5 rounded-full bg-surface-2 px-3 py-1 text-xs font-medium text-text-secondary transition-colors hover:text-text"
+          >
+            {filterLabel} ✕
+          </button>
+        ) : undefined}
+      >
         <div className="mb-4 inline-flex items-center gap-1 rounded-[12px] bg-surface-2 p-1">
           {SUBTABS.map((s) => (
             <button
@@ -136,6 +150,7 @@ export function LeaveTab({ person, canEdit, onAdjust }: { person: DirectoryPerso
           })()
         )}
       </Section>
+      </div>
     </div>
   );
 }

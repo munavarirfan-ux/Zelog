@@ -11,13 +11,23 @@ interface RoleState {
   setRole: (role: Role) => void;
 }
 
+const VALID_ROLES: Role[] = ["super-admin", "admin", "employee"];
+
 export const useRoleStore = create<RoleState>()(
   persist(
     (set) => ({
       role: DEFAULT_ROLE,
       setRole: (role) => set({ role }),
     }),
-    { name: "zelog-role-v1", skipHydration: true },
+    {
+      name: "zelog-role-v1",
+      skipHydration: true,
+      // Coerce any stale/removed persisted role (e.g. an old preview role) back to the default.
+      merge: (persisted, current) => {
+        const saved = (persisted as Partial<RoleState> | undefined)?.role;
+        return { ...current, ...(persisted as object), role: saved && VALID_ROLES.includes(saved) ? saved : DEFAULT_ROLE };
+      },
+    },
   ),
 );
 

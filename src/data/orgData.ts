@@ -28,17 +28,19 @@ export interface Department {
   name: string;
   /** Pastel indicator color (matches the app's chart palette). */
   color: string;
+  /** Sub-departments (teams) under this department, e.g. Design → UX Research. */
+  subDepartments: string[];
 }
 
 export const DEPARTMENTS: Department[] = [
-  { name: "Executive", color: "#8B7CF6" },
-  { name: "Engineering", color: "#7DD3FC" },
-  { name: "Product", color: "#6EE7B7" },
-  { name: "Design", color: "#F9A8D4" },
-  { name: "Marketing", color: "#FDBA74" },
-  { name: "Sales", color: "#C4B5FD" },
-  { name: "HR", color: "#93C5FD" },
-  { name: "Operations", color: "#A7F3D0" },
+  { name: "Executive", color: "#8B7CF6", subDepartments: ["Leadership"] },
+  { name: "Engineering", color: "#7DD3FC", subDepartments: ["Platform", "Frontend", "Backend", "Infrastructure", "Mobile"] },
+  { name: "Product", color: "#6EE7B7", subDepartments: ["Core Product", "Growth", "Research"] },
+  { name: "Design", color: "#F9A8D4", subDepartments: ["Product Design", "Brand", "UX Research"] },
+  { name: "Marketing", color: "#FDBA74", subDepartments: ["Content", "Performance", "Brand"] },
+  { name: "Sales", color: "#C4B5FD", subDepartments: ["Enterprise", "SMB", "Partnerships"] },
+  { name: "HR", color: "#93C5FD", subDepartments: ["People Ops", "Talent"] },
+  { name: "Operations", color: "#A7F3D0", subDepartments: ["Workplace", "Finance Ops"] },
 ];
 
 /** Pastel palette used to auto-assign colors to newly created departments. */

@@ -28,6 +28,8 @@ interface TimeOffState {
   createRequest: (input: NewRequestInput) => string;
   updateRequest: (id: string, patch: RequestPatch) => void;
   cancelRequest: (id: string, byId: string) => void;
+  /** Hand a pending request's approval over to another manager. */
+  forwardApproval: (id: string, fromId: string, toId: string, note?: string) => void;
   setStatus: (id: string, status: RequestStatus, byId: string, comment?: string) => void;
   bulkSetStatus: (ids: string[], status: RequestStatus, byId: string) => void;
   addComment: (id: string, byId: string, text: string) => void;
@@ -74,6 +76,21 @@ export const useTimeOffStore = create<TimeOffState>()(
           requests: s.requests.map((r) =>
             r.id === id ? { ...r, status: "cancelled", comments: [...r.comments, comment(byId, "Request cancelled", "cancelled")] } : r,
           ),
+        }));
+      },
+
+      forwardApproval: (id, fromId, toId, note) => {
+        set((s) => ({
+          requests: s.requests.map((r) => {
+            if (r.id !== id) return r;
+            // Reassign approval: drop the forwarding manager, add the new one.
+            const approverIds = Array.from(new Set([...r.approverIds.filter((a) => a !== fromId), toId]));
+            return {
+              ...r,
+              approverIds,
+              comments: [...r.comments, comment(fromId, note ?? "Forwarded for approval", "comment")],
+            };
+          }),
         }));
       },
 

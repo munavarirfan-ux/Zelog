@@ -421,6 +421,8 @@ export interface SubNavItem {
   id: string;
   label: string;
   icon: LucideIcon;
+  /** Optional count badge rendered after the label. */
+  count?: number;
 }
 
 export function SubNav({ items, value, onChange, showIcons = false }: { items: SubNavItem[]; value: string; onChange: (id: string) => void; showIcons?: boolean }) {
@@ -444,6 +446,16 @@ export function SubNav({ items, value, onChange, showIcons = false }: { items: S
           >
             {showIcons ? <Icon className="h-4 w-4" /> : null}
             {it.label}
+            {typeof it.count === "number" && it.count > 0 ? (
+              <span
+                className={cn(
+                  "rounded-full px-1.5 py-0.5 text-[10px] font-bold tabular-nums",
+                  active ? "bg-primary-600 text-white" : "bg-surface text-text-tertiary",
+                )}
+              >
+                {it.count}
+              </span>
+            ) : null}
           </button>
         );
       })}

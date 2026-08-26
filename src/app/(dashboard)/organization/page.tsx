@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
 import { toast } from "sonner";
-import { FolderPlus, Plus, Users } from "lucide-react";
+import { Users } from "lucide-react";
 import {
   buildTree,
   getAncestorIds,
@@ -16,9 +16,7 @@ import { useRoleStore, useHydratedRole } from "@/store/roleStore";
 import { OrgTree } from "@/components/org/OrgTree";
 import { EmployeeDrawer } from "@/components/org/EmployeeDrawer";
 import { EmployeeFormDialog } from "@/components/org/EmployeeFormDialog";
-import { AddDepartmentDialog } from "@/components/org/AddDepartmentDialog";
 import { ReassignManagerDialog } from "@/components/org/ReassignManagerDialog";
-import { cn } from "@/lib/utils";
 
 const ZOOM = 0.85;
 
@@ -30,8 +28,6 @@ export default function OrganizationPage() {
 
   const employees = useOrgStore((s) => s.employees);
   const departments = useOrgStore((s) => s.departments);
-  const addDepartment = useOrgStore((s) => s.addDepartment);
-  const addEmployee = useOrgStore((s) => s.addEmployee);
   const updateEmployee = useOrgStore((s) => s.updateEmployee);
   const reassignManager = useOrgStore((s) => s.reassignManager);
   const deactivateEmployee = useOrgStore((s) => s.deactivateEmployee);
@@ -43,10 +39,9 @@ export default function OrganizationPage() {
   const [deptFilter, setDeptFilter] = useState<string>("all");
 
   const [formOpen, setFormOpen] = useState(false);
-  const [formMode, setFormMode] = useState<"add" | "edit">("add");
+  const [formMode, setFormMode] = useState<"add" | "edit">("edit");
   const [formInitial, setFormInitial] = useState<Employee | null>(null);
   const [reassignId, setReassignId] = useState<string | null>(null);
-  const [deptDialogOpen, setDeptDialogOpen] = useState(false);
 
   const viewportRef = useRef<HTMLDivElement>(null);
   const pan = useRef<{ x: number; y: number; left: number; top: number } | null>(null);
@@ -162,12 +157,8 @@ export default function OrganizationPage() {
   }
 
   function handleFormSubmit(input: NewEmployeeInput | EmployeePatch, id?: string) {
-    if (formMode === "add") {
-      const newId = addEmployee(input as NewEmployeeInput);
-      setFormOpen(false);
-      focusEmployee(newId);
-      toast.success("Employee added to the organization");
-    } else if (id) {
+    // Employees are created from the Directory now — the org chart only edits existing people.
+    if (id) {
       updateEmployee(id, input as EmployeePatch);
       setFormOpen(false);
       toast.success("Employee updated");
@@ -187,11 +178,6 @@ export default function OrganizationPage() {
     toast.success("Manager reassigned — the reporting branch moved");
   }
 
-  const openAdd = () => {
-    setFormMode("add");
-    setFormInitial(null);
-    setFormOpen(true);
-  };
   const openEdit = (id: string) => {
     setFormMode("edit");
     setFormInitial(employees.find((e) => e.id === id) ?? null);
@@ -209,24 +195,6 @@ export default function OrganizationPage() {
             <h1 className="text-2xl font-semibold tracking-tight">Organization</h1>
             <p className="mt-0.5 text-sm text-white/60">View and manage your organization structure.</p>
           </div>
-          {canManage && (
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setDeptDialogOpen(true)}
-                className="inline-flex h-10 items-center gap-1.5 rounded-[12px] border border-white/25 bg-white/10 px-4 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20"
-              >
-                <FolderPlus className="h-4 w-4" /> Add department
-              </button>
-              <button
-                type="button"
-                onClick={openAdd}
-                className="inline-flex h-10 items-center gap-1.5 rounded-[12px] bg-white/90 px-4 text-sm font-semibold text-primary-800 shadow-sm transition-colors hover:bg-white"
-              >
-                <Plus className="h-4 w-4" /> Add employee
-              </button>
-            </div>
-          )}
         </div>
       </section>
 
@@ -259,7 +227,7 @@ export default function OrganizationPage() {
           Loading organization…
         </div>
       ) : employees.length === 0 ? (
-        <EmptyOrg canManage={canManage} onAdd={openAdd} />
+        <EmptyOrg />
       ) : (
         <div
           ref={viewportRef}
@@ -310,35 +278,20 @@ export default function OrganizationPage() {
         onClose={() => setReassignId(null)}
         onConfirm={handleReassignConfirm}
       />
-      <AddDepartmentDialog
-        open={deptDialogOpen}
-        departments={departments}
-        onClose={() => setDeptDialogOpen(false)}
-        onSubmit={(name, color) => {
-          addDepartment(name, color);
-          setDeptDialogOpen(false);
-          toast.success(`Department “${name}” created`);
-        }}
-      />
     </div>
   );
 }
 
-function EmptyOrg({ canManage, onAdd }: { canManage: boolean; onAdd: () => void }) {
+function EmptyOrg() {
   return (
     <div className="flex flex-1 flex-col items-center justify-center rounded-[16px] border border-dashed border-border/15 bg-surface p-10 text-center dark:border-white/[0.08]">
       <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-100/60 text-primary-600 dark:bg-primary-100/40">
         <Users className="h-7 w-7" />
       </div>
-      <h2 className="mt-4 text-base font-semibold text-text">Start building your organization</h2>
+      <h2 className="mt-4 text-base font-semibold text-text">No one in the organization yet</h2>
       <p className="mt-1 max-w-sm text-sm text-text-secondary">
-        Add your first employee and define their reporting structure.
+        Add people from the Directory — once they have a manager, they’ll appear here in the reporting structure.
       </p>
-      {canManage && (
-        <button type="button" onClick={onAdd} className={cn("mt-5 inline-flex h-10 items-center gap-2 rounded-[12px] bg-primary-gradient px-4 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-95")}>
-          <Plus className="h-4 w-4" /> Add employee
-        </button>
-      )}
     </div>
   );
 }

@@ -54,12 +54,12 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "reports.view",
     "clients.view",
     "inbox.view",
-    // Note: no "settings.manage" — global settings stay Super-Admin only.
   ],
   employee: [
     "employees.view", // read-only directory / org chart
     "attendance.view",
     "timeoff.view",
+    "inbox.view", // personal inbox: notifications + own requests needing action
   ],
 };
 

@@ -59,16 +59,144 @@ export const CURRENT_USER_ID = "eng1"; // Irfan Alisha (see orgData)
 export interface Holiday {
   date: string; // yyyy-MM-dd
   name: string;
+  /** Optional (restricted) holiday — employees may choose to avail it or not. */
+  optional?: boolean;
 }
 
 /** Default company holidays (seed; customizable by the Company Head). */
 export const DEFAULT_HOLIDAYS: Holiday[] = [
+  { date: "2026-01-01", name: "New Year's Day" },
+  { date: "2026-01-14", name: "Pongal / Makar Sankranti" },
+  { date: "2026-01-15", name: "Pongal (Day 2)", optional: true },
+  { date: "2026-01-26", name: "Republic Day" },
+  { date: "2026-03-04", name: "Holi", optional: true },
+  { date: "2026-03-19", name: "Ugadi", optional: true },
+  { date: "2026-03-20", name: "Eid-ul-Fitar" },
+  { date: "2026-04-03", name: "Good Friday" },
+  { date: "2026-05-27", name: "Bakrid / Eid al-Adha", optional: true },
   { date: "2026-08-15", name: "Independence Day" },
-  { date: "2026-08-28", name: "Onam" },
+  { date: "2026-08-28", name: "Onam", optional: true },
+  { date: "2026-09-14", name: "Ganesh Chaturthi" },
   { date: "2026-10-02", name: "Gandhi Jayanti" },
-  { date: "2026-10-20", name: "Diwali" },
+  { date: "2026-10-20", name: "Diwali / Deepavali" },
+  { date: "2026-10-21", name: "Vijaya Dashami" },
   { date: "2026-12-25", name: "Christmas" },
 ];
+
+/* ─────────────── Location-wise holiday calendars ─────────────── */
+
+/** A named holiday calendar, mapped to one or more office locations (a country). */
+export interface HolidayCalendar {
+  id: string;
+  name: string;
+  country: string;
+  flag: string;         // emoji flag / glyph
+  locations: string[];  // office cities that follow this calendar
+  isDefault?: boolean;
+  holidays: Holiday[];
+}
+
+// Country holiday seeds (2026). Kept intentionally lightweight for the prototype.
+const US_HOLIDAYS: Holiday[] = [
+  { date: "2026-01-01", name: "New Year's Day" },
+  { date: "2026-01-19", name: "Martin Luther King Jr. Day" },
+  { date: "2026-02-16", name: "Presidents' Day" },
+  { date: "2026-05-25", name: "Memorial Day" },
+  { date: "2026-06-19", name: "Juneteenth" },
+  { date: "2026-07-03", name: "Independence Day (observed)" },
+  { date: "2026-09-07", name: "Labor Day" },
+  { date: "2026-11-11", name: "Veterans Day", optional: true },
+  { date: "2026-11-26", name: "Thanksgiving" },
+  { date: "2026-11-27", name: "Day after Thanksgiving", optional: true },
+  { date: "2026-12-25", name: "Christmas Day" },
+];
+
+const UK_HOLIDAYS: Holiday[] = [
+  { date: "2026-01-01", name: "New Year's Day" },
+  { date: "2026-04-03", name: "Good Friday" },
+  { date: "2026-04-06", name: "Easter Monday" },
+  { date: "2026-05-04", name: "Early May Bank Holiday" },
+  { date: "2026-05-25", name: "Spring Bank Holiday" },
+  { date: "2026-08-31", name: "Summer Bank Holiday" },
+  { date: "2026-12-25", name: "Christmas Day" },
+  { date: "2026-12-28", name: "Boxing Day (substitute)" },
+];
+
+const DE_HOLIDAYS: Holiday[] = [
+  { date: "2026-01-01", name: "Neujahr" },
+  { date: "2026-04-03", name: "Karfreitag" },
+  { date: "2026-04-06", name: "Ostermontag" },
+  { date: "2026-05-01", name: "Tag der Arbeit" },
+  { date: "2026-05-14", name: "Christi Himmelfahrt" },
+  { date: "2026-05-25", name: "Pfingstmontag" },
+  { date: "2026-10-03", name: "Tag der Deutschen Einheit" },
+  { date: "2026-12-25", name: "Erster Weihnachtstag" },
+  { date: "2026-12-26", name: "Zweiter Weihnachtstag" },
+];
+
+const AE_HOLIDAYS: Holiday[] = [
+  { date: "2026-01-01", name: "New Year's Day" },
+  { date: "2026-03-20", name: "Eid al-Fitr", optional: true },
+  { date: "2026-05-27", name: "Eid al-Adha" },
+  { date: "2026-12-02", name: "UAE National Day" },
+  { date: "2026-12-03", name: "UAE National Day (Day 2)", optional: true },
+];
+
+const SG_HOLIDAYS: Holiday[] = [
+  { date: "2026-01-01", name: "New Year's Day" },
+  { date: "2026-02-17", name: "Chinese New Year" },
+  { date: "2026-05-01", name: "Labour Day" },
+  { date: "2026-08-09", name: "National Day" },
+  { date: "2026-12-25", name: "Christmas Day" },
+];
+
+const JP_HOLIDAYS: Holiday[] = [
+  { date: "2026-01-01", name: "New Year's Day" },
+  { date: "2026-05-05", name: "Children's Day" },
+  { date: "2026-07-20", name: "Marine Day" },
+  { date: "2026-11-03", name: "Culture Day" },
+  { date: "2026-12-23", name: "Emperor's Birthday", optional: true },
+];
+
+const GLOBAL_HOLIDAYS: Holiday[] = [
+  { date: "2026-01-01", name: "New Year's Day" },
+  { date: "2026-12-25", name: "Christmas Day" },
+];
+
+/** Seed calendars mapped to the demo org's real office cities. */
+export const DEFAULT_CALENDARS: HolidayCalendar[] = [
+  { id: "cal-in", name: "India", country: "India", flag: "🇮🇳", locations: ["Hyderabad"], isDefault: true, holidays: DEFAULT_HOLIDAYS },
+  { id: "cal-us", name: "United States", country: "United States", flag: "🇺🇸", locations: ["San Francisco", "New York"], holidays: US_HOLIDAYS },
+  { id: "cal-uk", name: "United Kingdom", country: "United Kingdom", flag: "🇬🇧", locations: ["London"], holidays: UK_HOLIDAYS },
+  { id: "cal-de", name: "Germany", country: "Germany", flag: "🇩🇪", locations: ["Berlin", "Munich"], holidays: DE_HOLIDAYS },
+  { id: "cal-ae", name: "UAE", country: "United Arab Emirates", flag: "🇦🇪", locations: ["Dubai"], holidays: AE_HOLIDAYS },
+  { id: "cal-global", name: "Global", country: "All other locations", flag: "🌐", locations: [], holidays: GLOBAL_HOLIDAYS },
+];
+
+/** Presets offered when creating a new calendar. */
+export interface CountryPreset { code: string; name: string; flag: string; holidays: Holiday[]; }
+export const COUNTRY_PRESETS: CountryPreset[] = [
+  { code: "IN", name: "India", flag: "🇮🇳", holidays: DEFAULT_HOLIDAYS },
+  { code: "US", name: "United States", flag: "🇺🇸", holidays: US_HOLIDAYS },
+  { code: "GB", name: "United Kingdom", flag: "🇬🇧", holidays: UK_HOLIDAYS },
+  { code: "DE", name: "Germany", flag: "🇩🇪", holidays: DE_HOLIDAYS },
+  { code: "AE", name: "United Arab Emirates", flag: "🇦🇪", holidays: AE_HOLIDAYS },
+  { code: "SG", name: "Singapore", flag: "🇸🇬", holidays: SG_HOLIDAYS },
+  { code: "JP", name: "Japan", flag: "🇯🇵", holidays: JP_HOLIDAYS },
+  { code: "XX", name: "Blank calendar", flag: "🗓️", holidays: [] },
+];
+
+/** The calendar that applies to a given office location (falls back to default). */
+export function calendarForLocation(calendars: HolidayCalendar[], location?: string): HolidayCalendar | undefined {
+  if (!calendars.length) return undefined;
+  const byLoc = location ? calendars.find((c) => c.locations.includes(location)) : undefined;
+  return byLoc ?? calendars.find((c) => c.isDefault) ?? calendars[0];
+}
+
+/** Holidays that apply to a given office location. */
+export function holidaysForLocation(calendars: HolidayCalendar[], location?: string): Holiday[] {
+  return calendarForLocation(calendars, location)?.holidays ?? [];
+}
 
 // Live holiday lookup used by date helpers; kept in sync with the holiday store.
 let holidayMap: Record<string, string> = Object.fromEntries(DEFAULT_HOLIDAYS.map((h) => [h.date, h.name]));

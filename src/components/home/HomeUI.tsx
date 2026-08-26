@@ -113,6 +113,12 @@ export function CountUp({ value, className }: { value: number; className?: strin
     const from = ref.current;
     const to = value;
     if (from === to) return;
+    // Respect the OS "Reduce motion" preference — skip the count animation.
+    if (typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      setDisplay(to);
+      ref.current = to;
+      return;
+    }
     const duration = 650;
     let raf = 0;
     let start: number | null = null;
